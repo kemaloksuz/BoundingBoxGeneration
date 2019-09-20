@@ -66,6 +66,31 @@ def bbox_overlaps(bboxes1, bboxes2, mode='iou', is_aligned=False):
 def area(bboxes):
     return (bboxes[:,2]-bboxes[:,0])*(bboxes[:,3]-bboxes[:,1])
 
+def integral_image_compute(masks):
+    gt_number=len(masks)
+    print(gt_number)  
+    integral_images= [None] * gt_number
+    for i in range(gt_number):
+        image_size=masks[i].size()
+        pad_row=torch.zeros([1,image_size[1]], dtype=torch.uint8, device=torch.device('cuda:0'))
+        pad_col=torch.zeros([image_size[0]+1,1], dtype=torch.uint8, device=torch.device('cuda:0'))
+        integral_images[i]=torch.cat([pad_col,torch.cat([pad_row,masks[i]],dim=0)], dim=1)
+        integral_images[i]=torch.cumsum(torch.cumsum(integral_images[i],dim=0), dim=1)
+        print(integral_images[i])
+    return integral_images
+
+def integral_image_fetch(bboxes, mask):
+    bboxes[:,[2,3]]+=1
+    print(bboxes)
+    #print(mask[[0,1],[4,4]])
+    #Create indices
+    print(bboxes[:,2],bboxes[:,3])
+    idx=torch.cat([bboxes[:,2],bboxes[:,3]],dim=1)
+    print(idx)
+    area=mask[bboxes[:,2],bboxes[:,3]]
+    #area=mask[bboxes[:,2],bboxes[:,3]]+mask[bboxes[:,0],bboxes[:,1]]-mask[bboxes[:,0],bboxes[:,3]]-mask[bboxes[:,1],bboxes[:,2]]
+    return area
+
 def segm_overlaps(gt_masks, gt_bboxes, bboxes, overlaps, min_overlap,plot=0): 
     import pdb
 
@@ -77,9 +102,9 @@ def segm_overlaps(gt_masks, gt_bboxes, bboxes, overlaps, min_overlap,plot=0):
     #Convert list to torch
 
     #Find number of pixels that are in each bb
-    larger_ind=overlaps>min_overlap
-    nonzero_iou_ind=torch.nonzero(larger_ind)
+    
     #gt_mask_size=torch.sum(gt_masks,dim=[1,2]).type(torch.cuda.FloatTensor)
+    gt_number=len(gt_masks[0])
     image_h,image_w=gt_masks[0].shape
     #end1 = time.time()
     #bboxes=bboxes.type(torch.cuda.IntTensor) 
@@ -87,6 +112,9 @@ def segm_overlaps(gt_masks, gt_bboxes, bboxes, overlaps, min_overlap,plot=0):
     bboxes[:,[0,2]]=torch.clamp(bboxes[:,[0,2]], max=image_w-1)
     bboxes[:,[1,3]]=torch.clamp(bboxes[:,[1,3]], max=image_h-1)
 
+    for i in range(gt_number):
+        larger_ind=overlaps>min_overlap
+        nonzero_iou_ind=torch.nonzero(larger_ind)
     all_boxes=bboxes[nonzero_iou_ind[:,1]]
     anchor_masks=mask_target_single(all_boxes,nonzero_iou_ind[:,0], gt_masks)
     unnorm_anchor=torch.sum(anchor_masks,dim=[1,2]).type(torch.cuda.FloatTensor)
