@@ -1,10 +1,13 @@
 import numpy as np
+import random
+import inspect
+import pdb
 from pycocotools.coco import COCO
 
 from .custom import CustomDataset
 from .registry import DATASETS
 
-
+SAMPLE_SIZE = 10000
 @DATASETS.register_module
 class CocoDataset(CustomDataset):
 
@@ -23,7 +26,7 @@ class CocoDataset(CustomDataset):
                'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock',
                'vase', 'scissors', 'teddy_bear', 'hair_drier', 'toothbrush')
 
-    def load_annotations(self, ann_file):
+    def load_annotations(self, ann_file, sample_flag=True):
         self.coco = COCO(ann_file)
         self.cat_ids = self.coco.getCatIds()
         self.cat2label = {
@@ -32,10 +35,12 @@ class CocoDataset(CustomDataset):
         }
         self.img_ids = self.coco.getImgIds()
         img_infos = []
+        if sample_flag == True:
+            self.img_ids = random.sample(self.img_ids, SAMPLE_SIZE)
         for i in self.img_ids:
             info = self.coco.loadImgs([i])[0]
             info['filename'] = info['file_name']
-            img_infos.append(info)
+            img_infos.append(info) 
         return img_infos
 
     def get_ann_info(self, idx):
@@ -106,5 +111,4 @@ class CocoDataset(CustomDataset):
             bboxes_ignore=gt_bboxes_ignore,
             masks=gt_masks_ann,
             seg_map=seg_map)
-
         return ann

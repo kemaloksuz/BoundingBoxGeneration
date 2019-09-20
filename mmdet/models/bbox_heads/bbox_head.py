@@ -103,6 +103,7 @@ class BBoxHead(nn.Module):
              label_weights,
              bbox_targets,
              bbox_weights,
+             img,
              reduction_override=None):
         losses = dict()
         if cls_score is not None:

@@ -1,7 +1,6 @@
 from __future__ import division
 import argparse
 import os
-
 import torch
 from mmcv import Config
 

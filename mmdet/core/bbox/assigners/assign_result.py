@@ -1,6 +1,5 @@
 import torch
 
-
 class AssignResult(object):
 
     def __init__(self, num_gts, gt_inds, max_overlaps, labels=None):
@@ -8,6 +7,7 @@ class AssignResult(object):
         self.gt_inds = gt_inds
         self.max_overlaps = max_overlaps
         self.labels = labels
+
 
     def add_gt_(self, gt_labels):
         self_inds = torch.arange(
@@ -17,3 +17,6 @@ class AssignResult(object):
             [self.max_overlaps.new_ones(self.num_gts), self.max_overlaps])
         if self.labels is not None:
             self.labels = torch.cat([gt_labels, self.labels])
+
+    def get_labels(self):
+        return self.labels

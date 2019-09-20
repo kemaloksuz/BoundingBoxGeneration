@@ -1,5 +1,5 @@
 import collections
-
+import pdb
 from mmdet.utils import build_from_cfg
 from ..registry import PIPELINES
 
@@ -32,4 +32,5 @@ class Compose(object):
             format_string += '\n'
             format_string += '    {0}'.format(t)
         format_string += '\n)'
+        pdb.set_trace()
         return format_string

@@ -1,4 +1,5 @@
 import torch
+import pdb
 
 from ..bbox import PseudoSampler, assign_and_sample, bbox2delta, build_assigner
 from ..utils import multi_apply
@@ -47,7 +48,7 @@ def anchor_target(anchor_list,
     if gt_labels_list is None:
         gt_labels_list = [None for _ in range(num_imgs)]
     (all_labels, all_label_weights, all_bbox_targets, all_bbox_weights,
-     pos_inds_list, neg_inds_list) = multi_apply(
+     pos_inds_list, neg_inds_list, matched_gt_list_, anchors_list_) = multi_apply(
          anchor_target_single,
          anchor_list,
          valid_flag_list,
@@ -72,8 +73,11 @@ def anchor_target(anchor_list,
     label_weights_list = images_to_levels(all_label_weights, num_level_anchors)
     bbox_targets_list = images_to_levels(all_bbox_targets, num_level_anchors)
     bbox_weights_list = images_to_levels(all_bbox_weights, num_level_anchors)
+    matched_gt_list_ = images_to_levels(matched_gt_list_, num_level_anchors)
+    anchors_list_ = images_to_levels(anchors_list_, num_level_anchors)
+    #pdb.set_trace()
     return (labels_list, label_weights_list, bbox_targets_list,
-            bbox_weights_list, num_total_pos, num_total_neg)
+            bbox_weights_list, num_total_pos, num_total_neg, matched_gt_list_, anchors_list_)
 
 
 def images_to_levels(target, num_level_anchors):
@@ -110,11 +114,12 @@ def anchor_target_single(flat_anchors,
         return (None, ) * 6
     # assign gt and sample anchors
     anchors = flat_anchors[inside_flags, :]
-
+    print(sampling)
     if sampling:
         assign_result, sampling_result = assign_and_sample(
             anchors, gt_bboxes, gt_bboxes_ignore, None, cfg)
     else:
+        pdb.set_trace()
         bbox_assigner = build_assigner(cfg.assigner)
         assign_result = bbox_assigner.assign(anchors, gt_bboxes,
                                              gt_bboxes_ignore, gt_labels)
@@ -124,39 +129,54 @@ def anchor_target_single(flat_anchors,
 
     num_valid_anchors = anchors.shape[0]
     bbox_targets = torch.zeros_like(anchors)
+    matched_gts = torch.zeros_like(anchors)
+    
     bbox_weights = torch.zeros_like(anchors)
     labels = anchors.new_zeros(num_valid_anchors, dtype=torch.long)
     label_weights = anchors.new_zeros(num_valid_anchors, dtype=torch.float)
+    
+    pdb.set_trace()
 
     pos_inds = sampling_result.pos_inds
     neg_inds = sampling_result.neg_inds
     if len(pos_inds) > 0:
+        pdb.set_trace()
         pos_bbox_targets = bbox2delta(sampling_result.pos_bboxes,
                                       sampling_result.pos_gt_bboxes,
                                       target_means, target_stds)
+        
         bbox_targets[pos_inds, :] = pos_bbox_targets
+        matched_gts[pos_inds, :] = sampling_result.pos_gt_bboxes
+
         bbox_weights[pos_inds, :] = 1.0
+        
         if gt_labels is None:
             labels[pos_inds] = 1
         else:
             labels[pos_inds] = gt_labels[sampling_result.pos_assigned_gt_inds]
+        
+        
         if cfg.pos_weight <= 0:
             label_weights[pos_inds] = 1.0
         else:
             label_weights[pos_inds] = cfg.pos_weight
+    
     if len(neg_inds) > 0:
         label_weights[neg_inds] = 1.0
 
     # map up to original set of anchors
+
     if unmap_outputs:
         num_total_anchors = flat_anchors.size(0)
         labels = unmap(labels, num_total_anchors, inside_flags)
+        matched_gts = unmap(matched_gts, num_total_anchors, inside_flags)
+        anchors = unmap(anchors, num_total_anchors, inside_flags)
         label_weights = unmap(label_weights, num_total_anchors, inside_flags)
         bbox_targets = unmap(bbox_targets, num_total_anchors, inside_flags)
         bbox_weights = unmap(bbox_weights, num_total_anchors, inside_flags)
-
+    pdb.set_trace()
     return (labels, label_weights, bbox_targets, bbox_weights, pos_inds,
-            neg_inds)
+            neg_inds, matched_gts, anchors)
 
 
 def anchor_inside_flags(flat_anchors, valid_flags, img_shape,

@@ -4,7 +4,10 @@ from mmdet.core import bbox2result
 from .. import builder
 from ..registry import DETECTORS
 from .base import BaseDetector
-
+import pdb
+import torchvision.transforms.functional as F
+import numpy as np
+import matplotlib.pyplot as plt
 
 @DETECTORS.register_module
 class SingleStageDetector(BaseDetector):
@@ -53,11 +56,14 @@ class SingleStageDetector(BaseDetector):
                       gt_bboxes,
                       gt_labels,
                       gt_bboxes_ignore=None):
+        pdb.set_trace()
+        im_2_show = np.asarray(F.to_pil_image(img.cpu()[0]))
+        plt.imshow(im_2_show)
         x = self.extract_feat(img)
         outs = self.bbox_head(x)
         loss_inputs = outs + (gt_bboxes, gt_labels, img_metas, self.train_cfg)
         losses = self.bbox_head.loss(
-            *loss_inputs, gt_bboxes_ignore=gt_bboxes_ignore)
+            *loss_inputs, img, gt_bboxes_ignore=gt_bboxes_ignore)
         return losses
 
     def simple_test(self, img, img_meta, rescale=False):

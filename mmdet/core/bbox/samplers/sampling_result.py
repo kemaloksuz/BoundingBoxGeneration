@@ -1,5 +1,5 @@
 import torch
-
+import pdb
 
 class SamplingResult(object):
 
@@ -18,6 +18,7 @@ class SamplingResult(object):
             self.pos_gt_labels = assign_result.labels[pos_inds]
         else:
             self.pos_gt_labels = None
+        pdb.set_trace()
 
     @property
     def bboxes(self):

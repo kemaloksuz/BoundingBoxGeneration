@@ -1,0 +1,2 @@
+Consider current pdb place and anchor_target.py script under ${MM_ROOT}/mmdet/core/anchor
+Consider pdb place at bbox/assigners/max_iou_assigner.

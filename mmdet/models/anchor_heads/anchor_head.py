@@ -1,6 +1,8 @@
 from __future__ import division
 
 import numpy as np
+import skimage.io as io
+
 import torch
 import torch.nn as nn
 from mmcv.cnn import normal_init
@@ -9,7 +11,18 @@ from mmdet.core import (AnchorGenerator, anchor_target, delta2bbox, force_fp32,
                         multi_apply, multiclass_nms)
 from ..builder import build_loss
 from ..registry import HEADS
+import pdb
+import inspect
 
+from pycocotools.coco import COCO
+from matplotlib.patches import Rectangle
+
+import matplotlib.pyplot as plt
+import PIL
+from PIL import Image
+from scipy import ndimage
+
+import torchvision.transforms.functional as F
 
 @HEADS.register_module
 class AnchorHead(nn.Module):
@@ -41,9 +54,10 @@ class AnchorHead(nn.Module):
                  loss_cls=dict(
                      type='CrossEntropyLoss',
                      use_sigmoid=True,
+                     reduction="none",
                      loss_weight=1.0),
                  loss_bbox=dict(
-                     type='SmoothL1Loss', beta=1.0 / 9.0, loss_weight=1.0)):
+                     type='SmoothL1Loss', beta=1.0 / 9.0, reduction="none", loss_weight=1.0)):
         super(AnchorHead, self).__init__()
         self.in_channels = in_channels
         self.num_classes = num_classes
@@ -127,11 +141,10 @@ class AnchorHead(nn.Module):
                     (feat_h, feat_w), (valid_feat_h, valid_feat_w))
                 multi_level_flags.append(flags)
             valid_flag_list.append(multi_level_flags)
-
         return anchor_list, valid_flag_list
 
     def loss_single(self, cls_score, bbox_pred, labels, label_weights,
-                    bbox_targets, bbox_weights, num_total_samples, cfg):
+                    bbox_targets, bbox_weights, img_metas, img, matched_gt_list_, anchors_list_, num_total_samples, cfg):
         # classification loss
         labels = labels.reshape(-1)
         label_weights = label_weights.reshape(-1)
@@ -148,6 +161,92 @@ class AnchorHead(nn.Module):
             bbox_targets,
             bbox_weights,
             avg_factor=num_total_samples)
+        pdb.set_trace()
+        CLASSES = ('person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',
+               'train', 'truck', 'boat', 'traffic_light', 'fire_hydrant',
+               'stop_sign', 'parking_meter', 'bench', 'bird', 'cat', 'dog',
+               'horse', 'sheep', 'cow', 'elephant', 'bear', 'zebra', 'giraffe',
+               'backpack', 'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee',
+               'skis', 'snowboard', 'sports_ball', 'kite', 'baseball_bat',
+               'baseball_glove', 'skateboard', 'surfboard', 'tennis_racket',
+               'bottle', 'wine_glass', 'cup', 'fork', 'knife', 'spoon', 'bowl',
+               'banana', 'apple', 'sandwich', 'orange', 'broccoli', 'carrot',
+               'hot_dog', 'pizza', 'donut', 'cake', 'chair', 'couch',
+               'potted_plant', 'bed', 'dining_table', 'toilet', 'tv', 'laptop',
+               'mouse', 'remote', 'keyboard', 'cell_phone', 'microwave',
+               'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock',
+               'vase', 'scissors', 'teddy_bear', 'hair_drier', 'toothbrush')
+        """
+        image üzerinde cls_loss'u en hatalı olan 1 tane anchor box.
+        
+        1. anchors_list
+        2. matched_gt_list
+        3. bbox2delta' -> bbox_preds [test koduna bak] 
+        4. labels
+        5. loss_cls (summed over dim 1)
+        6. loss_bbox (summed over dim 1)
+        
+        how to pass image or coco object to read image??
+        read coco_img with loadImgs
+        read image with coco_url
+
+        (img-meta gelecek) - check
+        """
+        pdb.set_trace()
+        
+        im_2_show = plt.imread(img_metas['filename'])
+        #im_2_show = np.asarray(F.to_pil_image(img.cpu()[0]))
+        print("Pad shape: {}".format(img_metas['pad_shape']))
+        print("Image shape: {}".format(im_2_show.shape))
+        if (img_metas['flip'] == True):
+            im_2_show = np.fliplr(im_2_show)    
+
+        plt.imshow(im_2_show)
+        cls_max = loss_cls.detach().cpu().numpy().sum(1).argmax()
+        print("Image: {}, Cls_max: {}, Cls_val: {}, Bbox_val: {}\n"\
+                .format(img_metas['filename'][-16:-4], \
+                        cls_max, \
+                        loss_cls.detach().cpu().numpy().sum(1)[cls_max], \
+                        loss_bbox.detach().cpu().numpy().sum(1)[cls_max]))
+        
+        matched_gt_list_ = matched_gt_list_ / img_metas['scale_factor']
+        anchors_list_ = anchors_list_ / img_metas['scale_factor']
+	
+        pdb.set_trace()
+                
+        gt_x = matched_gt_list_[cls_max].cpu().numpy()[0]
+        gt_y =  matched_gt_list_[cls_max].cpu().numpy()[1]
+        gt_w =  matched_gt_list_[cls_max].cpu().numpy()[2] - gt_x 
+        gt_h =   matched_gt_list_[cls_max].cpu().numpy()[3] - gt_y
+        gt_w = gt_w
+        gt_h = gt_h
+
+        anch_x = anchors_list_[cls_max].cpu().numpy()[0]
+        anch_y = anchors_list_[cls_max].cpu().numpy()[1]
+        anch_w = anchors_list_[cls_max].cpu().numpy()[2] - anch_x
+        anch_h = anchors_list_[cls_max].cpu().numpy()[3] - anch_y
+        anch_w = anch_w
+        anch_h = anch_h
+	
+        ax=plt.gca()
+
+        rect_gt = Rectangle((gt_x, gt_y), gt_w, gt_h, linewidth=3	, edgecolor='g', facecolor='none')
+        rect_anch = Rectangle((anch_x, anch_y), anch_w, anch_h, linewidth=3, edgecolor='r', facecolor='none')
+        
+        ax.add_patch(rect_gt)
+        ax.add_patch(rect_anch)
+        
+        ax.text(0, 0, "Loss_Cls={}\n" 
+        	      "Loss_Bbox:{}\n" 
+        	      "Total Loss: {}\n"
+                      "Class Label: {}".format(loss_cls.detach().cpu().numpy().sum(1)[cls_max], \
+        	      			      loss_bbox.detach().cpu().numpy().sum(1)[cls_max], \
+        	      			      loss_cls.detach().cpu().numpy().sum(1)[cls_max]+loss_bbox.detach().cpu().numpy().sum(1)[cls_max], \
+        	      			      CLASSES[labels[cls_max]-1], \
+        	      			      fontsize=12))
+        
+        print(img_metas)
+        plt.show()
         return loss_cls, loss_bbox
 
     @force_fp32(apply_to=('cls_scores', 'bbox_preds'))
@@ -158,10 +257,10 @@ class AnchorHead(nn.Module):
              gt_labels,
              img_metas,
              cfg,
+             img,
              gt_bboxes_ignore=None):
         featmap_sizes = [featmap.size()[-2:] for featmap in cls_scores]
         assert len(featmap_sizes) == len(self.anchor_generators)
-
         anchor_list, valid_flag_list = self.get_anchors(
             featmap_sizes, img_metas)
         label_channels = self.cls_out_channels if self.use_sigmoid_cls else 1
@@ -180,7 +279,7 @@ class AnchorHead(nn.Module):
         if cls_reg_targets is None:
             return None
         (labels_list, label_weights_list, bbox_targets_list, bbox_weights_list,
-         num_total_pos, num_total_neg) = cls_reg_targets
+         num_total_pos, num_total_neg, matched_gt_list_, anchors_list_) = cls_reg_targets
         num_total_samples = (
             num_total_pos + num_total_neg if self.sampling else num_total_pos)
         losses_cls, losses_bbox = multi_apply(
@@ -191,8 +290,13 @@ class AnchorHead(nn.Module):
             label_weights_list,
             bbox_targets_list,
             bbox_weights_list,
+            img_metas,
+            img,
+            matched_gt_list_,
+            anchors_list_,
             num_total_samples=num_total_samples,
             cfg=cfg)
+        ##print("Processing image: {}".format(img_metas[0]['filename'][-16:-4]))
         return dict(loss_cls=losses_cls, loss_bbox=losses_bbox)
 
     @force_fp32(apply_to=('cls_scores', 'bbox_preds'))
@@ -230,6 +334,7 @@ class AnchorHead(nn.Module):
                           scale_factor,
                           cfg,
                           rescale=False):
+        pdb.set_trace()
         assert len(cls_scores) == len(bbox_preds) == len(mlvl_anchors)
         mlvl_bboxes = []
         mlvl_scores = []

@@ -1,4 +1,5 @@
 import torch
+import pdb
 
 from ..geometry import bbox_overlaps
 from .assign_result import AssignResult
@@ -148,6 +149,6 @@ class MaxIoUAssigner(BaseAssigner):
                     assigned_gt_inds[pos_inds] - 1]
         else:
             assigned_labels = None
-
+        pdb.set_trace()
         return AssignResult(
             num_gts, assigned_gt_inds, max_overlaps, labels=assigned_labels)

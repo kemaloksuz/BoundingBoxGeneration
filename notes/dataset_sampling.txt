@@ -1,0 +1,5 @@
+. In order to sub-sample coco-dataset:
+    ${MM_ROOT}/mmdet/datasets/coco.py is modified. SAMPLE_SIZE and sample_flag is added.
+  To better implement this, try to modify config file, this issue was already pr.ed @:https://github.com/open-mmlab/mmdetection/issues/923
+  Check build_dataset function under ${MM_ROOT}/mmdet/datasets/builder.py.
+  Check build_from_cfg function under ${MM_ROOT}/mmdet/utils.py.
