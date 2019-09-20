@@ -36,17 +36,21 @@ def anchor_target(anchor_list,
 
     # anchor number of multi levels
     num_level_anchors = [anchors.size(0) for anchors in anchor_list[0]]
+    pdb.set_trace()
     # concat all level anchors and flags to a single tensor
     for i in range(num_imgs):
         assert len(anchor_list[i]) == len(valid_flag_list[i])
         anchor_list[i] = torch.cat(anchor_list[i])
         valid_flag_list[i] = torch.cat(valid_flag_list[i])
+    
+    # all anchors are flattened in anchor_list variable.
 
     # compute targets for each image
     if gt_bboxes_ignore_list is None:
         gt_bboxes_ignore_list = [None for _ in range(num_imgs)]
     if gt_labels_list is None:
         gt_labels_list = [None for _ in range(num_imgs)]
+    pdb.set_trace()
     (all_labels, all_label_weights, all_bbox_targets, all_bbox_weights,
      pos_inds_list, neg_inds_list, matched_gt_list_, anchors_list_) = multi_apply(
          anchor_target_single,
@@ -62,6 +66,7 @@ def anchor_target(anchor_list,
          label_channels=label_channels,
          sampling=sampling,
          unmap_outputs=unmap_outputs)
+    pdb.set_trace()
     # no valid anchors
     if any([labels is None for labels in all_labels]):
         return None
@@ -69,13 +74,14 @@ def anchor_target(anchor_list,
     num_total_pos = sum([max(inds.numel(), 1) for inds in pos_inds_list])
     num_total_neg = sum([max(inds.numel(), 1) for inds in neg_inds_list])
     # split targets to a list w.r.t. multiple levels
+    # level seperation must be considered
     labels_list = images_to_levels(all_labels, num_level_anchors)
     label_weights_list = images_to_levels(all_label_weights, num_level_anchors)
     bbox_targets_list = images_to_levels(all_bbox_targets, num_level_anchors)
     bbox_weights_list = images_to_levels(all_bbox_weights, num_level_anchors)
     matched_gt_list_ = images_to_levels(matched_gt_list_, num_level_anchors)
     anchors_list_ = images_to_levels(anchors_list_, num_level_anchors)
-    #pdb.set_trace()
+    pdb.set_trace()
     return (labels_list, label_weights_list, bbox_targets_list,
             bbox_weights_list, num_total_pos, num_total_neg, matched_gt_list_, anchors_list_)
 

@@ -284,6 +284,7 @@ class AnchorHead(nn.Module):
         anchor_list, valid_flag_list = self.get_anchors(
             featmap_sizes, img_metas)
         label_channels = self.cls_out_channels if self.use_sigmoid_cls else 1
+        pdb.set_trace()
         cls_reg_targets = anchor_target(
             anchor_list,
             valid_flag_list,
