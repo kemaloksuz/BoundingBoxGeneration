@@ -66,68 +66,66 @@ def bbox_overlaps(bboxes1, bboxes2, mode='iou', is_aligned=False):
 def area(bboxes):
     return (bboxes[:,2]-bboxes[:,0])*(bboxes[:,3]-bboxes[:,1])
 
-def integral_image_compute(masks):
-    gt_number=len(masks)
-    print(gt_number)  
+def integral_image_compute(masks,gt_number,h,w):
     integral_images= [None] * gt_number
-    for i in range(gt_number):
-        image_size=masks[i].size()
-        pad_row=torch.zeros([1,image_size[1]], dtype=torch.uint8, device=torch.device('cuda:0'))
-        pad_col=torch.zeros([image_size[0]+1,1], dtype=torch.uint8, device=torch.device('cuda:0'))
-        integral_images[i]=torch.cat([pad_col,torch.cat([pad_row,masks[i]],dim=0)], dim=1)
-        integral_images[i]=torch.cumsum(torch.cumsum(integral_images[i],dim=0), dim=1)
-        print(integral_images[i])
+    pad_row=torch.zeros([gt_number,1,w]).type(torch.cuda.ByteTensor)
+    pad_col=torch.zeros([gt_number,h+1,1]).type(torch.cuda.ByteTensor)
+    integral_images=torch.cumsum(torch.cumsum(torch.cat([pad_col,torch.cat([pad_row,masks],dim=1)], dim=2),dim=1), dim=2)
     return integral_images
 
-def integral_image_fetch(bboxes, mask):
+def integral_image_fetch(mask,bboxes):
+    import pdb
+    #pdb.set_trace()
     bboxes[:,[2,3]]+=1
-    print(bboxes)
-    #print(mask[[0,1],[4,4]])
     #Create indices
-    print(bboxes[:,2],bboxes[:,3])
-    idx=torch.cat([bboxes[:,2],bboxes[:,3]],dim=1)
-    print(idx)
-    area=mask[bboxes[:,2],bboxes[:,3]]
-    #area=mask[bboxes[:,2],bboxes[:,3]]+mask[bboxes[:,0],bboxes[:,1]]-mask[bboxes[:,0],bboxes[:,3]]-mask[bboxes[:,1],bboxes[:,2]]
+    TLx=bboxes[:,0].tolist()
+    TLy=bboxes[:,1].tolist()
+    BRx=bboxes[:,2].tolist()
+    BRy=bboxes[:,3].tolist()
+    area=mask[BRy,BRx]+mask[TLy,TLx]-mask[TLy,BRx]-mask[BRy,TLx]
     return area
 
 def segm_overlaps(gt_masks, gt_bboxes, bboxes, overlaps, min_overlap,plot=0): 
-    import pdb
+    #import pdb
 
     #import time
 
    # start = time.time()
-
     segm_ious=overlaps.data.new_zeros(overlaps.size())
     #Convert list to torch
-
-    #Find number of pixels that are in each bb
-    
-    #gt_mask_size=torch.sum(gt_masks,dim=[1,2]).type(torch.cuda.FloatTensor)
-    gt_number=len(gt_masks[0])
-    image_h,image_w=gt_masks[0].shape
+    gt_masks=torch.from_numpy(gt_masks).type(torch.cuda.ByteTensor)
+    gt_number,image_h,image_w=gt_masks.size()
+    #pdb.set_trace()
+    integral_images=integral_image_compute(gt_masks,gt_number,image_h,image_w).type(torch.cuda.FloatTensor) 
     #end1 = time.time()
-    #bboxes=bboxes.type(torch.cuda.IntTensor) 
-    bboxes=torch.clamp(bboxes, min=0)
-    bboxes[:,[0,2]]=torch.clamp(bboxes[:,[0,2]], max=image_w-1)
-    bboxes[:,[1,3]]=torch.clamp(bboxes[:,[1,3]], max=image_h-1)
-
     for i in range(gt_number):
-        larger_ind=overlaps>min_overlap
+        larger_ind=overlaps[i,:]>min_overlap
         nonzero_iou_ind=torch.nonzero(larger_ind)
-    all_boxes=bboxes[nonzero_iou_ind[:,1]]
-    anchor_masks=mask_target_single(all_boxes,nonzero_iou_ind[:,0], gt_masks)
-    unnorm_anchor=torch.sum(anchor_masks,dim=[1,2]).type(torch.cuda.FloatTensor)
-    anchor_segm=unnorm_anchor*area(all_boxes)
+        all_boxes=bboxes[nonzero_iou_ind,:].squeeze(dim=1).type(torch.cuda.IntTensor) 
+        all_boxes=torch.clamp(all_boxes, min=0)
+        all_boxes[:,[0,2]]=torch.clamp(all_boxes[:,[0,2]], max=image_w-1)
+        all_boxes[:,[1,3]]=torch.clamp(all_boxes[:,[1,3]], max=image_h-1)
+        segm_ious[i,larger_ind]=integral_image_fetch(integral_images[i],all_boxes)/integral_images[i,-1,-1]
+
     if plot:
         import matplotlib.pyplot as plt
         from matplotlib import patches as patch
         import random
+        larger_ind=overlaps>min_overlap
+        nonzero_iou_ind=torch.nonzero(larger_ind)
+        #gt_mask_size=torch.sum(gt_masks,dim=[1,2]).type(torch.cuda.FloatTensor)
+        image_h,image_w=gt_masks[0].shape
+        #end1 = time.time()
+        #bboxes=bboxes.type(torch.cuda.IntTensor) 
+        bboxes=torch.clamp(bboxes, min=0)
+        bboxes[:,[0,2]]=torch.clamp(bboxes[:,[0,2]], max=image_w-1)
+        bboxes[:,[1,3]]=torch.clamp(bboxes[:,[1,3]], max=image_h-1)
+
         no=random.randint(0,nonzero_iou_ind.shape[0])
         pltgt,pltanc=nonzero_iou_ind[no]
-        print(pltgt,pltanc)
+       # print(pltgt,pltanc)
         fig, ax = plt.subplots(1)
-        ax.imshow(gt_masks[pltgt])
+        ax.imshow(gt_masks[pltgt].cpu().numpy())
 
         tempRect=patch.Rectangle((bboxes[pltanc,0],bboxes[pltanc,1]), bboxes[pltanc,2]-bboxes[pltanc,0], bboxes[pltanc,3]-bboxes[pltanc,1],linewidth=3,edgecolor='r',facecolor='none')
         ax.add_patch(tempRect) 
@@ -138,18 +136,6 @@ def segm_overlaps(gt_masks, gt_bboxes, bboxes, overlaps, min_overlap,plot=0):
         ax.tick_params(labelsize=fntsize)      
         plt.xlabel('x', fontsize=fntsize)
         plt.ylabel('y', fontsize=fntsize)
-
-
-    gt_number=overlaps.size()[0]
-    gt_labels=torch.arange(0, gt_number).cuda()
-    gt_masks=mask_target_single(gt_bboxes,gt_labels, gt_masks)
-    unnorm_gt=torch.sum(gt_masks,dim=[1,2]).type(torch.cuda.FloatTensor)
-    gt_segm=unnorm_gt*area(gt_bboxes)
-    per_anchor_gt=gt_segm[nonzero_iou_ind[:,0]]
-    segm_vals=anchor_segm/per_anchor_gt
-
-    segm_ious[larger_ind]=segm_vals
-    if plot:
         ax.text(0, 0, "iou= "+np.array2string(overlaps[pltgt,pltanc].cpu().numpy())+", "+"\n segm_iou="+np.array2string(segm_ious[pltgt,pltanc].cpu().numpy()), fontsize=12)
         plt.show()
 
