@@ -158,10 +158,10 @@ class AnchorHead(nn.Module):
              gt_labels,
              img_metas,
              cfg,
-             gt_bboxes_ignore=None):
+             gt_bboxes_ignore=None,
+	     gt_masks=None):
         featmap_sizes = [featmap.size()[-2:] for featmap in cls_scores]
         assert len(featmap_sizes) == len(self.anchor_generators)
-
         anchor_list, valid_flag_list = self.get_anchors(
             featmap_sizes, img_metas)
         label_channels = self.cls_out_channels if self.use_sigmoid_cls else 1
@@ -169,6 +169,7 @@ class AnchorHead(nn.Module):
             anchor_list,
             valid_flag_list,
             gt_bboxes,
+            gt_masks,
             img_metas,
             self.target_means,
             self.target_stds,

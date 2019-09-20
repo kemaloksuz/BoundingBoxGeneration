@@ -13,8 +13,8 @@ def mask_target(pos_proposals_list, pos_assigned_gt_inds_list, gt_masks_list,
     return mask_targets
 
 
-def mask_target_single(pos_proposals, pos_assigned_gt_inds, gt_masks, cfg):
-    mask_size = _pair(cfg.mask_size)
+def mask_target_single(pos_proposals, pos_assigned_gt_inds, gt_masks, cfg=None):
+    mask_size = _pair(28)
     num_pos = pos_proposals.size(0)
     mask_targets = []
     if num_pos > 0:

@@ -23,11 +23,11 @@ def build_sampler(cfg, **kwargs):
             type(cfg)))
 
 
-def assign_and_sample(bboxes, gt_bboxes, gt_bboxes_ignore, gt_labels, cfg):
+def assign_and_sample(bboxes, gt_bboxes, gt_bboxes_ignore, gt_labels, cfg, gt_masks=None):
     bbox_assigner = build_assigner(cfg.assigner)
     bbox_sampler = build_sampler(cfg.sampler)
     assign_result = bbox_assigner.assign(bboxes, gt_bboxes, gt_bboxes_ignore,
-                                         gt_labels)
+                                         gt_labels, gt_masks)
     sampling_result = bbox_sampler.sample(assign_result, bboxes, gt_bboxes,
                                           gt_labels)
     return assign_result, sampling_result
