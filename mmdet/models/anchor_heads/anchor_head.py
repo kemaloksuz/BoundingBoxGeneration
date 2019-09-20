@@ -161,7 +161,6 @@ class AnchorHead(nn.Module):
             bbox_targets,
             bbox_weights,
             avg_factor=num_total_samples)
-        pdb.set_trace()
         CLASSES = ('person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',
                'train', 'truck', 'boat', 'traffic_light', 'fire_hydrant',
                'stop_sign', 'parking_meter', 'bench', 'bird', 'cat', 'dog',
@@ -192,8 +191,6 @@ class AnchorHead(nn.Module):
 
         (img-meta gelecek) - check
         """
-        pdb.set_trace()
-        
         im_2_show = plt.imread(img_metas['filename'])
         #im_2_show = np.asarray(F.to_pil_image(img.cpu()[0]))
         print("Pad shape: {}".format(img_metas['pad_shape']))
@@ -212,8 +209,28 @@ class AnchorHead(nn.Module):
         matched_gt_list_ = matched_gt_list_ / img_metas['scale_factor']
         anchors_list_ = anchors_list_ / img_metas['scale_factor']
 	
-        pdb.set_trace()
-                
+        #filter anchors wrt image size
+        anch_ws = anchors_list_[:,2] - anchors_list_[:,0]
+        anch_hs = anchors_list_[:,3] - anchors_list_[:,1]
+        anch_inds = (anch_ws * anch_hs) > (img_metas['ori_shape'][0] * img_metas['ori_shape'][1]) / 16
+        anchors_list_filtered = anchors_list_[anch_inds]
+        
+        gt_ws = matched_gt_list_[:,2] - matched_gt_list_[:,0]
+        gt_hs = matched_gt_list_[:,3] - matched_gt_list_[:,1]
+        
+        gt_max_ind = (gt_ws*gt_hs).argmax()
+        gt_max = matched_gt_list_[gt_max_ind].cpu().numpy()
+        gt_max_x = gt_max[0]
+        gt_max_y = gt_max[1]
+        gt_max_w = gt_max[2] - gt_max_x
+        gt_max_h = gt_max[3] - gt_max_y
+
+        rect_gt_max = Rectangle((gt_max_x, gt_max_y), gt_max_w, gt_max_h, linewidth=3	, edgecolor='b', facecolor='none')
+  
+
+        print("Gt max area: {}, Anchs max area: {}, Image Size: {}\n".format((gt_ws*gt_hs).max(),(anch_ws*anch_hs).max(), (img_metas['ori_shape'][0]*img_metas['ori_shape'][1])/16))
+        print(anchors_list_filtered)
+
         gt_x = matched_gt_list_[cls_max].cpu().numpy()[0]
         gt_y =  matched_gt_list_[cls_max].cpu().numpy()[1]
         gt_w =  matched_gt_list_[cls_max].cpu().numpy()[2] - gt_x 
@@ -235,6 +252,7 @@ class AnchorHead(nn.Module):
         
         ax.add_patch(rect_gt)
         ax.add_patch(rect_anch)
+        ax.add_patch(rect_gt_max)
         
         ax.text(0, 0, "Loss_Cls={}\n" 
         	      "Loss_Bbox:{}\n" 
@@ -247,6 +265,7 @@ class AnchorHead(nn.Module):
         
         print(img_metas)
         plt.show()
+        pdb.set_trace()
         return loss_cls, loss_bbox
 
     @force_fp32(apply_to=('cls_scores', 'bbox_preds'))
@@ -261,6 +280,7 @@ class AnchorHead(nn.Module):
              gt_bboxes_ignore=None):
         featmap_sizes = [featmap.size()[-2:] for featmap in cls_scores]
         assert len(featmap_sizes) == len(self.anchor_generators)
+        pdb.set_trace()
         anchor_list, valid_flag_list = self.get_anchors(
             featmap_sizes, img_metas)
         label_channels = self.cls_out_channels if self.use_sigmoid_cls else 1

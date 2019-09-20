@@ -26,7 +26,7 @@ class CocoDataset(CustomDataset):
                'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock',
                'vase', 'scissors', 'teddy_bear', 'hair_drier', 'toothbrush')
 
-    def load_annotations(self, ann_file, sample_flag=True):
+    def load_annotations(self, ann_file, sample_flag=False):
         self.coco = COCO(ann_file)
         self.cat_ids = self.coco.getCatIds()
         self.cat2label = {
@@ -36,6 +36,7 @@ class CocoDataset(CustomDataset):
         self.img_ids = self.coco.getImgIds()
         img_infos = []
         if sample_flag == True:
+            pdb.set_trace()
             self.img_ids = random.sample(self.img_ids, SAMPLE_SIZE)
         for i in self.img_ids:
             info = self.coco.loadImgs([i])[0]

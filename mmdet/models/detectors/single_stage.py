@@ -56,7 +56,6 @@ class SingleStageDetector(BaseDetector):
                       gt_bboxes,
                       gt_labels,
                       gt_bboxes_ignore=None):
-        pdb.set_trace()
         im_2_show = np.asarray(F.to_pil_image(img.cpu()[0]))
         plt.imshow(im_2_show)
         x = self.extract_feat(img)

@@ -119,7 +119,6 @@ def anchor_target_single(flat_anchors,
         assign_result, sampling_result = assign_and_sample(
             anchors, gt_bboxes, gt_bboxes_ignore, None, cfg)
     else:
-        pdb.set_trace()
         bbox_assigner = build_assigner(cfg.assigner)
         assign_result = bbox_assigner.assign(anchors, gt_bboxes,
                                              gt_bboxes_ignore, gt_labels)
@@ -135,12 +134,9 @@ def anchor_target_single(flat_anchors,
     labels = anchors.new_zeros(num_valid_anchors, dtype=torch.long)
     label_weights = anchors.new_zeros(num_valid_anchors, dtype=torch.float)
     
-    pdb.set_trace()
-
     pos_inds = sampling_result.pos_inds
     neg_inds = sampling_result.neg_inds
     if len(pos_inds) > 0:
-        pdb.set_trace()
         pos_bbox_targets = bbox2delta(sampling_result.pos_bboxes,
                                       sampling_result.pos_gt_bboxes,
                                       target_means, target_stds)
@@ -174,7 +170,6 @@ def anchor_target_single(flat_anchors,
         label_weights = unmap(label_weights, num_total_anchors, inside_flags)
         bbox_targets = unmap(bbox_targets, num_total_anchors, inside_flags)
         bbox_weights = unmap(bbox_weights, num_total_anchors, inside_flags)
-    pdb.set_trace()
     return (labels, label_weights, bbox_targets, bbox_weights, pos_inds,
             neg_inds, matched_gts, anchors)
 

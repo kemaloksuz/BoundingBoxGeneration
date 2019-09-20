@@ -23,5 +23,4 @@ class PseudoSampler(BaseSampler):
         gt_flags = bboxes.new_zeros(bboxes.shape[0], dtype=torch.uint8)
         sampling_result = SamplingResult(pos_inds, neg_inds, bboxes, gt_bboxes,
                                          assign_result, gt_flags)
-        pdb.set_trace()
         return sampling_result
