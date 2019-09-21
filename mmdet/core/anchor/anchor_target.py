@@ -91,6 +91,7 @@ def images_to_levels(target, num_level_anchors):
 
     [target_img0, target_img1] -> [target_level0, target_level1, ...]
     """
+    pdb.set_trace()
     target = torch.stack(target, 0)
     level_targets = []
     start = 0
