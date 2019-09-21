@@ -111,6 +111,7 @@ def segm_overlaps(gt_masks, gt_bboxes, bboxes, overlaps, min_overlap,plot=0):
         import matplotlib.pyplot as plt
         from matplotlib import patches as patch
         import random
+        soft_iou=overlaps*segm_ious
         larger_ind=overlaps>min_overlap
         nonzero_iou_ind=torch.nonzero(larger_ind)
         #gt_mask_size=torch.sum(gt_masks,dim=[1,2]).type(torch.cuda.FloatTensor)
@@ -136,7 +137,7 @@ def segm_overlaps(gt_masks, gt_bboxes, bboxes, overlaps, min_overlap,plot=0):
         ax.tick_params(labelsize=fntsize)      
         plt.xlabel('x', fontsize=fntsize)
         plt.ylabel('y', fontsize=fntsize)
-        ax.text(0, 0, "iou= "+np.array2string(overlaps[pltgt,pltanc].cpu().numpy())+", "+"\n segm_iou="+np.array2string(segm_ious[pltgt,pltanc].cpu().numpy()), fontsize=12)
+        ax.text(0, 0, "iou= "+np.array2string(overlaps[pltgt,pltanc].cpu().numpy())+", "+"\n segm_iou="+np.array2string(segm_ious[pltgt,pltanc].cpu().numpy()+", "+"\n soft_iou="+np.array2string(soft_ious[pltgt,pltanc].cpu().numpy()), fontsize=12)
         plt.show()
 
 
