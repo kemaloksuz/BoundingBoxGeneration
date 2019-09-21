@@ -74,7 +74,7 @@ def integral_image_compute(masks,gt_number,h,w):
     return integral_images
 
 def integral_image_fetch(mask,bboxes):
-    import pdb
+    #import pdb
     #pdb.set_trace()
     bboxes[:,[2,3]]+=1
     #Create indices
