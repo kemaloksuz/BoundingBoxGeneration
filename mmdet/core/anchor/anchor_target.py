@@ -79,8 +79,10 @@ def anchor_target(anchor_list,
     label_weights_list = images_to_levels(all_label_weights, num_level_anchors)
     bbox_targets_list = images_to_levels(all_bbox_targets, num_level_anchors)
     bbox_weights_list = images_to_levels(all_bbox_weights, num_level_anchors)
-    matched_gt_list_ = images_to_levels(matched_gt_list_, num_level_anchors)
-    anchors_list_ = images_to_levels(anchors_list_, num_level_anchors)
+    
+    #matched_gt_list_ = images_to_levels(matched_gt_list_, num_level_anchors)
+    #anchors_list_ = images_to_levels(anchors_list_, num_level_anchors)
+    
     pdb.set_trace()
     return (labels_list, label_weights_list, bbox_targets_list,
             bbox_weights_list, num_total_pos, num_total_neg, matched_gt_list_, anchors_list_)

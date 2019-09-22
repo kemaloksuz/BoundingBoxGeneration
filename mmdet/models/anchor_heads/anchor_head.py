@@ -212,7 +212,7 @@ class AnchorHead(nn.Module):
         #filter anchors wrt image size
         anch_ws = anchors_list_[:,2] - anchors_list_[:,0]
         anch_hs = anchors_list_[:,3] - anchors_list_[:,1]
-        anch_inds = (anch_ws * anch_hs) > (img_metas['ori_shape'][0] * img_metas['ori_shape'][1]) / 16
+        anch_inds = (anch_ws * anch_hs) > (img_metas['ori_shape'][0] * img_metas['ori_shape'][1]) / 4
         anchors_list_filtered = anchors_list_[anch_inds]
         
         gt_ws = matched_gt_list_[:,2] - matched_gt_list_[:,0]
@@ -225,7 +225,7 @@ class AnchorHead(nn.Module):
         gt_max_w = gt_max[2] - gt_max_x
         gt_max_h = gt_max[3] - gt_max_y
 
-        rect_gt_max = Rectangle((gt_max_x, gt_max_y), gt_max_w, gt_max_h, linewidth=3	, edgecolor='b', facecolor='none')
+        #rect_gt_max = Rectangle((gt_max_x, gt_max_y), gt_max_w, gt_max_h, linewidth=3	, edgecolor='b', facecolor='none')
   
 
         print("Gt max area: {}, Anchs max area: {}, Image Size: {}\n".format((gt_ws*gt_hs).max(),(anch_ws*anch_hs).max(), (img_metas['ori_shape'][0]*img_metas['ori_shape'][1])/16))
@@ -238,10 +238,10 @@ class AnchorHead(nn.Module):
         gt_w = gt_w
         gt_h = gt_h
 
-        anch_x = anchors_list_[cls_max].cpu().numpy()[0]
-        anch_y = anchors_list_[cls_max].cpu().numpy()[1]
-        anch_w = anchors_list_[cls_max].cpu().numpy()[2] - anch_x
-        anch_h = anchors_list_[cls_max].cpu().numpy()[3] - anch_y
+        anch_x = anchors_list_filtered[cls_max].cpu().numpy()[0]
+        anch_y = anchors_list_filtered[cls_max].cpu().numpy()[1]
+        anch_w = anchors_list_filtered[cls_max].cpu().numpy()[2] - anch_x
+        anch_h = anchors_list_filtered[cls_max].cpu().numpy()[3] - anch_y
         anch_w = anch_w
         anch_h = anch_h
 	
@@ -252,7 +252,8 @@ class AnchorHead(nn.Module):
         
         ax.add_patch(rect_gt)
         ax.add_patch(rect_anch)
-        ax.add_patch(rect_gt_max)
+        
+        #ax.add_patch(rect_gt_max)
         
         ax.text(0, 0, "Loss_Cls={}\n" 
         	      "Loss_Bbox:{}\n" 
