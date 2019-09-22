@@ -100,7 +100,7 @@ def segm_overlaps(gt_masks, gt_bboxes, bboxes, overlaps, min_overlap,plot=0):
         integral_images=integral_image_compute(all_gt_masks,gt_number,image_h,image_w).type(torch.cuda.FloatTensor) 
         #end1 = time.time()
         for i in range(gt_number):
-            larger_ind=overlaps[i,:]>min_overlap
+            larger_ind = overlaps[i,:] > (min_overlap / (2-min_overlap))
             nonzero_iou_ind=torch.nonzero(larger_ind)
             all_boxes=bboxes[nonzero_iou_ind,:].squeeze(dim=1).type(torch.cuda.IntTensor) 
             all_boxes=torch.clamp(all_boxes, min=0)
