@@ -92,6 +92,7 @@ def segm_overlaps(gt_masks, gt_bboxes, bboxes, overlaps, min_overlap,plot=0):
     with torch.no_grad():
    # start = time.time()
         segm_ious=overlaps.data.new_zeros(overlaps.size())
+        soft_ious=overlaps.data.new_zeros(overlaps.size())
         #Convert list to torch
         all_gt_masks=torch.from_numpy(gt_masks).type(torch.cuda.ByteTensor)
         gt_number,image_h,image_w=all_gt_masks.size()
@@ -106,16 +107,15 @@ def segm_overlaps(gt_masks, gt_bboxes, bboxes, overlaps, min_overlap,plot=0):
             all_boxes[:,[0,2]]=torch.clamp(all_boxes[:,[0,2]], max=image_w-1)
             all_boxes[:,[1,3]]=torch.clamp(all_boxes[:,[1,3]], max=image_h-1)
             segm_ious[i,larger_ind]=integral_image_fetch(integral_images[i],all_boxes)/integral_images[i,-1,-1]
+            soft_ious[i,larger_ind]=(2*segm_ious[i,larger_ind]*overlaps[i,larger_ind])/(segm_ious[i,larger_ind]+overlaps[i,larger_ind])
 
         if plot:
             import matplotlib.pyplot as plt
             from matplotlib import patches as patch
             import random
-            soft_iou=overlaps*segm_ious
             larger_ind=overlaps>min_overlap
             nonzero_iou_ind=torch.nonzero(larger_ind)
             #gt_mask_size=torch.sum(gt_masks,dim=[1,2]).type(torch.cuda.FloatTensor)
-            image_h,image_w=gt_masks[0].shape
             #end1 = time.time()
             #bboxes=bboxes.type(torch.cuda.IntTensor) 
             bboxes=torch.clamp(bboxes, min=0)
@@ -138,11 +138,9 @@ def segm_overlaps(gt_masks, gt_bboxes, bboxes, overlaps, min_overlap,plot=0):
             plt.xlabel('x', fontsize=fntsize)
             plt.ylabel('y', fontsize=fntsize)
             ax.text(0, 0, "iou= "+np.array2string(overlaps[pltgt,pltanc].cpu().numpy())+", "+\
-                "\n segm_iou="+np.array2string(segm_ious[pltgt,pltanc].cpu().numpy())+", "+\
+                "\n segm_rate="+np.array2string(segm_ious[pltgt,pltanc].cpu().numpy())+", "+\
                 "\n soft_iou="+np.array2string(soft_ious[pltgt,pltanc].cpu().numpy()), fontsize=12)
             plt.show()
-
-
     #end = time.time()
     #print("t=",nonzero_iou_ind.size(), end1 - start, end - start)
-    return segm_ious
+    return soft_ious

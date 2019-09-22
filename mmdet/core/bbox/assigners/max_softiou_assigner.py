@@ -75,8 +75,8 @@ class MaxSoftIoUAssigner(BaseAssigner):
 
         bboxes = bboxes[:, :4]
         bbox_ious = bbox_overlaps(gt_bboxes, bboxes)
-        segm_ious = segm_overlaps(gt_masks, gt_bboxes, bboxes, bbox_ious, self.pos_iou_thr) 
-        overlaps=bbox_ious*segm_ious
+        overlaps = segm_overlaps(gt_masks, gt_bboxes, bboxes, bbox_ious, self.pos_iou_thr) 
+#        overlaps=bbox_ious*overlaps
         
         if (self.ignore_iof_thr > 0) and (gt_bboxes_ignore is not None) and (
                 gt_bboxes_ignore.numel() > 0):
