@@ -1,8 +1,6 @@
 import numpy as np
 import torch
 
-from .random_sampler import RandomSampler
-
 # # If fg_num_rois>32
 # # Get number of unique classes
 # labelsImage=labels[i][fg_inds]
@@ -23,7 +21,7 @@ from .random_sampler import RandomSampler
 # # Sample according to probs
 # fg_inds=torch.from_numpy(np.random.choice(fg_inds, fg_rois_per_image, False, probs)).cuda()
 
-class ForegroundBalancedPosSampler(RandomSampler):
+class ForegroundBalancedPosSamplerwithOHNM(OHEMSampler):
 
     def _sample_pos(self, assign_result, num_expected, **kwargs):
         pos_inds = torch.nonzero(assign_result.gt_inds > 0)
