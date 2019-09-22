@@ -3,7 +3,7 @@ import torch
 
 from .random_sampler import RandomSampler
 
-
+import pdb
 class InstanceBalancedPosSampler(RandomSampler):
 
     def _sample_pos(self, assign_result, num_expected, **kwargs):
@@ -11,6 +11,7 @@ class InstanceBalancedPosSampler(RandomSampler):
         if pos_inds.numel() != 0:
             pos_inds = pos_inds.squeeze(1)
         if pos_inds.numel() <= num_expected:
+            pdb.set_trace()
             return pos_inds
         else:
             unique_gt_inds = assign_result.gt_inds[pos_inds].unique()
@@ -38,4 +39,6 @@ class InstanceBalancedPosSampler(RandomSampler):
                 sampled_inds = torch.cat([sampled_inds, extra_inds])
             elif len(sampled_inds) > num_expected:
                 sampled_inds = self.random_choice(sampled_inds, num_expected)
+
+            pdb.set_trace()
             return sampled_inds
