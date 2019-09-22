@@ -1,13 +1,11 @@
 import numpy as np
 import torch
+from .ohem_sampler import OHEMSampler
 
-from .random_sampler import RandomSampler
-import pdb
-class ForegroundBalancedPosSampler(RandomSampler):
+class OFBwithOHNM(OHEMSampler):
 
     def _sample_pos(self, assign_result, num_expected, **kwargs):
-        pdb.set_trace()
-        print(num_expected)
+
         pos_inds = torch.nonzero(assign_result.gt_inds > 0)
         if pos_inds.numel() != 0:
             pos_inds = pos_inds.squeeze(1)
@@ -15,7 +13,6 @@ class ForegroundBalancedPosSampler(RandomSampler):
             return pos_inds
         else:
             # Get unique classes and find length
-            #pdb.set_trace()
             print("here")
             unique_classes = assign_result.labels[pos_inds].unique()
             num_classes = len(unique_classes)
@@ -27,7 +24,6 @@ class ForegroundBalancedPosSampler(RandomSampler):
                 index=(pos_inds==classes_inds).nonzero()[:,1]
                 probs[index]/=index.numel()
             # Sample according to probs  
-            # pdb.set_trace()
             probs_numpy=probs.cpu().numpy()
             sampled_inds=torch.from_numpy(np.random.choice(pos_inds.cpu().numpy(), num_expected, False, probs_numpy)).cuda()     
             return sampled_inds

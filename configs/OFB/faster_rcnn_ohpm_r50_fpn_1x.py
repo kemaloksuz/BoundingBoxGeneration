@@ -77,7 +77,7 @@ train_cfg = dict(
             min_pos_iou=0.5,
             ignore_iof_thr=-1),
         sampler=dict(
-            type='OHEMSampler',
+            type='OHPMSampler',
             num=128,
             pos_fraction=0.25,
             neg_pos_ub=-1,
@@ -168,7 +168,7 @@ log_config = dict(
 total_epochs = 12
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/faster_rcnn_ohem_r50_fpn_1x'
+work_dir = './work_dirs/faster_rcnn_ohpm_r50_fpn_1x'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
