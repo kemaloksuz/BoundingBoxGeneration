@@ -74,7 +74,7 @@ def integral_image_compute(masks,gt_number,h,w):
     return integral_images
 
 def integral_image_fetch(mask,bboxes):
-    import pdb
+    #import pdb
     #pdb.set_trace()
     bboxes[:,[2,3]]+=1
     #Create indices
@@ -89,60 +89,58 @@ def segm_overlaps(gt_masks, gt_bboxes, bboxes, overlaps, min_overlap,plot=0):
     #import pdb
 
     #import time
-
+    with torch.no_grad():
    # start = time.time()
-    segm_ious=overlaps.data.new_zeros(overlaps.size())
-    #Convert list to torch
-    gt_masks=torch.from_numpy(gt_masks).type(torch.cuda.ByteTensor)
-    gt_number,image_h,image_w=gt_masks.size()
-    #pdb.set_trace()
-    integral_images=integral_image_compute(gt_masks,gt_number,image_h,image_w).type(torch.cuda.FloatTensor) 
-    #end1 = time.time()
-    for i in range(gt_number):
-        larger_ind=overlaps[i,:]>min_overlap
-        nonzero_iou_ind=torch.nonzero(larger_ind)
-        all_boxes=bboxes[nonzero_iou_ind,:].squeeze(dim=1).type(torch.cuda.IntTensor) 
-        all_boxes=torch.clamp(all_boxes, min=0)
-        all_boxes[:,[0,2]]=torch.clamp(all_boxes[:,[0,2]], max=image_w-1)
-        all_boxes[:,[1,3]]=torch.clamp(all_boxes[:,[1,3]], max=image_h-1)
-        segm_ious[i,larger_ind]=integral_image_fetch(integral_images[i],all_boxes)/integral_images[i,-1,-1]
-
-    if plot:
-        import matplotlib.pyplot as plt
-        from matplotlib import patches as patch
-        import random
-        soft_iou=overlaps*segm_ious
-        larger_ind=overlaps>min_overlap
-        nonzero_iou_ind=torch.nonzero(larger_ind)
-        #gt_mask_size=torch.sum(gt_masks,dim=[1,2]).type(torch.cuda.FloatTensor)
-        image_h,image_w=gt_masks[0].shape
+        segm_ious=overlaps.data.new_zeros(overlaps.size())
+        soft_ious=overlaps.data.new_zeros(overlaps.size())
+        #Convert list to torch
+        all_gt_masks=torch.from_numpy(gt_masks).type(torch.cuda.ByteTensor)
+        gt_number,image_h,image_w=all_gt_masks.size()
+        #pdb.set_trace()
+        integral_images=integral_image_compute(all_gt_masks,gt_number,image_h,image_w).type(torch.cuda.FloatTensor) 
         #end1 = time.time()
-        #bboxes=bboxes.type(torch.cuda.IntTensor) 
-        bboxes=torch.clamp(bboxes, min=0)
-        bboxes[:,[0,2]]=torch.clamp(bboxes[:,[0,2]], max=image_w-1)
-        bboxes[:,[1,3]]=torch.clamp(bboxes[:,[1,3]], max=image_h-1)
+        for i in range(gt_number):
+            larger_ind = overlaps[i,:] > (min_overlap / (2-min_overlap))
+            nonzero_iou_ind=torch.nonzero(larger_ind)
+            all_boxes=bboxes[nonzero_iou_ind,:].squeeze(dim=1).type(torch.cuda.IntTensor) 
+            all_boxes=torch.clamp(all_boxes, min=0)
+            all_boxes[:,[0,2]]=torch.clamp(all_boxes[:,[0,2]], max=image_w-1)
+            all_boxes[:,[1,3]]=torch.clamp(all_boxes[:,[1,3]], max=image_h-1)
+            segm_ious[i,larger_ind]=integral_image_fetch(integral_images[i],all_boxes)/integral_images[i,-1,-1]
+            soft_ious[i,larger_ind]=(2*segm_ious[i,larger_ind]*overlaps[i,larger_ind])/(segm_ious[i,larger_ind]+overlaps[i,larger_ind])
 
-        no=random.randint(0,nonzero_iou_ind.shape[0])
-        pltgt,pltanc=nonzero_iou_ind[no]
-       # print(pltgt,pltanc)
-        fig, ax = plt.subplots(1)
-        ax.imshow(gt_masks[pltgt].cpu().numpy())
+        if plot:
+            import matplotlib.pyplot as plt
+            from matplotlib import patches as patch
+            import random
+            larger_ind=overlaps>min_overlap
+            nonzero_iou_ind=torch.nonzero(larger_ind)
+            #gt_mask_size=torch.sum(gt_masks,dim=[1,2]).type(torch.cuda.FloatTensor)
+            #end1 = time.time()
+            #bboxes=bboxes.type(torch.cuda.IntTensor) 
+            bboxes=torch.clamp(bboxes, min=0)
+            bboxes[:,[0,2]]=torch.clamp(bboxes[:,[0,2]], max=image_w-1)
+            bboxes[:,[1,3]]=torch.clamp(bboxes[:,[1,3]], max=image_h-1)
 
-        tempRect=patch.Rectangle((bboxes[pltanc,0],bboxes[pltanc,1]), bboxes[pltanc,2]-bboxes[pltanc,0], bboxes[pltanc,3]-bboxes[pltanc,1],linewidth=3,edgecolor='r',facecolor='none')
-        ax.add_patch(tempRect) 
-        fntsize=14
-        tempRect=patch.Rectangle((gt_bboxes[pltgt,0],gt_bboxes[pltgt,1]), gt_bboxes[pltgt,2]-gt_bboxes[pltgt,0], gt_bboxes[pltgt,3]-gt_bboxes[pltgt,1],linewidth=3,edgecolor='g',facecolor='none')
-        ax.add_patch(tempRect)        
+            no=random.randint(0,nonzero_iou_ind.shape[0])
+            pltgt,pltanc=nonzero_iou_ind[no]
+           # print(pltgt,pltanc)
+            fig, ax = plt.subplots(1)
+            ax.imshow(gt_masks[pltgt].cpu().numpy())
 
-        ax.tick_params(labelsize=fntsize)      
-        plt.xlabel('x', fontsize=fntsize)
-        plt.ylabel('y', fontsize=fntsize)
-        ax.text(0, 0, "iou= "+np.array2string(overlaps[pltgt,pltanc].cpu().numpy())+", "+\
-                    "\n segm_iou="+np.array2string(segm_ious[pltgt,pltanc].cpu().numpy())+", "+\
-                    "\n soft_iou="+np.array2string(soft_ious[pltgt,pltanc].cpu().numpy()), fontsize=12)
-        plt.show()
+            tempRect=patch.Rectangle((bboxes[pltanc,0],bboxes[pltanc,1]), bboxes[pltanc,2]-bboxes[pltanc,0], bboxes[pltanc,3]-bboxes[pltanc,1],linewidth=3,edgecolor='r',facecolor='none')
+            ax.add_patch(tempRect) 
+            fntsize=14
+            tempRect=patch.Rectangle((gt_bboxes[pltgt,0],gt_bboxes[pltgt,1]), gt_bboxes[pltgt,2]-gt_bboxes[pltgt,0], gt_bboxes[pltgt,3]-gt_bboxes[pltgt,1],linewidth=3,edgecolor='g',facecolor='none')
+            ax.add_patch(tempRect)        
 
-
+            ax.tick_params(labelsize=fntsize)      
+            plt.xlabel('x', fontsize=fntsize)
+            plt.ylabel('y', fontsize=fntsize)
+            ax.text(0, 0, "iou= "+np.array2string(overlaps[pltgt,pltanc].cpu().numpy())+", "+\
+                "\n segm_rate="+np.array2string(segm_ious[pltgt,pltanc].cpu().numpy())+", "+\
+                "\n soft_iou="+np.array2string(soft_ious[pltgt,pltanc].cpu().numpy()), fontsize=12)
+            plt.show()
     #end = time.time()
     #print("t=",nonzero_iou_ind.size(), end1 - start, end - start)
-    return segm_ious
+    return soft_ious
