@@ -136,7 +136,7 @@ class MaxSoftIoUAssigner(BaseAssigner):
 
         # 4. assign fg: for each gt, proposals with highest IoU
         for i in range(num_gts):
-            if gt_max_overlaps[i] >= self.min_pos_iou:
+            if gt_max_overlaps[i] > self.min_pos_iou:
                 if self.gt_max_assign_all:
                     max_iou_inds = overlaps[i, :] == gt_max_overlaps[i]
                     assigned_gt_inds[max_iou_inds] = i + 1
