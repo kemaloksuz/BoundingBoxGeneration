@@ -146,6 +146,7 @@ class AnchorHead(nn.Module):
     def loss_single(self, cls_score, bbox_pred, labels, label_weights,
                     bbox_targets, bbox_weights, img_metas, img, matched_gt_list_, anchors_list_, num_total_samples, cfg):
         # classification loss
+        pdb.set_trace()
         labels = labels.reshape(-1)
         label_weights = label_weights.reshape(-1)
         cls_score = cls_score.permute(0, 2, 3,
@@ -199,6 +200,7 @@ class AnchorHead(nn.Module):
             im_2_show = np.fliplr(im_2_show)    
 
         plt.imshow(im_2_show)
+        #pdb.set_trace()
         cls_max = loss_cls.detach().cpu().numpy().sum(1).argmax()
         print("Image: {}, Cls_max: {}, Cls_val: {}, Bbox_val: {}\n"\
                 .format(img_metas['filename'][-16:-4], \
@@ -225,7 +227,7 @@ class AnchorHead(nn.Module):
         gt_max_w = gt_max[2] - gt_max_x
         gt_max_h = gt_max[3] - gt_max_y
 
-        #rect_gt_max = Rectangle((gt_max_x, gt_max_y), gt_max_w, gt_max_h, linewidth=3	, edgecolor='b', facecolor='none')
+        rect_gt_max = Rectangle((gt_max_x, gt_max_y), gt_max_w, gt_max_h, linewidth=3	, edgecolor='b', facecolor='none')
   
 
         print("Gt max area: {}, Anchs max area: {}, Image Size: {}\n".format((gt_ws*gt_hs).max(),(anch_ws*anch_hs).max(), (img_metas['ori_shape'][0]*img_metas['ori_shape'][1])/16))
@@ -238,10 +240,10 @@ class AnchorHead(nn.Module):
         gt_w = gt_w
         gt_h = gt_h
 
-        anch_x = anchors_list_filtered[cls_max].cpu().numpy()[0]
-        anch_y = anchors_list_filtered[cls_max].cpu().numpy()[1]
-        anch_w = anchors_list_filtered[cls_max].cpu().numpy()[2] - anch_x
-        anch_h = anchors_list_filtered[cls_max].cpu().numpy()[3] - anch_y
+        anch_x = anchors_list_[cls_max].cpu().numpy()[0]
+        anch_y = anchors_list_[cls_max].cpu().numpy()[1]
+        anch_w = anchors_list_[cls_max].cpu().numpy()[2] - anch_x
+        anch_h = anchors_list_[cls_max].cpu().numpy()[3] - anch_y
         anch_w = anch_w
         anch_h = anch_h
 	
@@ -253,7 +255,7 @@ class AnchorHead(nn.Module):
         ax.add_patch(rect_gt)
         ax.add_patch(rect_anch)
         
-        #ax.add_patch(rect_gt_max)
+        ax.add_patch(rect_gt_max)
         
         ax.text(0, 0, "Loss_Cls={}\n" 
         	      "Loss_Bbox:{}\n" 
@@ -265,8 +267,8 @@ class AnchorHead(nn.Module):
         	      			      fontsize=12))
         
         print(img_metas)
-        plt.show()
-        pdb.set_trace()
+        #plt.show()
+        #pdb.set_trace()
         return loss_cls, loss_bbox
 
     @force_fp32(apply_to=('cls_scores', 'bbox_preds'))
@@ -300,6 +302,7 @@ class AnchorHead(nn.Module):
             sampling=self.sampling)
         if cls_reg_targets is None:
             return None
+        pdb.set_trace()
         (labels_list, label_weights_list, bbox_targets_list, bbox_weights_list,
          num_total_pos, num_total_neg, matched_gt_list_, anchors_list_) = cls_reg_targets
         num_total_samples = (
@@ -318,6 +321,10 @@ class AnchorHead(nn.Module):
             anchors_list_,
             num_total_samples=num_total_samples,
             cfg=cfg)
+        curframe = inspect.currentframe()
+        callframe = inspect.getouterframes(curframe, 2)
+        print('caller name:', callframe)
+        pdb.set_trace()
         ##print("Processing image: {}".format(img_metas[0]['filename'][-16:-4]))
         return dict(loss_cls=losses_cls, loss_bbox=losses_bbox)
 

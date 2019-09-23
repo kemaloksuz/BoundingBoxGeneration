@@ -4,6 +4,9 @@ import pdb
 from ..bbox import PseudoSampler, assign_and_sample, bbox2delta, build_assigner
 from ..utils import multi_apply
 
+from matplotlib.patches import Rectangle
+import matplotlib.pyplot as plt
+import numpy as np
 
 def anchor_target(anchor_list,
                   valid_flag_list,
@@ -51,6 +54,32 @@ def anchor_target(anchor_list,
     if gt_labels_list is None:
         gt_labels_list = [None for _ in range(num_imgs)]
     pdb.set_trace()
+    
+    gt_bboxes_list[0] = gt_bboxes_list[0] / img_metas[0]['scale_factor']
+
+    gt_ws = gt_bboxes_list[0][:,2] - gt_bboxes_list[0][:,0]
+    gt_hs = gt_bboxes_list[0][:, 3] - gt_bboxes_list[0][:, 1]
+    gt_max_ind = (gt_ws*gt_hs).argmax()
+
+    gt_max = gt_bboxes_list[0][gt_max_ind].cpu().numpy()
+    gt_max_x = gt_max[0]
+    gt_max_y = gt_max[1]
+    gt_max_w = gt_max[2] - gt_max_x
+    gt_max_h = gt_max[3] - gt_max_y
+    
+    rect_gt_max = Rectangle((gt_max_x, gt_max_y), gt_max_w, gt_max_h, linewidth=3, edgecolor='b', facecolor='none')
+    im_2_show = plt.imread(img_metas[0]['filename'])
+    
+    if (img_metas[0]['flip'] == True):
+        im_2_show = np.fliplr(im_2_show)
+
+    plt.imshow(im_2_show)
+    ax = plt.gca()
+    ax.add_patch(rect_gt_max)
+    plt.show()
+
+    ax.add_patch(rect_gt_max)
+
     (all_labels, all_label_weights, all_bbox_targets, all_bbox_weights,
      pos_inds_list, neg_inds_list, matched_gt_list_, anchors_list_) = multi_apply(
          anchor_target_single,
@@ -75,13 +104,13 @@ def anchor_target(anchor_list,
     num_total_neg = sum([max(inds.numel(), 1) for inds in neg_inds_list])
     # split targets to a list w.r.t. multiple levels
     # level seperation must be considered
+    pdb.set_trace()
     labels_list = images_to_levels(all_labels, num_level_anchors)
     label_weights_list = images_to_levels(all_label_weights, num_level_anchors)
     bbox_targets_list = images_to_levels(all_bbox_targets, num_level_anchors)
     bbox_weights_list = images_to_levels(all_bbox_weights, num_level_anchors)
-    
-    #matched_gt_list_ = images_to_levels(matched_gt_list_, num_level_anchors)
-    #anchors_list_ = images_to_levels(anchors_list_, num_level_anchors)
+    matched_gt_list_ = images_to_levels(matched_gt_list_, num_level_anchors)
+    anchors_list_ = images_to_levels(anchors_list_, num_level_anchors)
     
     pdb.set_trace()
     return (labels_list, label_weights_list, bbox_targets_list,
@@ -93,7 +122,6 @@ def images_to_levels(target, num_level_anchors):
 
     [target_img0, target_img1] -> [target_level0, target_level1, ...]
     """
-    pdb.set_trace()
     target = torch.stack(target, 0)
     level_targets = []
     start = 0
