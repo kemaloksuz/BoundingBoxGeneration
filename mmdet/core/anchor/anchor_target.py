@@ -38,8 +38,9 @@ def anchor_target(anchor_list,
     assert len(anchor_list) == len(valid_flag_list) == num_imgs
 
     # anchor number of multi levels
-    num_level_anchors = [anchors.size(0) for anchors in anchor_list[0]]
-    pdb.set_trace()
+    num_level_anchors = [anchors.size(0) for anchors in anchor_list[0]]    
+    print("Num_level_anchors:")
+    print(num_level_anchors)
     # concat all level anchors and flags to a single tensor
     for i in range(num_imgs):
         assert len(anchor_list[i]) == len(valid_flag_list[i])
@@ -53,8 +54,33 @@ def anchor_target(anchor_list,
         gt_bboxes_ignore_list = [None for _ in range(num_imgs)]
     if gt_labels_list is None:
         gt_labels_list = [None for _ in range(num_imgs)]
-    pdb.set_trace()
     
+    # select the largest anchor 
+    anchor_boxes_list = anchor_list[0] / img_metas[0]['scale_factor']
+    
+    anchors_ws = anchor_boxes_list[:, 2] - anchor_boxes_list[:, 0]
+    anchors_hs = anchor_boxes_list[:, 3] - anchor_boxes_list[:, 1]
+
+    img_width = img_metas[0]['ori_shape'][0]
+    img_height = img_metas[0]['ori_shape'][1]
+    img_area = img_width * img_height
+    img_area = img_area / 4
+
+    anchor_max_ind = (anchors_ws*anchors_hs) > img_area
+    anchors_max = anchor_boxes_list[anchor_max_ind].cpu().numpy()
+    
+    ax = plt.gca()
+    print("Number of anchors after filtering: {}\n".format(anchors_max.shape[0]))     
+    for anchor_single in anchors_max:
+        anchors_max_x = anchor_single[0]
+        anchors_max_y = anchor_single[1]
+        anchors_max_w = anchor_single[2] - anchors_max_x
+        anchors_max_h = anchor_single[3] - anchors_max_y
+        
+        rect_anchor_max = Rectangle((anchors_max_x, anchors_max_y), anchors_max_w, anchors_max_h, linewidth=3, edgecolor=np.random.rand(3,), facecolor='None')
+        ax.add_patch(rect_anchor_max)
+
+    # select the largets gt
     gt_bboxes_list[0] = gt_bboxes_list[0] / img_metas[0]['scale_factor']
 
     gt_ws = gt_bboxes_list[0][:,2] - gt_bboxes_list[0][:,0]
@@ -74,9 +100,11 @@ def anchor_target(anchor_list,
         im_2_show = np.fliplr(im_2_show)
 
     plt.imshow(im_2_show)
-    ax = plt.gca()
     ax.add_patch(rect_gt_max)
     plt.show()
+    plt.gca()
+    plt.gcf()
+
 
     ax.add_patch(rect_gt_max)
 
@@ -95,7 +123,6 @@ def anchor_target(anchor_list,
          label_channels=label_channels,
          sampling=sampling,
          unmap_outputs=unmap_outputs)
-    pdb.set_trace()
     # no valid anchors
     if any([labels is None for labels in all_labels]):
         return None
@@ -104,7 +131,6 @@ def anchor_target(anchor_list,
     num_total_neg = sum([max(inds.numel(), 1) for inds in neg_inds_list])
     # split targets to a list w.r.t. multiple levels
     # level seperation must be considered
-    pdb.set_trace()
     labels_list = images_to_levels(all_labels, num_level_anchors)
     label_weights_list = images_to_levels(all_label_weights, num_level_anchors)
     bbox_targets_list = images_to_levels(all_bbox_targets, num_level_anchors)

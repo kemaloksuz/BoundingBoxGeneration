@@ -323,8 +323,6 @@ class AnchorHead(nn.Module):
             cfg=cfg)
         curframe = inspect.currentframe()
         callframe = inspect.getouterframes(curframe, 2)
-        print('caller name:', callframe)
-        pdb.set_trace()
         ##print("Processing image: {}".format(img_metas[0]['filename'][-16:-4]))
         return dict(loss_cls=losses_cls, loss_bbox=losses_bbox)
 
