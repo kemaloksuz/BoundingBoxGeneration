@@ -5,10 +5,12 @@ from .iou_balanced_neg_sampler import IoUBalancedNegSampler
 from .ohem_sampler import OHEMSampler
 from .pseudo_sampler import PseudoSampler
 from .random_sampler import RandomSampler
+from .pRoI_generator import pRoIGenerator
 from .sampling_result import SamplingResult
+from .bounding_box_generator import BoxSampler
 
 __all__ = [
-    'BaseSampler', 'PseudoSampler', 'RandomSampler',
+    'BaseSampler', 'PseudoSampler', 'RandomSampler', 'pRoIGenerator'
     'InstanceBalancedPosSampler', 'IoUBalancedNegSampler', 'CombinedSampler',
-    'OHEMSampler', 'SamplingResult'
+    'OHEMSampler', 'SamplingResult', 'BoxSampler'
 ]
