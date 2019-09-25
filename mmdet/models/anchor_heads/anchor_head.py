@@ -207,10 +207,8 @@ class AnchorHead(nn.Module):
         for fpn_level in range(0, len(loss_cls)):
                 
             # scale anchors and gts
-            matched_gt_list_[fpn_level] = matched_gt_list_[fpn_level] \
-                                          / img_metas['scale_factor']
-            anchors_list_[fpn_level] = anchors_list_[fpn_level] \
-                                       / img_metas['scale_factor']
+            matched_gt_list_[fpn_level] = matched_gt_list_[fpn_level]
+            anchors_list_[fpn_level] = anchors_list_[fpn_level]
 	
             #filter anchors wrt image size
             anch_ws = anchors_list_[fpn_level][:,2] - anchors_list_[fpn_level][:,0]
@@ -264,8 +262,9 @@ class AnchorHead(nn.Module):
         	      			           CLASSES[labels_filtered[cls_max]-1], \
         	      			      fontsize=12))
         
+        print(img_metas)
         plt.show()
-        pdb.set_trace()
+        pdb.set_trace() 
         return loss_cls[0], loss_bbox[0]
 
     @force_fp32(apply_to=('cls_scores', 'bbox_preds'))
