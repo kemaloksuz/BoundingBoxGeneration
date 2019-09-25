@@ -14,11 +14,12 @@ class pRoIGenerator(RandomSampler):
                  pos_fraction,
                  neg_pos_ub=-1,
                  add_gt_as_proposals=True,
+                 IoUWeights=[0.73,0.12,0.15,0.05,0],
                  **kwargs):
         super(pRoIGenerator, self).__init__(num, pos_fraction, neg_pos_ub,
                                             add_gt_as_proposals)
 
-        self.IoUWeights=torch.tensor([0.73,0.12,0.15,0.05,0], dtype=torch.float)
+        self.IoUWeights=torch.tensor(IoUWeights, dtype=torch.float)
         self.sampler=BoxSampler(int(self.num * self.pos_fraction))
         
     def sample(self,
@@ -47,7 +48,7 @@ class pRoIGenerator(RandomSampler):
         num_expected_pos = int(self.num * self.pos_fraction)
 
         generated_boxes=self.sampler.sample(gt_boxes,imgSize,self.IoUWeights)
-        
+
         if self.add_gt_as_proposals:
             bboxes = torch.cat([gt_bboxes, bboxes], dim=0)
             assign_result.add_gt_(gt_labels)
