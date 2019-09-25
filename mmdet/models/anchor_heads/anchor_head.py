@@ -201,82 +201,72 @@ class AnchorHead(nn.Module):
         """
         pdb.set_trace()
         im_2_show = plt.imread(img_metas['filename'])
-        #im_2_show = np.asarray(F.to_pil_image(img.cpu()[0]))
-        print("Pad shape: {}".format(img_metas['pad_shape']))
-        print("Image shape: {}".format(im_2_show.shape))
         if (img_metas['flip'] == True):
             im_2_show = np.fliplr(im_2_show)    
 
         plt.imshow(im_2_show)
-        #pdb.set_trace()
-        cls_max = loss_cls[0].detach().cpu().numpy().sum(1).argmax()
-        print("Image: {}, Cls_max: {}, Cls_val: {}, Bbox_val: {}\n"\
-                .format(img_metas['filename'][-16:-4], \
-                        cls_max, \
-                        loss_cls[0].detach().cpu().numpy().sum(1)[cls_max], \
-                        loss_bbox[0].detach().cpu().numpy().sum(1)[cls_max]))
-        
-        matched_gt_list_[0] = matched_gt_list_[0] / img_metas['scale_factor']
-        anchors_list_[0] = anchors_list_[0] / img_metas['scale_factor']
+        pdb.set_trace()
+        cls_max = []
+        for fpn_level in range(0, len(loss_cls)):
+                
+            # scale anchors and gts
+            matched_gt_list_[fpn_level] = matched_gt_list_[fpn_level] \
+                                          / img_metas['scale_factor']
+            anchors_list_[fpn_level] = anchors_list_[fpn_level] \
+                                       / img_metas['scale_factor']
 	
-        #filter anchors wrt image size
-        anch_ws = anchors_list_[0][:,2] - anchors_list_[0][:,0]
-        anch_hs = anchors_list_[0][:,3] - anchors_list_[0][:,1]
-        anch_inds = (anch_ws * anch_hs) > (img_metas['ori_shape'][0] * img_metas['ori_shape'][1]) / 4
-        anchors_list_filtered = anchors_list_[0][anch_inds]
-        pdb.set_trace() 
-        gt_ws = matched_gt_list_[0][:,2] - matched_gt_list_[0][:,0]
-        gt_hs = matched_gt_list_[0][:,3] - matched_gt_list_[0][:,1]
+            #filter anchors wrt image size
+            anch_ws = anchors_list_[fpn_level][:,2] - anchors_list_[fpn_level][:,0]
+            anch_hs = anchors_list_[fpn_level][:,3] - anchors_list_[fpn_level][:,1]
+            
+            anch_inds = (anch_ws * anch_hs) > \
+                        (img_metas['ori_shape'][0] * img_metas['ori_shape'][1]) / 4
+             
+            anchors_list_filtered = anchors_list_[fpn_level][anch_inds]                     
+            gt_list_filtered = matched_gt_list_[fpn_level][anch_inds]
+            labels_filtered = labels[fpn_level][anch_inds]
+            # no anchors passed the size test.
+            if anchors_list_filtered.size()[0] == 0:
+                # implement no anchors method
+                continue
+            pdb.set_trace()
+            # find filtered losses wrt size
+            loss_cls_filtered = loss_cls[fpn_level][anch_inds]
+            loss_bbox_filtered = loss_bbox[fpn_level][anch_inds]
+            cls_max = loss_cls_filtered.detach().cpu().numpy().sum(1).argmax()  
+            anch_max = anchors_list_filtered[cls_max]
+            gt_max = gt_list_filtered[cls_max]
+            labels_max = labels_filtered[cls_max]
+
+            gt_x = gt_max[0]
+            gt_y = gt_max[1]
+            gt_w = gt_max[2] - gt_x
+            gt_h = gt_max[3] - gt_y
         
-        gt_max_ind = (gt_ws*gt_hs).argmax()
-        gt_max = matched_gt_list_[0][gt_max_ind].cpu().numpy()
-        gt_max_x = gt_max[0]
-        gt_max_y = gt_max[1]
-        gt_max_w = gt_max[2] - gt_max_x
-        gt_max_h = gt_max[3] - gt_max_y
+            rect_gt = Rectangle((gt_x, gt_y), gt_w, gt_h, linewidth=3, edgecolor='b', facecolor='none')
 
-        rect_gt_max = Rectangle((gt_max_x, gt_max_y), gt_max_w, gt_max_h, linewidth=3	, edgecolor='b', facecolor='none')
-  
-
-        print("Gt max area: {}, Anchs max area: {}, Image Size: {}\n".format((gt_ws*gt_hs).max(),(anch_ws*anch_hs).max(), (img_metas['ori_shape'][0]*img_metas['ori_shape'][1])/16))
-        print(anchors_list_filtered)
-
-        gt_x = matched_gt_list_[0][cls_max].cpu().numpy()[0]
-        gt_y =  matched_gt_list_[0][cls_max].cpu().numpy()[1]
-        gt_w =  matched_gt_list_[0][cls_max].cpu().numpy()[2] - gt_x 
-        gt_h =   matched_gt_list_[0][cls_max].cpu().numpy()[3] - gt_y
-        gt_w = gt_w
-        gt_h = gt_h
-
-        anch_x = anchors_list_[0][cls_max].cpu().numpy()[0]
-        anch_y = anchors_list_[0][cls_max].cpu().numpy()[1]
-        anch_w = anchors_list_[0][cls_max].cpu().numpy()[2] - anch_x
-        anch_h = anchors_list_[0][cls_max].cpu().numpy()[3] - anch_y
-        anch_w = anch_w
-        anch_h = anch_h
+            anch_x = anch_max[0]
+            anch_y = anch_max[1]
+            anch_w = anch_max[2] - anch_x
+            anch_h = anch_max[3] - anch_y
 	
-        ax=plt.gca()
+            rect_anch = Rectangle((anch_x, anch_y), anch_w, anch_h, linewidth=3, edgecolor='r', facecolor='none')
 
-        rect_gt = Rectangle((gt_x, gt_y), gt_w, gt_h, linewidth=3	, edgecolor='g', facecolor='none')
-        rect_anch = Rectangle((anch_x, anch_y), anch_w, anch_h, linewidth=3, edgecolor='r', facecolor='none')
+            ax=plt.gca()        
+            ax.add_patch(rect_gt)
+            ax.add_patch(rect_anch)
         
-        ax.add_patch(rect_gt)
-        ax.add_patch(rect_anch)
-        
-        ax.add_patch(rect_gt_max)
-        
-        ax.text(0, 0, "Loss_Cls={}\n" 
-        	      "Loss_Bbox:{}\n" 
-        	      "Total Loss: {}\n"
-                      "Class Label: {}".format(loss_cls[0].detach().cpu().numpy().sum(1)[cls_max], \
-        	      			      loss_bbox[0].detach().cpu().numpy().sum(1)[cls_max], \
-        	      			      loss_cls[0].detach().cpu().numpy().sum(1)[cls_max]+loss_bbox[0].detach().cpu().numpy().sum(1)[cls_max], \
-        	      			      CLASSES[labels[0][cls_max]-1], \
+            ax.text(0, 0, "Loss_Cls={}\n" 
+            	          "Loss_Bbox:{}\n" 
+        	          "Total Loss: {}\n"
+                          "Class Label: {}".format(loss_cls_filtered.detach().cpu().numpy().sum(1)[cls_max], \
+               	      			           loss_bbox_filtered.detach().cpu().numpy().sum(1)[cls_max], \
+            	      			           loss_cls_filtered.detach().cpu().numpy().sum(1)[cls_max]+loss_bbox_filtered.detach().cpu().numpy().sum(1)[cls_max], \
+        	      			           CLASSES[labels_filtered[cls_max]-1], \
         	      			      fontsize=12))
         
-        print(img_metas)
-        #plt.show()
-        #pdb.set_trace()
+        plt.show()
+        pdb.set_trace()
         return loss_cls[0], loss_bbox[0]
 
     @force_fp32(apply_to=('cls_scores', 'bbox_preds'))
