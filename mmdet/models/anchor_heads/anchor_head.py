@@ -198,15 +198,12 @@ class AnchorHead(nn.Module):
         read image with coco_url
 
         (img-meta gelecek) - check
-        """
-        pdb.set_trace()
+        """ 
         im_2_show = plt.imread(img_metas['filename'])
         if (img_metas['flip'] == True):
             im_2_show = np.fliplr(im_2_show)    
 
         plt.imshow(im_2_show)
-        pdb.set_trace()
-        cls_max = []
         for fpn_level in range(0, len(loss_cls)):
                 
             # scale anchors and gts
@@ -225,19 +222,20 @@ class AnchorHead(nn.Module):
             anchors_list_filtered = anchors_list_[fpn_level][anch_inds]                     
             gt_list_filtered = matched_gt_list_[fpn_level][anch_inds]
             labels_filtered = labels[fpn_level][anch_inds]
+            loss_cls_filtered = loss_cls[fpn_level][anch_inds]
+            loss_bbox_filtered = loss_bbox[fpn_level][anch_inds]
             # no anchors passed the size test.
             if anchors_list_filtered.size()[0] == 0:
                 # implement no anchors method
                 continue
-            pdb.set_trace()
             # find filtered losses wrt size
-            loss_cls_filtered = loss_cls[fpn_level][anch_inds]
-            loss_bbox_filtered = loss_bbox[fpn_level][anch_inds]
             cls_max = loss_cls_filtered.detach().cpu().numpy().sum(1).argmax()  
             anch_max = anchors_list_filtered[cls_max]
             gt_max = gt_list_filtered[cls_max]
             labels_max = labels_filtered[cls_max]
-
+            loss_cls_max = loss_cls_filtered[cls_max].sum()
+            loss_bbox_max = loss_bbox_filtered[cls_max].sum()
+            pdb.set_trace()
             gt_x = gt_max[0]
             gt_y = gt_max[1]
             gt_w = gt_max[2] - gt_x
@@ -259,9 +257,10 @@ class AnchorHead(nn.Module):
             ax.text(0, 0, "Loss_Cls={}\n" 
             	          "Loss_Bbox:{}\n" 
         	          "Total Loss: {}\n"
-                          "Class Label: {}".format(loss_cls_filtered.detach().cpu().numpy().sum(1)[cls_max], \
-               	      			           loss_bbox_filtered.detach().cpu().numpy().sum(1)[cls_max], \
-            	      			           loss_cls_filtered.detach().cpu().numpy().sum(1)[cls_max]+loss_bbox_filtered.detach().cpu().numpy().sum(1)[cls_max], \
+                          "Class Label: {}".format(loss_cls_max.detach().cpu().numpy(), \
+               	      			           loss_bbox_max.detach().cpu().numpy(), \
+            	      			           loss_cls_max.detach().cpu().numpy()+ \
+                                                   loss_bbox_max.detach().cpu().numpy(), \
         	      			           CLASSES[labels_filtered[cls_max]-1], \
         	      			      fontsize=12))
         
