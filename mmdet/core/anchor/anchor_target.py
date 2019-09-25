@@ -107,7 +107,7 @@ def anchor_target(anchor_list,
 
 
     ax.add_patch(rect_gt_max)
-
+    pdb.set_trace()
     (all_labels, all_label_weights, all_bbox_targets, all_bbox_weights,
      pos_inds_list, neg_inds_list, matched_gt_list_, anchors_list_) = multi_apply(
          anchor_target_single,

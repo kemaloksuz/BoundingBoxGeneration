@@ -145,23 +145,30 @@ class AnchorHead(nn.Module):
 
     def loss_single(self, cls_score, bbox_pred, labels, label_weights,
                     bbox_targets, bbox_weights, img_metas, img, matched_gt_list_, anchors_list_, num_total_samples, cfg):
-        # classification loss
-        pdb.set_trace()
-        labels = labels.reshape(-1)
-        label_weights = label_weights.reshape(-1)
-        cls_score = cls_score.permute(0, 2, 3,
-                                      1).reshape(-1, self.cls_out_channels)
-        loss_cls = self.loss_cls(
-            cls_score, labels, label_weights, avg_factor=num_total_samples)
-        # regression loss
-        bbox_targets = bbox_targets.reshape(-1, 4)
-        bbox_weights = bbox_weights.reshape(-1, 4)
-        bbox_pred = bbox_pred.permute(0, 2, 3, 1).reshape(-1, 4)
-        loss_bbox = self.loss_bbox(
-            bbox_pred,
-            bbox_targets,
-            bbox_weights,
-            avg_factor=num_total_samples)
+        
+        loss_cls_ = np.arange(len(labels))
+        loss_bbox_ = np.arange(len(labels))
+        
+        loss_cls = []
+        loss_bbox = []
+
+        for ind in range(0, len(labels)):
+            # classification loss      
+            labels[ind] = labels[ind].reshape(-1)
+            label_weights[ind] = label_weights[ind].reshape(-1)
+            cls_score[ind] = cls_score[ind].permute(0, 2, 3,
+                                                    1).reshape(-1, self.cls_out_channels)
+            loss_cls.append(self.loss_cls(cls_score[ind], labels[ind], label_weights[ind], avg_factor = num_total_samples))
+            # regression loss
+            bbox_targets[ind] = bbox_targets[ind].reshape(-1, 4)
+            bbox_weights[ind] = bbox_weights[ind].reshape(-1, 4)
+            bbox_pred[ind] = bbox_pred[ind].permute(0, 2, 3, 1).reshape(-1, 4)
+            loss_bbox.append(self.loss_bbox(
+                bbox_pred[ind],
+                bbox_targets[ind],
+                bbox_weights[ind],
+                avg_factor=num_total_samples))
+        
         CLASSES = ('person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',
                'train', 'truck', 'boat', 'traffic_light', 'fire_hydrant',
                'stop_sign', 'parking_meter', 'bench', 'bird', 'cat', 'dog',
@@ -192,6 +199,7 @@ class AnchorHead(nn.Module):
 
         (img-meta gelecek) - check
         """
+        pdb.set_trace()
         im_2_show = plt.imread(img_metas['filename'])
         #im_2_show = np.asarray(F.to_pil_image(img.cpu()[0]))
         print("Pad shape: {}".format(img_metas['pad_shape']))
@@ -201,27 +209,27 @@ class AnchorHead(nn.Module):
 
         plt.imshow(im_2_show)
         #pdb.set_trace()
-        cls_max = loss_cls.detach().cpu().numpy().sum(1).argmax()
+        cls_max = loss_cls[0].detach().cpu().numpy().sum(1).argmax()
         print("Image: {}, Cls_max: {}, Cls_val: {}, Bbox_val: {}\n"\
                 .format(img_metas['filename'][-16:-4], \
                         cls_max, \
-                        loss_cls.detach().cpu().numpy().sum(1)[cls_max], \
-                        loss_bbox.detach().cpu().numpy().sum(1)[cls_max]))
+                        loss_cls[0].detach().cpu().numpy().sum(1)[cls_max], \
+                        loss_bbox[0].detach().cpu().numpy().sum(1)[cls_max]))
         
-        matched_gt_list_ = matched_gt_list_ / img_metas['scale_factor']
-        anchors_list_ = anchors_list_ / img_metas['scale_factor']
+        matched_gt_list_[0] = matched_gt_list_[0] / img_metas['scale_factor']
+        anchors_list_[0] = anchors_list_[0] / img_metas['scale_factor']
 	
         #filter anchors wrt image size
-        anch_ws = anchors_list_[:,2] - anchors_list_[:,0]
-        anch_hs = anchors_list_[:,3] - anchors_list_[:,1]
+        anch_ws = anchors_list_[0][:,2] - anchors_list_[0][:,0]
+        anch_hs = anchors_list_[0][:,3] - anchors_list_[0][:,1]
         anch_inds = (anch_ws * anch_hs) > (img_metas['ori_shape'][0] * img_metas['ori_shape'][1]) / 4
-        anchors_list_filtered = anchors_list_[anch_inds]
-        
-        gt_ws = matched_gt_list_[:,2] - matched_gt_list_[:,0]
-        gt_hs = matched_gt_list_[:,3] - matched_gt_list_[:,1]
+        anchors_list_filtered = anchors_list_[0][anch_inds]
+        pdb.set_trace() 
+        gt_ws = matched_gt_list_[0][:,2] - matched_gt_list_[0][:,0]
+        gt_hs = matched_gt_list_[0][:,3] - matched_gt_list_[0][:,1]
         
         gt_max_ind = (gt_ws*gt_hs).argmax()
-        gt_max = matched_gt_list_[gt_max_ind].cpu().numpy()
+        gt_max = matched_gt_list_[0][gt_max_ind].cpu().numpy()
         gt_max_x = gt_max[0]
         gt_max_y = gt_max[1]
         gt_max_w = gt_max[2] - gt_max_x
@@ -233,17 +241,17 @@ class AnchorHead(nn.Module):
         print("Gt max area: {}, Anchs max area: {}, Image Size: {}\n".format((gt_ws*gt_hs).max(),(anch_ws*anch_hs).max(), (img_metas['ori_shape'][0]*img_metas['ori_shape'][1])/16))
         print(anchors_list_filtered)
 
-        gt_x = matched_gt_list_[cls_max].cpu().numpy()[0]
-        gt_y =  matched_gt_list_[cls_max].cpu().numpy()[1]
-        gt_w =  matched_gt_list_[cls_max].cpu().numpy()[2] - gt_x 
-        gt_h =   matched_gt_list_[cls_max].cpu().numpy()[3] - gt_y
+        gt_x = matched_gt_list_[0][cls_max].cpu().numpy()[0]
+        gt_y =  matched_gt_list_[0][cls_max].cpu().numpy()[1]
+        gt_w =  matched_gt_list_[0][cls_max].cpu().numpy()[2] - gt_x 
+        gt_h =   matched_gt_list_[0][cls_max].cpu().numpy()[3] - gt_y
         gt_w = gt_w
         gt_h = gt_h
 
-        anch_x = anchors_list_[cls_max].cpu().numpy()[0]
-        anch_y = anchors_list_[cls_max].cpu().numpy()[1]
-        anch_w = anchors_list_[cls_max].cpu().numpy()[2] - anch_x
-        anch_h = anchors_list_[cls_max].cpu().numpy()[3] - anch_y
+        anch_x = anchors_list_[0][cls_max].cpu().numpy()[0]
+        anch_y = anchors_list_[0][cls_max].cpu().numpy()[1]
+        anch_w = anchors_list_[0][cls_max].cpu().numpy()[2] - anch_x
+        anch_h = anchors_list_[0][cls_max].cpu().numpy()[3] - anch_y
         anch_w = anch_w
         anch_h = anch_h
 	
@@ -260,16 +268,16 @@ class AnchorHead(nn.Module):
         ax.text(0, 0, "Loss_Cls={}\n" 
         	      "Loss_Bbox:{}\n" 
         	      "Total Loss: {}\n"
-                      "Class Label: {}".format(loss_cls.detach().cpu().numpy().sum(1)[cls_max], \
-        	      			      loss_bbox.detach().cpu().numpy().sum(1)[cls_max], \
-        	      			      loss_cls.detach().cpu().numpy().sum(1)[cls_max]+loss_bbox.detach().cpu().numpy().sum(1)[cls_max], \
-        	      			      CLASSES[labels[cls_max]-1], \
+                      "Class Label: {}".format(loss_cls[0].detach().cpu().numpy().sum(1)[cls_max], \
+        	      			      loss_bbox[0].detach().cpu().numpy().sum(1)[cls_max], \
+        	      			      loss_cls[0].detach().cpu().numpy().sum(1)[cls_max]+loss_bbox[0].detach().cpu().numpy().sum(1)[cls_max], \
+        	      			      CLASSES[labels[0][cls_max]-1], \
         	      			      fontsize=12))
         
         print(img_metas)
         #plt.show()
         #pdb.set_trace()
-        return loss_cls, loss_bbox
+        return loss_cls[0], loss_bbox[0]
 
     @force_fp32(apply_to=('cls_scores', 'bbox_preds'))
     def loss(self,
@@ -309,16 +317,16 @@ class AnchorHead(nn.Module):
             num_total_pos + num_total_neg if self.sampling else num_total_pos)
         losses_cls, losses_bbox = multi_apply(
             self.loss_single,
-            cls_scores,
-            bbox_preds,
-            labels_list,
-            label_weights_list,
-            bbox_targets_list,
-            bbox_weights_list,
+            [cls_scores],
+            [bbox_preds],
+            [labels_list],
+            [label_weights_list],
+            [bbox_targets_list],
+            [bbox_weights_list],
             img_metas,
             img,
-            matched_gt_list_,
-            anchors_list_,
+            [matched_gt_list_],
+            [anchors_list_],
             num_total_samples=num_total_samples,
             cfg=cfg)
         curframe = inspect.currentframe()
