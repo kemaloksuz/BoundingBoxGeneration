@@ -1,9 +1,8 @@
-from torch.autograd import Variable,Function
 import torch
 import math
 import numpy as np
 from matplotlib import path
-
+import pdb
 class BoxSampler(object):
     def __init__(self, RoINumber):
         super(BoxSampler,self).__init__() 
@@ -17,19 +16,22 @@ class BoxSampler(object):
         inputBoxSetExtended, positiveRoINumber, perInputAllocation=self.InstanceAllocation(inputBoxSet)    
         IoUSet=self.IoUAllocation(inputBoxSetExtended,positiveRoINumber,IoUweights)  
         sampledBoxSet=torch.cuda.FloatTensor(positiveRoINumber,4).fill_(-1)
+        gt_inds=torch.cuda.LongTensor(positiveRoINumber).fill_(0)
         indexPointer=0
         boxNumber=inputBoxSet.size()[0]
         for i in range(boxNumber):
             sampledBoxSet[indexPointer:indexPointer+perInputAllocation[i],:]=self.sampleWithIoU(inputBoxSet[i,:],\
                                                                                               IoUSet[indexPointer:indexPointer+perInputAllocation[i]],\
-                                                                                              perInputAllocation[i])     
+                                                                                              perInputAllocation[i]) 
+            gt_inds[indexPointer:indexPointer+perInputAllocation[i]]=i+1    
             indexPointer+=perInputAllocation[i]
         sampledBoxSet=self.unnormalize(sampledBoxSet,perInputAllocation,boxNumber,imgSize)          
-        #inputBoxSetExtended[:,[0,2]]*=imgSize[0]
-        #inputBoxSetExtended[:,[1,3]]*=imgSize[1]
-        #print("IoU",self.computeBoxToBoxIoU(inputBoxSetExtended[:,:4],sampledBoxSet))
-        return sampledBoxSet
-  
+        inputBoxSetExtended[:,[0,2]]*=imgSize[0]
+        inputBoxSetExtended[:,[1,3]]*=imgSize[1]
+        generated_box_overlaps=self.computeBoxToBoxIoU(inputBoxSetExtended[:,:4],sampledBoxSet).squeeze()
+        #print("IoU",generated_box_overlaps)
+        return sampledBoxSet, inputBoxSetExtended[:,-1].type(torch.cuda.LongTensor),generated_box_overlaps,gt_inds
+
     def normalize(self, inputBoxSet,imgSize):
         inputBoxSet[:,[0,2]]/=imgSize[0]
         inputBoxSet[:,[1,3]]/=imgSize[1]    

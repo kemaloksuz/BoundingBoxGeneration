@@ -1,5 +1,5 @@
 import torch
-
+import pdb
 
 class AssignResult(object):
 
@@ -17,3 +17,8 @@ class AssignResult(object):
             [self.max_overlaps.new_ones(self.num_gts), self.max_overlaps])
         if self.labels is not None:
             self.labels = torch.cat([gt_labels, self.labels])
+
+    def add_bboxes_(self, gt_inds, overlaps, labels):
+        self.gt_inds = torch.cat([self.gt_inds,gt_inds])
+        self.max_overlaps = torch.cat([self.max_overlaps, overlaps])
+        self.labels = torch.cat([self.labels,labels])

@@ -162,7 +162,7 @@ class TwoStageDetector(BaseDetector, RPNTestMixin, BBoxTestMixin,
                     assign_result,
                     proposal_list[i],
                     gt_bboxes[i],
-                    gt_labels[i],
+                    gt_labels[i],meta_img=img_meta[i],
                     feats=[lvl_feat[i][None] for lvl_feat in x])
                 sampling_results.append(sampling_result)
 
