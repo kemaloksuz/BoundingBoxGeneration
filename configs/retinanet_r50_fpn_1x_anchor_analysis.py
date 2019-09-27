@@ -133,11 +133,11 @@ log_config = dict(
     ])
 # yapf:enable
 # runtime settings
-total_epochs = 13
+total_epochs = 1
 device_ids = range(8)
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/retinanet_r50_fpn_1x'
+work_dir = './work_dirs/retinanet_r50_fpn_1x_anchor_analysis'
 load_from = './work_dirs/retinanet_r50_fpn_1x_trained_ws/epoch_12.pth'
 resume_from = None
 workflow = [('train', 1)]

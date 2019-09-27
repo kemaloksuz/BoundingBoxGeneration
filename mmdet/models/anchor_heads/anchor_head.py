@@ -158,6 +158,7 @@ class AnchorHead(nn.Module):
             label_weights[ind] = label_weights[ind].reshape(-1)
             cls_score[ind] = cls_score[ind].permute(0, 2, 3,
                                                     1).reshape(-1, self.cls_out_channels)
+            pdb.set_trace()
             loss_cls.append(self.loss_cls(cls_score[ind], labels[ind], label_weights[ind], avg_factor = num_total_samples))
             # regression loss
             bbox_targets[ind] = bbox_targets[ind].reshape(-1, 4)
@@ -201,39 +202,41 @@ class AnchorHead(nn.Module):
         """ 
         im_2_show = plt.imread(img_metas['filename'])
         if (img_metas['flip'] == True):
-            im_2_show = np.fliplr(im_2_show)    
-
-        plt.imshow(im_2_show)
-        for fpn_level in range(0, len(loss_cls)):
-                
+            im_2_show = np.fliplr(im_2_show)     
+        for fpn_level in range(0, len(loss_cls)): 
             # scale anchors and gts
-            matched_gt_list_[fpn_level] = matched_gt_list_[fpn_level]
-            anchors_list_[fpn_level] = anchors_list_[fpn_level]
+            matched_gt_list_[fpn_level] = matched_gt_list_[fpn_level] \
+                                          / img_metas['scale_factor']
+            anchors_list_[fpn_level] = anchors_list_[fpn_level] \
+                                       / img_metas['scale_factor']
 	
             #filter anchors wrt image size
             anch_ws = anchors_list_[fpn_level][:,2] - anchors_list_[fpn_level][:,0]
             anch_hs = anchors_list_[fpn_level][:,3] - anchors_list_[fpn_level][:,1]
             
-            anch_inds = (anch_ws * anch_hs) > \
-                        (img_metas['ori_shape'][0] * img_metas['ori_shape'][1]) / 4
-             
+            #anch_inds = (anch_ws * anch_hs) > \
+            #            (img_metas['ori_shape'][0] * img_metas['ori_shape'][1]) / 4
+            
+            anch_inds = (anch_ws * anch_hs) == (anch_ws * anch_hs)
+
             anchors_list_filtered = anchors_list_[fpn_level][anch_inds]                     
             gt_list_filtered = matched_gt_list_[fpn_level][anch_inds]
             labels_filtered = labels[fpn_level][anch_inds]
             loss_cls_filtered = loss_cls[fpn_level][anch_inds]
             loss_bbox_filtered = loss_bbox[fpn_level][anch_inds]
             # no anchors passed the size test.
-            if anchors_list_filtered.size()[0] == 0:
+            if anchors_list_filtered.size()[0] == 0 or \
+               gt_list_filtered.detach().cpu().numpy().max() == 0:
                 # implement no anchors method
                 continue
-            # find filtered losses wrt size
+            # find filtered losses wrt size 
             cls_max = loss_cls_filtered.detach().cpu().numpy().sum(1).argmax()  
             anch_max = anchors_list_filtered[cls_max]
             gt_max = gt_list_filtered[cls_max]
             labels_max = labels_filtered[cls_max]
             loss_cls_max = loss_cls_filtered[cls_max].sum()
             loss_bbox_max = loss_bbox_filtered[cls_max].sum()
-            pdb.set_trace()
+            #pdb.set_trace()
             gt_x = gt_max[0]
             gt_y = gt_max[1]
             gt_w = gt_max[2] - gt_x
@@ -247,7 +250,8 @@ class AnchorHead(nn.Module):
             anch_h = anch_max[3] - anch_y
 	
             rect_anch = Rectangle((anch_x, anch_y), anch_w, anch_h, linewidth=3, edgecolor='r', facecolor='none')
-
+            plt.figure(figsize=(8,8))
+            plt.imshow(im_2_show)
             ax=plt.gca()        
             ax.add_patch(rect_gt)
             ax.add_patch(rect_anch)
@@ -255,16 +259,21 @@ class AnchorHead(nn.Module):
             ax.text(0, 0, "Loss_Cls={}\n" 
             	          "Loss_Bbox:{}\n" 
         	          "Total Loss: {}\n"
-                          "Class Label: {}".format(loss_cls_max.detach().cpu().numpy(), \
+                          "Class Label: {}\n"
+                          "From FPN Level: {}".format(loss_cls_max.detach().cpu().numpy(), \
                	      			           loss_bbox_max.detach().cpu().numpy(), \
             	      			           loss_cls_max.detach().cpu().numpy()+ \
                                                    loss_bbox_max.detach().cpu().numpy(), \
-        	      			           CLASSES[labels_filtered[cls_max]-1], \
-        	      			      fontsize=12))
-        
-        print(img_metas)
-        plt.show()
-        pdb.set_trace() 
+        	      			           CLASSES[labels_filtered[cls_max]-1], 
+                                                   fpn_level,\
+        	      			      fontsize=12)) 
+            imgname = img_metas['filename'][-17:]
+            foldname = "/home/cancam/workspace/mmdetection/analysis_results/fpn_{}".format(fpn_level)
+            fname = foldname+imgname
+            plt.savefig(fname)
+            plt.clf()
+            #pdb.set_trace()
+        #print(img_metas)  
         return loss_cls[0], loss_bbox[0]
 
     @force_fp32(apply_to=('cls_scores', 'bbox_preds'))
@@ -279,11 +288,11 @@ class AnchorHead(nn.Module):
              gt_bboxes_ignore=None):
         featmap_sizes = [featmap.size()[-2:] for featmap in cls_scores]
         assert len(featmap_sizes) == len(self.anchor_generators)
-        pdb.set_trace()
+        #pdb.set_trace()
         anchor_list, valid_flag_list = self.get_anchors(
             featmap_sizes, img_metas)
         label_channels = self.cls_out_channels if self.use_sigmoid_cls else 1
-        pdb.set_trace()
+        #pdb.set_trace()
         cls_reg_targets = anchor_target(
             anchor_list,
             valid_flag_list,
@@ -298,7 +307,7 @@ class AnchorHead(nn.Module):
             sampling=self.sampling)
         if cls_reg_targets is None:
             return None
-        pdb.set_trace()
+        #pdb.set_trace()
         (labels_list, label_weights_list, bbox_targets_list, bbox_weights_list,
          num_total_pos, num_total_neg, matched_gt_list_, anchors_list_) = cls_reg_targets
         num_total_samples = (
@@ -357,7 +366,7 @@ class AnchorHead(nn.Module):
                           scale_factor,
                           cfg,
                           rescale=False):
-        pdb.set_trace()
+        #pdb.set_trace()
         assert len(cls_scores) == len(bbox_preds) == len(mlvl_anchors)
         mlvl_bboxes = []
         mlvl_scores = []

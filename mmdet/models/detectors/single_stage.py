@@ -63,8 +63,8 @@ class SingleStageDetector(BaseDetector):
         loss_inputs = outs + (gt_bboxes, gt_labels, img_metas, self.train_cfg)
         losses = self.bbox_head.loss(
             *loss_inputs, img, gt_bboxes_ignore=gt_bboxes_ignore)
-        pdb.set_trace()
-        print("Losses are calculated over anchor number of : {}\n".format(losses['loss_cls'][0].size()[0]))
+        #pdb.set_trace()
+        #print("Losses are calculated over anchor number of : {}\n".format(losses['loss_cls'][0].size()[0]))
         return losses
 
     def simple_test(self, img, img_meta, rescale=False):

@@ -39,8 +39,8 @@ def anchor_target(anchor_list,
 
     # anchor number of multi levels
     num_level_anchors = [anchors.size(0) for anchors in anchor_list[0]]    
-    print("Num_level_anchors:")
-    print(num_level_anchors)
+    #print("Num_level_anchors:")
+    #print(num_level_anchors)
     # concat all level anchors and flags to a single tensor
     for i in range(num_imgs):
         assert len(anchor_list[i]) == len(valid_flag_list[i])
@@ -54,7 +54,7 @@ def anchor_target(anchor_list,
         gt_bboxes_ignore_list = [None for _ in range(num_imgs)]
     if gt_labels_list is None:
         gt_labels_list = [None for _ in range(num_imgs)]
-    
+    ''' 
     # select the largest anchor 
     anchor_boxes_list = anchor_list[0] / img_metas[0]['scale_factor']
     
@@ -105,9 +105,10 @@ def anchor_target(anchor_list,
     plt.gca()
     plt.gcf()
 
-
+    
     ax.add_patch(rect_gt_max)
     pdb.set_trace()
+    '''
     (all_labels, all_label_weights, all_bbox_targets, all_bbox_weights,
      pos_inds_list, neg_inds_list, matched_gt_list_, anchors_list_) = multi_apply(
          anchor_target_single,
@@ -138,7 +139,7 @@ def anchor_target(anchor_list,
     matched_gt_list_ = images_to_levels(matched_gt_list_, num_level_anchors)
     anchors_list_ = images_to_levels(anchors_list_, num_level_anchors)
     
-    pdb.set_trace()
+    #pdb.set_trace()
     return (labels_list, label_weights_list, bbox_targets_list,
             bbox_weights_list, num_total_pos, num_total_neg, matched_gt_list_, anchors_list_)
 
@@ -177,7 +178,7 @@ def anchor_target_single(flat_anchors,
         return (None, ) * 6
     # assign gt and sample anchors
     anchors = flat_anchors[inside_flags, :]
-    print(sampling)
+    #print(sampling)
     if sampling:
         assign_result, sampling_result = assign_and_sample(
             anchors, gt_bboxes, gt_bboxes_ignore, None, cfg)
