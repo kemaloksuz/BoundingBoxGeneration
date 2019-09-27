@@ -81,7 +81,7 @@ train_cfg = dict(
             num=128,
             pos_fraction=0.25,
             add_gt_as_proposals=False,
-            IoUWeights=[0.73,0.12,0.15,0.05,0]),          
+            IoUWeights=[0,0,0.48,0.27,0.25]),          
         pos_weight=-1,
         debug=False))
 test_cfg = dict(
@@ -146,7 +146,7 @@ data = dict(
         img_prefix=data_root + 'val2017/',
         pipeline=test_pipeline))
 # optimizer
-optimizer = dict(type='SGD', lr=0.02, momentum=0.9, weight_decay=0.0001)
+optimizer = dict(type='SGD', lr=0.01, momentum=0.9, weight_decay=0.0001)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 # learning policy
 lr_config = dict(
@@ -154,7 +154,7 @@ lr_config = dict(
     warmup='linear',
     warmup_iters=500,
     warmup_ratio=1.0 / 3,
-    step=[8, 11])
+    step=[4, 7])
 checkpoint_config = dict(interval=1)
 # yapf:disable
 log_config = dict(
@@ -165,10 +165,10 @@ log_config = dict(
     ])
 # yapf:enable
 # runtime settings
-total_epochs = 12
+total_epochs = 8
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/faster_rcnn_r50_fpn_1x'
+work_dir = './work_dirs/faster_rcnn_r50_BBGeneration_fpn_1x'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
