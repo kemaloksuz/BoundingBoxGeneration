@@ -158,7 +158,7 @@ class AnchorHead(nn.Module):
             label_weights[ind] = label_weights[ind].reshape(-1)
             cls_score[ind] = cls_score[ind].permute(0, 2, 3,
                                                     1).reshape(-1, self.cls_out_channels)
-            pdb.set_trace()
+            #pdb.set_trace()
             loss_cls.append(self.loss_cls(cls_score[ind], labels[ind], label_weights[ind], avg_factor = num_total_samples))
             # regression loss
             bbox_targets[ind] = bbox_targets[ind].reshape(-1, 4)
@@ -250,7 +250,6 @@ class AnchorHead(nn.Module):
             anch_h = anch_max[3] - anch_y
 	
             rect_anch = Rectangle((anch_x, anch_y), anch_w, anch_h, linewidth=3, edgecolor='r', facecolor='none')
-            plt.figure(figsize=(8,8))
             plt.imshow(im_2_show)
             ax=plt.gca()        
             ax.add_patch(rect_gt)
@@ -270,7 +269,7 @@ class AnchorHead(nn.Module):
             imgname = img_metas['filename'][-17:]
             foldname = "/home/cancam/workspace/mmdetection/analysis_results/fpn_{}".format(fpn_level)
             fname = foldname+imgname
-            plt.savefig(fname)
+            plt.savefig(fname, bbox_inches='tight', pad_inched=-1)
             plt.clf()
             #pdb.set_trace()
         #print(img_metas)  
