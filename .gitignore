@@ -100,6 +100,9 @@ venv.bak/
 # mkdocs documentation
 /site
 
+# analysis results
+analysis_results/
+
 # mypy
 .mypy_cache/
 
