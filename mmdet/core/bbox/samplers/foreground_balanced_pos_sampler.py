@@ -6,8 +6,6 @@ import pdb
 class ForegroundBalancedPosSampler(RandomSampler):
 
     def _sample_pos(self, assign_result, num_expected, **kwargs):
-        pdb.set_trace()
-        print(num_expected)
         pos_inds = torch.nonzero(assign_result.gt_inds > 0)
         if pos_inds.numel() != 0:
             pos_inds = pos_inds.squeeze(1)
@@ -16,7 +14,6 @@ class ForegroundBalancedPosSampler(RandomSampler):
         else:
             # Get unique classes and find length
             #pdb.set_trace()
-            print("here")
             unique_classes = assign_result.labels[pos_inds].unique()
             num_classes = len(unique_classes)
             # Create fg_num_rois sized array with all probs 1/unique_classes            

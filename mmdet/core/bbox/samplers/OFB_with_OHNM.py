@@ -13,7 +13,6 @@ class OFBwithOHNM(OHEMSampler):
             return pos_inds
         else:
             # Get unique classes and find length
-            print("here")
             unique_classes = assign_result.labels[pos_inds].unique()
             num_classes = len(unique_classes)
             # Create fg_num_rois sized array with all probs 1/unique_classes            
