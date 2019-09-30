@@ -5,6 +5,7 @@ from .foreground_balanced_pos_sampler import ForegroundBalancedPosSampler
 from .iou_balanced_neg_sampler import IoUBalancedNegSampler
 from .ohem_sampler import OHEMSampler
 from .ohpm_sampler import OHPMSampler
+from .ohnm_sampler import OHNMSampler
 from .OFB_with_OHNM import OFBwithOHNM
 from .pseudo_sampler import PseudoSampler
 from .random_sampler import RandomSampler
@@ -14,5 +15,5 @@ from .sampling_result import SamplingResult
 __all__ = [
     'BaseSampler', 'PseudoSampler', 'RandomSampler',
     'InstanceBalancedPosSampler', 'ForegroundBalancedPosSampler','IoUBalancedNegSampler', 'CombinedSampler', 'OHPMSampler', 'OFBwithOHNM',
-    'OHEMSampler', 'SamplingResult'
+    'OHEMSampler', 'OHNMSampler', 'SamplingResult'
 ]
