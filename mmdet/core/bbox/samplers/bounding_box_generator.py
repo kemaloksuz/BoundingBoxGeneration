@@ -12,10 +12,11 @@ class BoxSampler(object):
         self.precision=0.00001
     
     def sample(self, inputBoxSet,imgSize, IoUweights):
-        inputBoxSet=self.normalize(inputBoxSet,imgSize)    
+        inputBoxSet, scales, shifts=self.normalize(inputBoxSet)    
         inputBoxSetExtended, positiveRoINumber, perInputAllocation=self.InstanceAllocation(inputBoxSet)    
         IoUSet=self.IoUAllocation(inputBoxSetExtended,positiveRoINumber,IoUweights)  
         sampledBoxSet=torch.cuda.FloatTensor(positiveRoINumber,4).fill_(-1)
+        testBoxSet=torch.cuda.FloatTensor(positiveRoINumber,4).fill_(-1)
         gt_inds=torch.cuda.LongTensor(positiveRoINumber).fill_(0)
         indexPointer=0
         boxNumber=inputBoxSet.size()[0]
@@ -23,27 +24,28 @@ class BoxSampler(object):
             sampledBoxSet[indexPointer:indexPointer+perInputAllocation[i],:]=self.sampleWithIoU(inputBoxSet[i,:],\
                                                                                               IoUSet[indexPointer:indexPointer+perInputAllocation[i]],\
                                                                                               perInputAllocation[i]) 
+            sampledBoxSet[indexPointer:indexPointer+perInputAllocation[i],:]=self.unnormalize(sampledBoxSet[indexPointer:indexPointer+perInputAllocation[i],:], scales[i], shifts[i])
+            testBoxSet[indexPointer:indexPointer+perInputAllocation[i],:]=self.unnormalize(inputBoxSetExtended[indexPointer:indexPointer+perInputAllocation[i],:4], scales[i], shifts[i])
             gt_inds[indexPointer:indexPointer+perInputAllocation[i]]=i+1    
             indexPointer+=perInputAllocation[i]
-        sampledBoxSet=self.unnormalize(sampledBoxSet,perInputAllocation,boxNumber,imgSize)          
-        inputBoxSetExtended[:,[0,2]]*=imgSize[0]
-        inputBoxSetExtended[:,[1,3]]*=imgSize[1]
+        sampledBoxSet[:,[0,2]]=torch.clamp(sampledBoxSet[:,[0,2]], 0, imgSize[0])
+        sampledBoxSet[:,[1,3]]=torch.clamp(sampledBoxSet[:,[1,3]], 0, imgSize[1])
         generated_box_overlaps=self.computeBoxToBoxIoU(inputBoxSetExtended[:,:4],sampledBoxSet).squeeze()
         #print("IoU",generated_box_overlaps)
         return sampledBoxSet, inputBoxSetExtended[:,-1].type(torch.cuda.LongTensor),generated_box_overlaps,gt_inds
 
-    def normalize(self, inputBoxSet,imgSize):
-        inputBoxSet[:,[0,2]]/=imgSize[0]
-        inputBoxSet[:,[1,3]]/=imgSize[1]    
-        return inputBoxSet
+    def normalize(self, boxes):
+        shifts = boxes[:,[0,1]]
+        scales = (torch.cat(((boxes[:,2]-boxes[:,0]).unsqueeze(1), (boxes[:,3]-boxes[:,1]).unsqueeze(1)),1))/0.3
+        boxes[:,[0,2]]=(boxes[:,[0,2]]-shifts[:,0].unsqueeze(1))/scales[:,0].unsqueeze(1)+0.3
+        boxes[:,[1,3]]=(boxes[:,[1,3]]-shifts[:,1].unsqueeze(1))/scales[:,1].unsqueeze(1)+0.3
+        return boxes, scales, shifts
   
-    def unnormalize(self, sampledBoxSet,perInputAllocation,boxNumber,imgSize):        
-        indexPointer=0  
-        for i in range(boxNumber):
-          sampledBoxSet[indexPointer:indexPointer+perInputAllocation[i],[0,2]]*=imgSize[0]
-          sampledBoxSet[indexPointer:indexPointer+perInputAllocation[i],[1,3]]*=imgSize[1]    
-          indexPointer+=perInputAllocation[i]
-        return sampledBoxSet  
+    def unnormalize(self, boxes,scales,shifts):       
+        boxes[:,:4]-=0.3
+        boxes[:,[0,2]]=boxes[:,[0,2]]*scales[0]+shifts[0]
+        boxes[:,[1,3]]=boxes[:,[1,3]]*scales[1]+shifts[1]    
+        return boxes 
   
     def InstanceAllocation(self,inputBoxSet):
         classes=torch.unique(inputBoxSet[:,-1])
@@ -123,7 +125,6 @@ class BoxSampler(object):
         y2=torch.cat((y2TR,y2BR,y2BL,y2TL))
         
         bottomRightBorders=torch.cat((x2.unsqueeze(1),1-y2.unsqueeze(1)),1)
-        bottomRightBorders=torch.clamp(bottomRightBorders, 0, 1)      
         
         return bottomRightBorders
         
@@ -157,7 +158,6 @@ class BoxSampler(object):
         y1=torch.cat((y1TR, y1BR,y1BL,y1TL))
 
         P=torch.cat((x1.unsqueeze(1),1-y1.unsqueeze(1)),1)
-        P=torch.clamp(P, 0, 1)      
         
         return P
   
