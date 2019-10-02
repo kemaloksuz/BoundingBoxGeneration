@@ -1,6 +1,7 @@
 #!/bin/bash
 #SBATCH -p akya-cuda
 #SBATCH -A bcam
+#SBATCH --reservation sefa
 #SBATCH -J setup
 #SBATCH -N 1
 #SBATCH -n 1
@@ -35,7 +36,7 @@ export PATH="/truba_scratch/bcam/software/miniconda3/condabin:$PATH"
 ######################################################################
 
 ###################  Set open-mmlab env ##########################
-source activate open-mmlab
+source /truba_scratch/bcam/software/miniconda3/bin/activate open-mmlab
 ######################################################################
 
 ###################  Run ##########################

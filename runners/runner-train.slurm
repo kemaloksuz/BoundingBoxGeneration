@@ -1,17 +1,18 @@
 #!/bin/bash
 #SBATCH -p akya-cuda
 #SBATCH -A bcam
-#SBATCH -J soft-IoU-same
+#SBATCH --reservation sefa
+#SBATCH -J bbgeneration-08
 #SBATCH -N 1
 #SBATCH -n 1
 #SBATCH -c 10
-#SBATCH --workdir=/truba_scratch/bcam/output/softIoU
-#SBATCH --gres=gpu:4
+#SBATCH --workdir=/truba_scratch/bcam/output/BBGeneration
+#SBATCH --gres=gpu:2
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=bariscancam@gmail.com
-#SBATCH --time=3-00:00:00
-#SBATCH --output=/truba_scratch/bcam/output/softIoU/softIoU-same.out
-#SBATCH --error=/truba_scratch/bcam/output/softIoU/softIoU-same.err
+#SBATCH --time=15-00:00:00
+#SBATCH --output=/truba_scratch/bcam/output/BBGeneration/bbgeneration-08.out
+#SBATCH --error=/truba_scratch/bcam/output/BBGeneration/bbgeneration-08.err
 
 ###################  Init. CUDA ##########################
 export CUDA_HOME=/truba_scratch/bcam/software/cuda-10.0
@@ -31,16 +32,14 @@ else
     fi
 fi
 unset __conda_setup
-export PATH="/truba_scratch/bcam/software/miniconda3/condabin:$PATH"
+#export PATH="/truba_scratch/bcam/software/miniconda3/condabin:$PATH"
 ######################################################################
 
 ###################  Set open-mmlab env ##########################
-source activate open-mmlab
+source /truba_scratch/bcam/software/miniconda3/bin/activate open-mmlab
 ######################################################################
 
 ###################  Run ##########################
 cd /truba/home/bcam/imgworkspace/mmdetection
-python tools/train.py configs/softIoU/retinanet_r50_fpn_same_1x.py --gpus 2
+python tools/train.py configs/BBGeneration/faster_rcnn_r50_BBgeneration_fpn_08_1x.py --gpus 2
 ######################################################################
-
-
