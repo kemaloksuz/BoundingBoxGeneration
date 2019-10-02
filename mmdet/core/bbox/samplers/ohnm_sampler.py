@@ -13,7 +13,7 @@ class OHNMSampler(RandomSampler):
                  neg_pos_ub=-1,
                  add_gt_as_proposals=True,
                  **kwargs):
-        super(OHPMSampler, self).__init__(num, pos_fraction, neg_pos_ub,
+        super(OHNMSampler, self).__init__(num, pos_fraction, neg_pos_ub,
                                           add_gt_as_proposals)
         if not hasattr(context, 'num_stages'):
             self.bbox_roi_extractor = context.bbox_roi_extractor
