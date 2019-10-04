@@ -109,6 +109,7 @@ def anchor_target(anchor_list,
     ax.add_patch(rect_gt_max)
     pdb.set_trace()
     '''
+    pdb.set_trace()
     (all_labels, all_label_weights, all_bbox_targets, all_bbox_weights,
      pos_inds_list, neg_inds_list, matched_gt_list_, anchors_list_) = multi_apply(
          anchor_target_single,
@@ -214,7 +215,7 @@ def anchor_target_single(flat_anchors,
             labels[pos_inds] = 1
         else:
             labels[pos_inds] = gt_labels[sampling_result.pos_assigned_gt_inds]
-        
+            pdb.set_trace() 
         
         if cfg.pos_weight <= 0:
             label_weights[pos_inds] = 1.0
@@ -234,6 +235,7 @@ def anchor_target_single(flat_anchors,
         label_weights = unmap(label_weights, num_total_anchors, inside_flags)
         bbox_targets = unmap(bbox_targets, num_total_anchors, inside_flags)
         bbox_weights = unmap(bbox_weights, num_total_anchors, inside_flags)
+    pdb.set_trace()
     return (labels, label_weights, bbox_targets, bbox_weights, pos_inds,
             neg_inds, matched_gts, anchors)
 

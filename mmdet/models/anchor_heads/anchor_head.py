@@ -259,7 +259,7 @@ class AnchorHead(nn.Module):
             	          "Loss_Bbox:{}\n" 
         	          "Total Loss: {}\n"
                           "Class Label: {}\n"
-                          "From FPN Level: {}".format(loss_cls_max.detach().cpu().numpy(), \
+                          "From FPN Level: {}\n".format(loss_cls_max.detach().cpu().numpy(), \
                	      			           loss_bbox_max.detach().cpu().numpy(), \
             	      			           loss_cls_max.detach().cpu().numpy()+ \
                                                    loss_bbox_max.detach().cpu().numpy(), \
@@ -285,6 +285,7 @@ class AnchorHead(nn.Module):
              cfg,
              img,
              gt_bboxes_ignore=None):
+        pdb.set_trace()
         featmap_sizes = [featmap.size()[-2:] for featmap in cls_scores]
         assert len(featmap_sizes) == len(self.anchor_generators)
         #pdb.set_trace()
@@ -306,7 +307,7 @@ class AnchorHead(nn.Module):
             sampling=self.sampling)
         if cls_reg_targets is None:
             return None
-        #pdb.set_trace()
+        pdb.set_trace()
         (labels_list, label_weights_list, bbox_targets_list, bbox_weights_list,
          num_total_pos, num_total_neg, matched_gt_list_, anchors_list_) = cls_reg_targets
         num_total_samples = (
