@@ -133,12 +133,8 @@ class BoxSampler(object):
 
     def findTopLeftPointBorders(self,inputBox, IoU,boxArea):
         #Top Left
-        print((((inputBox[3]*(IoU-1))+ inputBox[1])/IoU))
-        print(inputBox[1])
-        print(inputBox[3])
-        print(IoU)
-        #if self.isnan((((inputBox[3]*(IoU-1))+ inputBox[1])/IoU)) or self.isnan(inputBox[1]):
-        #    pdb.set_trace()
+        if self.isnan((((inputBox[3]*(IoU-1))+ inputBox[1])/IoU)) or self.isnan(inputBox[1]):
+            pdb.set_trace()
         y1TR=torch.arange((((inputBox[3]*(IoU-1))+ inputBox[1])/IoU), inputBox[1], step=self.precision).cuda() 
         x1TR=inputBox[2]-(boxArea/(IoU*(inputBox[3]-y1TR)))
         inv_idx = torch.arange(y1TR.size(0)-1, -1, -1).long()
