@@ -38,10 +38,10 @@ model = dict(
 # training and testing settings
 train_cfg = dict(
     assigner=dict(
-        type='MaxSoftIoUAssigner',
-        pos_iou_thr=0.50,
-        neg_iou_thr=0.50,
-        min_pos_iou=0.50,
+        type='MaxIoUAssigner',
+        pos_iou_thr=0.70,
+        neg_iou_thr=0.70,
+        min_pos_iou=0,
         ignore_iof_thr=-1),
     allowed_border=-1,
     pos_weight=-1,
@@ -124,7 +124,7 @@ total_epochs = 12
 device_ids = range(2)
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/retinanet_r50_fpn_softIoU_05_1x'
+work_dir = './work_dirs/retinanet_r50_fpn_baseline_07_07_WithMax'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
