@@ -2,7 +2,7 @@
 #SBATCH -p akya-cuda
 #SBATCH -A bcam
 #SBATCH --reservation sefa
-#SBATCH -J bbgeneration-08
+#SBATCH -J bbgeneration-07
 #SBATCH -N 1
 #SBATCH -n 1
 #SBATCH -c 10
@@ -11,8 +11,8 @@
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=bariscancam@gmail.com
 #SBATCH --time=15-00:00:00
-#SBATCH --output=/truba_scratch/bcam/output/BBGeneration/bbgeneration-08.out
-#SBATCH --error=/truba_scratch/bcam/output/BBGeneration/bbgeneration-08.err
+#SBATCH --output=/truba_scratch/bcam/output/BBGeneration/bbgeneration-07.out
+#SBATCH --error=/truba_scratch/bcam/output/BBGeneration/bbgeneration-07.err
 
 ###################  Init. CUDA ##########################
 export CUDA_HOME=/truba_scratch/bcam/software/cuda-10.0
@@ -41,5 +41,5 @@ source /truba_scratch/bcam/software/miniconda3/bin/activate open-mmlab
 
 ###################  Run ##########################
 cd /truba/home/bcam/imgworkspace/mmdetection
-python tools/train.py configs/BBGeneration/faster_rcnn_r50_BBgeneration_fpn_08_1x.py --gpus 2
+python tools/train.py configs/BBGeneration/faster_rcnn_r50_BBgeneration_fpn_07_1x.py --gpus 2
 ######################################################################
