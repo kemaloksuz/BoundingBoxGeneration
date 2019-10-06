@@ -2,17 +2,17 @@
 #SBATCH -p akya-cuda
 #SBATCH -A bcam
 #SBATCH --reservation sefa
-#SBATCH -J bbgeneration-07
+#SBATCH -J softIoU-07-06
 #SBATCH -N 1
 #SBATCH -n 1
 #SBATCH -c 10
-#SBATCH --workdir=/truba_scratch/bcam/output/BBGeneration
+#SBATCH --workdir=/truba_scratch/bcam/output/softIoU
 #SBATCH --gres=gpu:2
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=bariscancam@gmail.com
 #SBATCH --time=15-00:00:00
-#SBATCH --output=/truba_scratch/bcam/output/BBGeneration/bbgeneration-07.out
-#SBATCH --error=/truba_scratch/bcam/output/BBGeneration/bbgeneration-07.err
+#SBATCH --output=/truba_scratch/bcam/output/softIoU/softIoU-07-06-withMax.out
+#SBATCH --error=/truba_scratch/bcam/output/softIoU/softIoU-07-06-withMax.err
 
 ###################  Init. CUDA ##########################
 export CUDA_HOME=/truba_scratch/bcam/software/cuda-10.0
@@ -41,5 +41,5 @@ source /truba_scratch/bcam/software/miniconda3/bin/activate open-mmlab
 
 ###################  Run ##########################
 cd /truba/home/bcam/imgworkspace/mmdetection
-python tools/train.py configs/BBGeneration/faster_rcnn_r50_BBgeneration_fpn_07_1x.py --gpus 2
+python tools/train.py configs/softIoU/retinanet_r50_fpn_softIoU_07_06_WithMax.py --gpus 2
 ######################################################################
