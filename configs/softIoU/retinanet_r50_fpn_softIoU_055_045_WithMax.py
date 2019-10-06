@@ -124,7 +124,7 @@ total_epochs = 12
 device_ids = range(2)
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/retinanet_r50_fpn_softIoU_06_05_WithMax'
+work_dir = './work_dirs/retinanet_r50_fpn_softIoU_055_045_WithMax'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
