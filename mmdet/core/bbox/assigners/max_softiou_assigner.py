@@ -91,6 +91,19 @@ class MaxSoftIoUAssigner(BaseAssigner):
             overlaps[:, ignore_max_overlaps > self.ignore_iof_thr] = -1
 
         assign_result = self.assign_wrt_overlaps(overlaps, gt_labels)
+        
+        #1.Get the indices of nonzero values in assign_result.assigned_gt_inds, say matched_anchors
+
+        #2.Get the values of matched_anchors, say matched_gts
+
+        #3.Concat matched_gts and matched_anchors in order to have list of indices in overlaps matrix, say matched_idx
+
+        #4.Find overlaps(matched_idx), say softIoUs
+
+        #5.Find bbox_ious(matched_idx), say IoUs
+
+        #6.Concat IoUs and softIoUs as 2xN matrix and append it to file
+        
         return assign_result
 
     def assign_wrt_overlaps(self, overlaps, gt_labels=None):

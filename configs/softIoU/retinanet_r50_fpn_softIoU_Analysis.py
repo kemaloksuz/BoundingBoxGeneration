@@ -38,10 +38,10 @@ model = dict(
 # training and testing settings
 train_cfg = dict(
     assigner=dict(
-        type='MaxIoUAssigner',
-        pos_iou_thr=0.5,
-        neg_iou_thr=0.4,
-        min_pos_iou=0.5,
+        type='MaxSoftIoUAssigner',
+        pos_iou_thr=0.01,
+        neg_iou_thr=0.01,
+        min_pos_iou=0.01,
         ignore_iof_thr=-1),
     allowed_border=-1,
     pos_weight=-1,
@@ -59,13 +59,13 @@ img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 train_pipeline = [
     dict(type='LoadImageFromFile'),
-    dict(type='LoadAnnotations', with_bbox=True),
+    dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
     dict(type='Resize', img_scale=(1333, 800), keep_ratio=True),
     dict(type='RandomFlip', flip_ratio=0.5),
     dict(type='Normalize', **img_norm_cfg),
     dict(type='Pad', size_divisor=32),
     dict(type='DefaultFormatBundle'),
-    dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels']),
+    dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels','gt_masks']),
 ]
 test_pipeline = [
     dict(type='LoadImageFromFile'),
@@ -83,8 +83,8 @@ test_pipeline = [
         ])
 ]
 data = dict(
-    imgs_per_gpu=1,
-    workers_per_gpu=1,
+    imgs_per_gpu=2,
+    workers_per_gpu=2,
     train=dict(
         type=dataset_type,
         ann_file=data_root + 'annotations/instances_train2017.json',
@@ -121,10 +121,10 @@ log_config = dict(
 # yapf:enable
 # runtime settings
 total_epochs = 12
-device_ids = range(8)
+device_ids = range(2)
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/retinanet_r50_baseline_minpos05_fpn_1x'
+work_dir = './work_dirs/retinanet_r50_fpn_softIoU_Analysis'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
