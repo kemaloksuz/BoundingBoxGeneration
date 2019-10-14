@@ -4,6 +4,7 @@ from ..geometry import bbox_overlaps, segm_overlaps
 from .assign_result import AssignResult
 from .base_assigner import BaseAssigner
 import pdb
+import numpy as np
 
 class MaxSoftIoUAssigner(BaseAssigner):
     """Assign a corresponding gt bbox or background to each bbox.
@@ -43,6 +44,8 @@ class MaxSoftIoUAssigner(BaseAssigner):
         self.gt_max_assign_all = gt_max_assign_all
         self.ignore_iof_thr = ignore_iof_thr
         self.ignore_wrt_candidates = ignore_wrt_candidates
+        self.filename = './testing.dat'
+
 
     def assign(self, bboxes, gt_bboxes, gt_bboxes_ignore=None, gt_labels=None, gt_masks=None):
         """Assign gt to bboxes.
@@ -74,8 +77,8 @@ class MaxSoftIoUAssigner(BaseAssigner):
             raise ValueError('No gt or bboxes')
 
         bboxes = bboxes[:, :4]
-        bbox_ious = bbox_overlaps(gt_bboxes, bboxes)
-        overlaps = segm_overlaps(gt_masks, gt_bboxes, bboxes, bbox_ious, self.pos_iou_thr) 
+        overlaps = bbox_overlaps(gt_bboxes, bboxes)
+        segm_rate = segm_overlaps(gt_masks, gt_bboxes, bboxes, overlaps, self.pos_iou_thr) 
 #        overlaps=bbox_ious*overlaps
         
         if (self.ignore_iof_thr > 0) and (gt_bboxes_ignore is not None) and (
@@ -91,27 +94,28 @@ class MaxSoftIoUAssigner(BaseAssigner):
             overlaps[:, ignore_max_overlaps > self.ignore_iof_thr] = -1
 
         assign_result = self.assign_wrt_overlaps(overlaps, gt_labels)
-        
+        #pdb.set_trace()
         #1.Get the indices of nonzero values in assign_result.assigned_gt_inds, say matched_anchors
-        matched_anchors=torch.nonzero(assign_result.assigned_gt_inds)
+        matched_anchors=torch.nonzero(assign_result.gt_inds).squeeze().cpu().numpy()
 
         #2.Get the values of matched_anchors, say matched_gts
-        matched_gts=assign_result.assigned_gt_inds[matched_anchors]
+        matched_gts=assign_result.gt_inds[matched_anchors].squeeze().cpu().numpy()
 
-        #3.Concat matched_gts and matched_anchors in order to have list of indices in overlaps matrix, say matched_idx
-        matched_idx=torch.cat([matched_anchors,matched_gts],dim=1)
+        #3.Find overlaps(matched_idx), say softIoUs
+        softIoUs=segm_rate.cpu().numpy()[matched_gts-1,matched_anchors]
 
-        #4.Find overlaps(matched_idx), say softIoUs
-        softIoUs=overlaps(matched_idx)
+        #4.Find bbox_ious(matched_idx), say IoUs
+        IoUs=overlaps.cpu().numpy()[matched_gts-1,matched_anchors]
 
-        #5.Find bbox_ious(matched_idx), say IoUs
-        IoUs=overlaps(matched_idx)
+        #5.Concat IoUs and softIoUs as 2xN matrix 
+        IoU_tuples=np.concatenate((np.expand_dims(IoUs,1),np.expand_dims(softIoUs,1)),axis=1)
 
-        #6.Concat IoUs and softIoUs as 2xN matrix 
-        IoU_tuples=torch.cat([IoUs,softIoUs],dim=1)
-
-        #7.Append it to the file
-
+        #6.Append it to the file
+        f = open(self.filename, "ab")
+        np.savetxt(f, IoU_tuples)
+        pdb.set_trace()
+	
+	
         return assign_result
 
     def assign_wrt_overlaps(self, overlaps, gt_labels=None):
