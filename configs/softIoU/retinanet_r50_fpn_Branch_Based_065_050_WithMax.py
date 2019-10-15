@@ -31,18 +31,24 @@ model = dict(
         loss_cls=dict(
             type='FocalLoss',
             use_sigmoid=True,
-            gamma=3.0,
-            alpha=0.10,
+            gamma=2.0,
+            alpha=0.25,
             loss_weight=1.0),
         loss_bbox=dict(type='SmoothL1Loss', beta=0.11, loss_weight=1.0)))
 # training and testing settings
 train_cfg = dict(
-    assigner=dict(
+    assigner_reg=dict(
         type='MaxSoftIoUAssigner',
         pos_iou_thr=0.65,
         neg_iou_thr=0.65,
-        min_pos_iou=0,
+        min_pos_iou=0.65,
         ignore_iof_thr=-1),
+    assigner_cls=dict(
+        type='MaxIoUAssigner',
+        pos_iou_thr=0.50,
+        neg_iou_thr=0.40,
+        min_pos_iou=0,
+        ignore_iof_thr=-1),    
     allowed_border=-1,
     pos_weight=-1,
     debug=False)
@@ -124,7 +130,7 @@ total_epochs = 12
 device_ids = range(2)
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/retinanet_r50_fpn_softIoU_065_065_WithMax_010_3'
+work_dir = './work_dirs/retinanet_r50_fpn_softIoU_065_065_WithMax'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
