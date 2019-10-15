@@ -129,17 +129,18 @@ def anchor_target_single(flat_anchors,
                                               gt_bboxes)
         #Classificaion Assignment        
         cls_assigner = build_assigner(cfg.assigner_cls)
-        cls_assign_result = reg_assigner.assign(anchors, gt_bboxes,
+        cls_assign_result = cls_assigner.assign(anchors, gt_bboxes,
                                              gt_bboxes_ignore, gt_labels,gt_masks)
         cls_sampling_result = bbox_sampler.sample(cls_assign_result, anchors,
-                                              gt_bboxes)        
+                                              gt_bboxes)       
 
     num_valid_anchors = anchors.shape[0]
     bbox_targets = torch.zeros_like(anchors)
     bbox_weights = torch.zeros_like(anchors)
     labels = anchors.new_zeros(num_valid_anchors, dtype=torch.long)
     label_weights = anchors.new_zeros(num_valid_anchors, dtype=torch.float)
-
+    #import pdb
+    #pdb.set_trace()
     reg_inds = reg_sampling_result.pos_inds
     pos_inds = cls_sampling_result.pos_inds
     neg_inds = cls_sampling_result.neg_inds
