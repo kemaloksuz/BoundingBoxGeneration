@@ -7,6 +7,7 @@ from ..utils import multi_apply
 def anchor_target(anchor_list,
                   valid_flag_list,
                   gt_bboxes_list,
+		  gt_masks_list,
                   img_metas,
                   target_means,
                   target_stds,
@@ -32,7 +33,6 @@ def anchor_target(anchor_list,
     """
     num_imgs = len(img_metas)
     assert len(anchor_list) == len(valid_flag_list) == num_imgs
-
     # anchor number of multi levels
     num_level_anchors = [anchors.size(0) for anchors in anchor_list[0]]
     # concat all level anchors and flags to a single tensor
@@ -46,6 +46,8 @@ def anchor_target(anchor_list,
         gt_bboxes_ignore_list = [None for _ in range(num_imgs)]
     if gt_labels_list is None:
         gt_labels_list = [None for _ in range(num_imgs)]
+    if gt_masks_list is None:
+        gt_masks_list = [None for _ in range(num_imgs)]
     (all_labels, all_label_weights, all_bbox_targets, all_bbox_weights,
      pos_inds_list, neg_inds_list) = multi_apply(
          anchor_target_single,
@@ -54,6 +56,7 @@ def anchor_target(anchor_list,
          gt_bboxes_list,
          gt_bboxes_ignore_list,
          gt_labels_list,
+         gt_masks_list,
          img_metas,
          target_means=target_means,
          target_stds=target_stds,
@@ -96,6 +99,7 @@ def anchor_target_single(flat_anchors,
                          gt_bboxes,
                          gt_bboxes_ignore,
                          gt_labels,
+                         gt_masks,
                          img_meta,
                          target_means,
                          target_stds,
@@ -113,11 +117,11 @@ def anchor_target_single(flat_anchors,
 
     if sampling:
         assign_result, sampling_result = assign_and_sample(
-            anchors, gt_bboxes, gt_bboxes_ignore, None, cfg)
+            anchors, gt_bboxes, gt_bboxes_ignore, None, cfg, gt_masks)
     else:
         bbox_assigner = build_assigner(cfg.assigner)
         assign_result = bbox_assigner.assign(anchors, gt_bboxes,
-                                             gt_bboxes_ignore, gt_labels)
+                                             gt_bboxes_ignore, gt_labels,gt_masks)
         bbox_sampler = PseudoSampler()
         sampling_result = bbox_sampler.sample(assign_result, anchors,
                                               gt_bboxes)

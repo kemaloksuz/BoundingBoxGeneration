@@ -213,6 +213,8 @@ class TwoStageDetector(BaseDetector, RPNTestMixin, BBoxTestMixin,
             mask_targets = self.mask_head.get_target(sampling_results,
                                                      gt_masks,
                                                      self.train_cfg.rcnn)
+            import pdb
+            pdb.set_trace()
             pos_labels = torch.cat(
                 [res.pos_gt_labels for res in sampling_results])
             loss_mask = self.mask_head.loss(mask_pred, mask_targets,

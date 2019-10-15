@@ -1,11 +1,11 @@
 import torch
 
-from ..geometry import bbox_overlaps
+from ..geometry import bbox_overlaps, segm_overlaps
 from .assign_result import AssignResult
 from .base_assigner import BaseAssigner
+import pdb
 
-
-class MaxIoUAssigner(BaseAssigner):
+class MaxSoftIoUAssigner(BaseAssigner):
     """Assign a corresponding gt bbox or background to each bbox.
 
     Each proposals will be assigned with `-1`, `0`, or a positive integer
@@ -44,7 +44,7 @@ class MaxIoUAssigner(BaseAssigner):
         self.ignore_iof_thr = ignore_iof_thr
         self.ignore_wrt_candidates = ignore_wrt_candidates
 
-    def assign(self, bboxes, gt_bboxes, gt_bboxes_ignore=None, gt_labels=None,gt_mask=None):
+    def assign(self, bboxes, gt_bboxes, gt_bboxes_ignore=None, gt_labels=None, gt_masks=None):
         """Assign gt to bboxes.
 
         This method assign a gt bbox to every bbox (proposal/anchor), each bbox
@@ -66,15 +66,18 @@ class MaxIoUAssigner(BaseAssigner):
             gt_bboxes_ignore (Tensor, optional): Ground truth bboxes that are
                 labelled as `ignored`, e.g., crowd boxes in COCO.
             gt_labels (Tensor, optional): Label of gt_bboxes, shape (k, ).
-
+	    gt_masks(Tensor):(batch_size,ann_number_in_image,height,width (800))
         Returns:
             :obj:`AssignResult`: The assign result.
         """
         if bboxes.shape[0] == 0 or gt_bboxes.shape[0] == 0:
             raise ValueError('No gt or bboxes')
-        bboxes = bboxes[:, :4]
-        overlaps = bbox_overlaps(gt_bboxes, bboxes)
 
+        bboxes = bboxes[:, :4]
+        bbox_ious = bbox_overlaps(gt_bboxes, bboxes)
+        overlaps = segm_overlaps(gt_masks, gt_bboxes, bboxes, bbox_ious, self.pos_iou_thr) 
+#        overlaps=bbox_ious*overlaps
+        
         if (self.ignore_iof_thr > 0) and (gt_bboxes_ignore is not None) and (
                 gt_bboxes_ignore.numel() > 0):
             if self.ignore_wrt_candidates:
@@ -133,7 +136,7 @@ class MaxIoUAssigner(BaseAssigner):
 
         # 4. assign fg: for each gt, proposals with highest IoU
         for i in range(num_gts):
-            if gt_max_overlaps[i] >= self.min_pos_iou:
+            if gt_max_overlaps[i] > self.min_pos_iou:
                 if self.gt_max_assign_all:
                     max_iou_inds = overlaps[i, :] == gt_max_overlaps[i]
                     assigned_gt_inds[max_iou_inds] = i + 1
