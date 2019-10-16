@@ -79,7 +79,6 @@ class MaxSoftIoUTupleAssigner(BaseAssigner):
         bboxes = bboxes[:, :4]
         overlaps = bbox_overlaps(gt_bboxes, bboxes)
         segm_rate = segm_overlaps(gt_masks, gt_bboxes, bboxes, overlaps, self.pos_iou_thr) 
-#        overlaps=bbox_ious*overlaps
         
         if (self.ignore_iof_thr > 0) and (gt_bboxes_ignore is not None) and (
                 gt_bboxes_ignore.numel() > 0):
@@ -95,18 +94,20 @@ class MaxSoftIoUTupleAssigner(BaseAssigner):
 
         assign_result = self.assign_wrt_overlaps(overlaps, gt_labels)
         #pdb.set_trace()
+        max_overlaps, argmax_overlaps = overlaps.max(dim=0)
+        max_segm_rate, _ = segm_rate[:, argmax_overlaps]
         #1.Get the indices of nonzero values in assign_result.assigned_gt_inds, say matched_anchors
-        matched_anchors=torch.nonzero(assign_result.gt_inds).squeeze().cpu().numpy()
+        #matched_anchors=torch.nonzero(assign_result.gt_inds).squeeze().cpu().numpy()
 
         #2.Get the values of matched_anchors, say matched_gts
-        matched_gts=assign_result.gt_inds[matched_anchors].squeeze().cpu().numpy()
+        #matched_gts=assign_result.gt_inds[matched_anchors].squeeze().cpu().numpy()
 
         #3.Find overlaps(matched_idx), say softIoUs
-        print(assign_result.gt_inds.device)
-        softIoUs=torch.from_numpy(segm_rate.cpu().numpy()[matched_gts-1,matched_anchors]).float().to(assign_result.gt_inds.device)
+        #print(assign_result.gt_inds.device)
+        #softIoUs=torch.from_numpy(segm_rate.cpu().numpy()[matched_gts-1,matched_anchors]).float().to(assign_result.gt_inds.device)
 
         #4.Find bbox_ious(matched_idx), say IoUs
-        IoUs=torch.from_numpy(overlaps.cpu().numpy()[matched_gts-1,matched_anchors]).float().to(assign_result.gt_inds.device)
+        #IoUs=torch.from_numpy(overlaps.cpu().numpy()[matched_gts-1,matched_anchors]).float().to(assign_result.gt_inds.device)
 
         #5.Concat IoUs and softIoUs as 2xN matrix 
         #IoU_tuples=np.concatenate((np.expand_dims(IoUs,1),np.expand_dims(softIoUs,1)),axis=1)
@@ -117,7 +118,7 @@ class MaxSoftIoUTupleAssigner(BaseAssigner):
         # pdb.set_trace()
 	
         # 6. also return iou tuple.
-        return assign_result, IoUs, softIoUs
+        return assign_result, max_overlaps, max_segm_rate
 
     def assign_wrt_overlaps(self, overlaps, gt_labels=None):
         """Assign w.r.t. the overlaps of bboxes with gts.
