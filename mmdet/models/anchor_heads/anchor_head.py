@@ -182,7 +182,7 @@ class AnchorHead(nn.Module):
         if cls_reg_targets is None:
             return None
         (labels_list, label_weights_list, bbox_targets_list, bbox_weights_list,
-         num_total_pos, num_total_neg, num_total_track, IoU_list, softIoU_list, track_inds_list) = cls_reg_targets
+         num_total_pos, num_total_neg, num_total_track, IoU_list, softIoU_list) = cls_reg_targets
         num_total_samples = (
             num_total_pos + num_total_neg if self.sampling else num_total_pos)
         losses_cls, losses_bbox = multi_apply(
@@ -193,7 +193,6 @@ class AnchorHead(nn.Module):
             label_weights_list,
             bbox_targets_list,
             bbox_weights_list,
-            track_inds_list,
             IoU_list, 
             softIoU_list,
             num_total_samples=num_total_samples,

@@ -49,7 +49,7 @@ def anchor_target(anchor_list,
     if gt_masks_list is None:
         gt_masks_list = [None for _ in range(num_imgs)]
     (all_labels, all_label_weights, all_bbox_targets, all_bbox_weights,
-     pos_inds_list, neg_inds_list,track_inds_list,IoU_list, softIoU_list) = multi_apply(
+     pos_inds_list, neg_inds_list,IoU_list, softIoU_list) = multi_apply(
          anchor_target_single,
          anchor_list,
          valid_flag_list,
@@ -70,14 +70,13 @@ def anchor_target(anchor_list,
     # sampled anchors of all images
     num_total_pos = sum([max(inds.numel(), 1) for inds in pos_inds_list])
     num_total_neg = sum([max(inds.numel(), 1) for inds in neg_inds_list])
-    num_total_track = sum([max(inds.numel(), 1) for inds in track_inds_list])
     # split targets to a list w.r.t. multiple levels
     labels_list = images_to_levels(all_labels, num_level_anchors)
     label_weights_list = images_to_levels(all_label_weights, num_level_anchors)
     bbox_targets_list = images_to_levels(all_bbox_targets, num_level_anchors)
     bbox_weights_list = images_to_levels(all_bbox_weights, num_level_anchors)
     return (labels_list, label_weights_list, bbox_targets_list,
-            bbox_weights_list, num_total_pos, num_total_neg, num_total_track, IoU_list, softIoU_list, track_inds_list)
+            bbox_weights_list, num_total_pos, num_total_neg, IoU_list, softIoU_list)
 
 
 def images_to_levels(target, num_level_anchors):
@@ -141,7 +140,6 @@ def anchor_target_single(flat_anchors,
     label_weights = anchors.new_zeros(num_valid_anchors, dtype=torch.float)
     #import pdb
     #pdb.set_trace()
-    track_inds = track_sampling_result.pos_inds
     pos_inds = sampling_result.pos_inds
     neg_inds = sampling_result.neg_inds
     if len(pos_inds) > 0:
@@ -171,7 +169,7 @@ def anchor_target_single(flat_anchors,
         softIoUs= unmap(softIoUs, num_total_anchors, inside_flags)
 
     return (labels, label_weights, bbox_targets, bbox_weights, pos_inds,
-            neg_inds, track_inds, IoUs, softIoUs)
+            neg_inds, IoUs, softIoUs)
 
 
 def anchor_inside_flags(flat_anchors, valid_flags, img_shape,
