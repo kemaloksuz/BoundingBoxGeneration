@@ -121,14 +121,14 @@ def anchor_target_single(flat_anchors,
             anchors, gt_bboxes, gt_bboxes_ignore, None, cfg, gt_masks)
     else:
         #Regression Assignment
-        reg_assigner = build_assigner(cfg.assigner_reg)
+        reg_assigner = build_assigner(cfg.maxIoUAssigner)
         reg_assign_result = reg_assigner.assign(anchors, gt_bboxes,
                                              gt_bboxes_ignore, gt_labels,gt_masks)
         bbox_sampler = PseudoSampler()
         reg_sampling_result = bbox_sampler.sample(reg_assign_result, anchors,
                                               gt_bboxes)
         #Classificaion Assignment        
-        cls_assigner = build_assigner(cfg.assigner_cls)
+        cls_assigner = build_assigner(cfg.maxSoftIoUTupleExtractor)
         cls_assign_result = cls_assigner.assign(anchors, gt_bboxes,
                                              gt_bboxes_ignore, gt_labels,gt_masks)
         cls_sampling_result = bbox_sampler.sample(cls_assign_result, anchors,

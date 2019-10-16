@@ -4,9 +4,10 @@ from .base_assigner import BaseAssigner
 from .max_iou_assigner import MaxIoUAssigner
 from .max_softiou_assigner_conditional import MaxSoftIoUConditionalAssigner
 from .max_softiou_assigner import MaxSoftIoUAssigner
+from .max_softiou_tuple_extractor import MaxSoftIoUTupleAssigner
 from .point_assigner import PointAssigner
 
 __all__ = [
-    'BaseAssigner', 'MaxIoUAssigner','MaxSoftIoUConditionalAssigner', 'MaxSoftIoUAssigner', 'ApproxMaxIoUAssigner', 'AssignResult',
+    'BaseAssigner', 'MaxIoUAssigner','MaxSoftIoUConditionalAssigner', 'MaxSoftIoUAssigner', 'MaxSoftIoUTupleAssigner', 'ApproxMaxIoUAssigner', 'AssignResult',
     'PointAssigner'
 ]
