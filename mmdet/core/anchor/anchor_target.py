@@ -49,7 +49,7 @@ def anchor_target(anchor_list,
     if gt_masks_list is None:
         gt_masks_list = [None for _ in range(num_imgs)]
     (all_labels, all_label_weights, all_bbox_targets, all_bbox_weights,
-     pos_inds_list, neg_inds_list,all_IoUs, all_softIoUs) = multi_apply(
+     pos_inds_list, neg_inds_list,all_IoUs, all_softIoUs, track_threshold) = multi_apply(
          anchor_target_single,
          anchor_list,
          valid_flag_list,
@@ -71,9 +71,6 @@ def anchor_target(anchor_list,
     num_total_pos = sum([max(inds.numel(), 1) for inds in pos_inds_list])
     num_total_neg = sum([max(inds.numel(), 1) for inds in neg_inds_list])
     # split targets to a list w.r.t. multiple levels
-    pdb.set_trace()
-    print(all_softIoUs[0].nonzero().size())
-    print(all_softIoUs[1].nonzero().size())
     labels_list = images_to_levels(all_labels, num_level_anchors)
     label_weights_list = images_to_levels(all_label_weights, num_level_anchors)
     bbox_targets_list = images_to_levels(all_bbox_targets, num_level_anchors)
@@ -81,7 +78,7 @@ def anchor_target(anchor_list,
     IoU_list=images_to_levels(all_IoUs, num_level_anchors)
     softIoU_list=images_to_levels(all_softIoUs, num_level_anchors)    
     return (labels_list, label_weights_list, bbox_targets_list,
-            bbox_weights_list, num_total_pos, num_total_neg, IoU_list, softIoU_list)
+            bbox_weights_list, num_total_pos, num_total_neg, IoU_list, softIoU_list, track_threshold)
 
 
 def images_to_levels(target, num_level_anchors):
@@ -133,10 +130,8 @@ def anchor_target_single(flat_anchors,
                                               gt_bboxes)
         #Classificaion Assignment        
         track_assigner = build_assigner(cfg.maxSoftIoUTupleExtractor)
-        track_assign_result, IoUs, softIoUs = track_assigner.assign(anchors, gt_bboxes,
-                                             gt_bboxes_ignore, gt_labels,gt_masks)
-        track_sampling_result = bbox_sampler.sample(track_assign_result, anchors,
-                                              gt_bboxes)       
+        track_threshold, IoUs, softIoUs = track_assigner.assign(anchors, gt_bboxes,
+                                             gt_bboxes_ignore, gt_labels,gt_masks)     
 
     num_valid_anchors = anchors.shape[0]
     bbox_targets = torch.zeros_like(anchors)
@@ -174,7 +169,7 @@ def anchor_target_single(flat_anchors,
         softIoUs= unmap(softIoUs, num_total_anchors, inside_flags)
 
     return (labels, label_weights, bbox_targets, bbox_weights, pos_inds,
-            neg_inds, IoUs, softIoUs)
+            neg_inds, IoUs, softIoUs, track_threshold)
 
 
 def anchor_inside_flags(flat_anchors, valid_flags, img_shape,

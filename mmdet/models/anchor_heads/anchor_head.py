@@ -131,7 +131,7 @@ class AnchorHead(nn.Module):
         return anchor_list, valid_flag_list
 
     def loss_single(self, cls_score, bbox_pred, labels, label_weights,
-                    bbox_targets, bbox_weights, IoUs, softIoUs, num_total_samples, cfg):
+                    bbox_targets, bbox_weights, IoUs, softIoUs, track_thr, num_total_samples, cfg):
         # classification loss
         pdb.set_trace()
         labels = labels.reshape(-1)
@@ -182,15 +182,9 @@ class AnchorHead(nn.Module):
         if cls_reg_targets is None:
             return None
         (labels_list, label_weights_list, bbox_targets_list, bbox_weights_list,
-         num_total_pos, num_total_neg, IoU_list, softIoU_list) = cls_reg_targets
+         num_total_pos, num_total_neg, IoU_list, softIoU_list, track_thr_list) = cls_reg_targets
         num_total_samples = (
             num_total_pos + num_total_neg if self.sampling else num_total_pos)
-        pdb.set_trace()
-        print(softIoU_list[0].nonzero().size())
-        print(softIoU_list[1].nonzero().size())
-        print(softIoU_list[2].nonzero().size())
-        print(softIoU_list[3].nonzero().size())
-        print(softIoU_list[4].nonzero().size())
         losses_cls, losses_bbox = multi_apply(
             self.loss_single,
             cls_scores,
@@ -201,6 +195,7 @@ class AnchorHead(nn.Module):
             bbox_weights_list,
             IoU_list, 
             softIoU_list,
+            track_thr_list,
             num_total_samples=num_total_samples,
             cfg=cfg)
         return dict(loss_cls=losses_cls, loss_bbox=losses_bbox)

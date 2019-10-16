@@ -119,7 +119,7 @@ class MaxSoftIoUTupleAssigner(BaseAssigner):
         # pdb.set_trace()
 	
         # 6. also return iou tuple.
-        return assign_result, max_overlaps, segm_rates
+        return self.pos_iou_thr, max_overlaps, segm_rates
 
     def assign_wrt_overlaps(self, overlaps, gt_labels=None):
         """Assign w.r.t. the overlaps of bboxes with gts.
