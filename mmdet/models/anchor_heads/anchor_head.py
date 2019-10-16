@@ -137,11 +137,12 @@ class AnchorHead(nn.Module):
         IoUs=IoUs.reshape(-1)
         softIoUs=softIoUs.reshape(-1)   
         idx=softIoUs.nonzero()     
-        
+
         labels = labels.reshape(-1)
         label_weights = label_weights.reshape(-1)
         cls_score = cls_score.permute(0, 2, 3,
                                       1).reshape(-1, self.cls_out_channels)
+
         loss_cls = self.loss_cls(
             cls_score, labels, label_weights, avg_factor=num_total_samples)
         # regression loss
