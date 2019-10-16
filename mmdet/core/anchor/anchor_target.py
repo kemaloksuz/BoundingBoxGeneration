@@ -64,7 +64,6 @@ def anchor_target(anchor_list,
          label_channels=label_channels,
          sampling=sampling,
          unmap_outputs=unmap_outputs)
-    pdb.set_trace()
     # no valid anchors
     if any([labels is None for labels in all_labels]):
         return None
@@ -76,7 +75,6 @@ def anchor_target(anchor_list,
     label_weights_list = images_to_levels(all_label_weights, num_level_anchors)
     bbox_targets_list = images_to_levels(all_bbox_targets, num_level_anchors)
     bbox_weights_list = images_to_levels(all_bbox_weights, num_level_anchors)
-    pdb.set_trace()
     IoU_list=images_to_levels(all_IoUs, num_level_anchors)
     softIoU_list=images_to_levels(all_softIoUs, num_level_anchors)    
     return (labels_list, label_weights_list, bbox_targets_list,
