@@ -144,7 +144,7 @@ class AnchorHead(nn.Module):
                                       1).reshape(-1, self.cls_out_channels)
 
         loss_cls = self.loss_cls(
-            cls_score, labels, label_weights, avg_factor=num_total_samples)
+            cls_score, labels, label_weights)
         # regression loss
         bbox_targets = bbox_targets.reshape(-1, 4)
         bbox_weights = bbox_weights.reshape(-1, 4)
@@ -152,8 +152,7 @@ class AnchorHead(nn.Module):
         loss_bbox = self.loss_bbox(
             bbox_pred,
             bbox_targets,
-            bbox_weights,
-            avg_factor=num_total_samples)        
+            bbox_weights)        
         return loss_cls, loss_bbox
 
     @force_fp32(apply_to=('cls_scores', 'bbox_preds'))

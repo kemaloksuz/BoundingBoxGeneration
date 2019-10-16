@@ -36,7 +36,6 @@ def weight_reduce_loss(loss, weight=None, reduction='mean', avg_factor=None):
         Tensor: Processed loss values.
     """
     # if weight is specified, apply element-wise weight
-    pdb.set_trace()
     if weight is not None:
         if loss.dim() != weight.dim(): 
             loss = loss * weight[:, 0]
