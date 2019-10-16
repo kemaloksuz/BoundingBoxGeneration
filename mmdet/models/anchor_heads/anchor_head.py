@@ -133,7 +133,6 @@ class AnchorHead(nn.Module):
     def loss_single(self, cls_score, bbox_pred, labels, label_weights,
                     bbox_targets, bbox_weights, IoUs, softIoUs, track_thr, num_total_samples, cfg):
         # classification loss
-        pdb.set_trace()
         IoUs=IoUs.reshape(-1)
         softIoUs=softIoUs.reshape(-1)   
         idx=softIoUs.nonzero().squeeze()     
@@ -145,8 +144,6 @@ class AnchorHead(nn.Module):
 
         loss_cls = self.loss_cls(
             cls_score, labels, label_weights)
-        pdb.set_trace()
-
         # regression loss
         bbox_targets = bbox_targets.reshape(-1, 4)
         bbox_weights = bbox_weights.reshape(-1, 4)
@@ -155,10 +152,10 @@ class AnchorHead(nn.Module):
             bbox_pred,
             bbox_targets,
             bbox_weights) 
-        pdb.set_trace()           
         with torch.no_grad():
             det_labels=labels[idx]
-            det_cls_score=cls_score[idx,det_labels].sigmoid().cpu().numpy()       
+            det_cls_score=cls_score[idx,det_labels].sigmoid().cpu().numpy()     
+            pdb.set_trace()             
             det_iou=loss_bbox[idx].cpu().numpy()
             anchor_iou=IoUs[idx].cpu().numpy()
             anchor_segmrate=softIoUs[idx].cpu().numpy()
