@@ -122,7 +122,7 @@ def anchor_target_single(flat_anchors,
     else:
         #Regression Assignment
         assigner = build_assigner(cfg.maxIoUAssigner)
-        assign_result = reg_assigner.assign(anchors, gt_bboxes,
+        assign_result = assigner.assign(anchors, gt_bboxes,
                                              gt_bboxes_ignore, gt_labels,gt_masks)
         bbox_sampler = PseudoSampler()
         sampling_result = bbox_sampler.sample(assign_result, anchors,
