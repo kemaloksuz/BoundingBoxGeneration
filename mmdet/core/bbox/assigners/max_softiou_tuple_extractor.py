@@ -1,6 +1,6 @@
 import torch
 
-from ..geometry import bbox_overlaps, segm_overlaps
+from ..geometry import bbox_overlaps, segm_overlaps, segm_iou
 from .assign_result import AssignResult
 from .base_assigner import BaseAssigner
 import pdb
