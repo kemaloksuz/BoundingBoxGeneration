@@ -145,6 +145,7 @@ class AnchorHead(nn.Module):
 
         loss_cls = self.loss_cls(
             cls_score, labels, label_weights)
+        cls_score=cls_score[idx,labels].detach().sigmoid()
         # regression loss
         bbox_targets = bbox_targets.reshape(-1, 4)
         bbox_weights = bbox_weights.reshape(-1, 4)
