@@ -102,10 +102,11 @@ class MaxSoftIoUTupleAssigner(BaseAssigner):
         matched_gts=assign_result.gt_inds[matched_anchors].squeeze().cpu().numpy()
 
         #3.Find overlaps(matched_idx), say softIoUs
-        softIoUs=torch.from_numpy(segm_rate.cpu().numpy()[matched_gts-1,matched_anchors]).float().to(device)
+        print(matched_anchors.device)
+        softIoUs=torch.from_numpy(segm_rate.cpu().numpy()[matched_gts-1,matched_anchors]).float().to(matched_anchors.device)
 
         #4.Find bbox_ious(matched_idx), say IoUs
-        IoUs=torch.from_numpy(overlaps.cpu().numpy()[matched_gts-1,matched_anchors]).float().to(device)
+        IoUs=torch.from_numpy(overlaps.cpu().numpy()[matched_gts-1,matched_anchors]).float().to(matched_anchors.device)
 
         #5.Concat IoUs and softIoUs as 2xN matrix 
         #IoU_tuples=np.concatenate((np.expand_dims(IoUs,1),np.expand_dims(softIoUs,1)),axis=1)
