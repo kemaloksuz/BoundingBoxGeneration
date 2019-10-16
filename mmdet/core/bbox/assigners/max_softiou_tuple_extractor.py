@@ -97,7 +97,7 @@ class MaxSoftIoUTupleAssigner(BaseAssigner):
         max_overlaps, argmax_overlaps = overlaps.max(dim=0)
         idx = torch.arange(0, argmax_overlaps.size()[0], out=torch.cuda.LongTensor())
         indexes=torch.cat((argmax_overlaps.unsqueeze(1),idx.unsqueeze(1)), dim=1)
-        segm_rates, _ = segm_rate[indexes[:,0], indexes[:,1]]
+        segm_rates = segm_rate[indexes[:,0], indexes[:,1]]
         #1.Get the indices of nonzero values in assign_result.assigned_gt_inds, say matched_anchors
         #matched_anchors=torch.nonzero(assign_result.gt_inds).squeeze().cpu().numpy()
 
