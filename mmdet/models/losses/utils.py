@@ -38,7 +38,10 @@ def weight_reduce_loss(loss, weight=None, reduction='mean', avg_factor=None):
     # if weight is specified, apply element-wise weight
     pdb.set_trace()
     if weight is not None:
-        loss = loss * weight
+        if loss.dim() != weight.dim(): 
+            loss = loss * weight[:, 0]
+        else: 
+            loss = loss * weight
     # if avg_factor is not specified, just reduce the loss
     if avg_factor is None:
         loss = reduce_loss(loss, reduction)
