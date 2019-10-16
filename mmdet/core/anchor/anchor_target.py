@@ -160,7 +160,6 @@ def anchor_target_single(flat_anchors,
             label_weights[pos_inds] = cfg.pos_weight
     if len(neg_inds) > 0:
         label_weights[neg_inds] = 1.0
-    pdb.set_trace()
     # map up to original set of anchors
     if unmap_outputs:
         num_total_anchors = flat_anchors.size(0)

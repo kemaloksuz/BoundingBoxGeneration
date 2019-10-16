@@ -93,7 +93,6 @@ class MaxSoftIoUTupleAssigner(BaseAssigner):
             overlaps[:, ignore_max_overlaps > self.ignore_iof_thr] = -1
 
         assign_result = self.assign_wrt_overlaps(overlaps, gt_labels)
-        pdb.set_trace()
         max_overlaps, argmax_overlaps = overlaps.max(dim=0)
         idx = torch.arange(0, argmax_overlaps.size()[0], out=torch.cuda.LongTensor())
         indexes=torch.cat((argmax_overlaps.unsqueeze(1),idx.unsqueeze(1)), dim=1)
