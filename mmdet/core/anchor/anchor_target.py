@@ -2,7 +2,7 @@ import torch
 
 from ..bbox import PseudoSampler, assign_and_sample, bbox2delta, build_assigner
 from ..utils import multi_apply
-
+import pdb
 
 def anchor_target(anchor_list,
                   valid_flag_list,
@@ -49,7 +49,7 @@ def anchor_target(anchor_list,
     if gt_masks_list is None:
         gt_masks_list = [None for _ in range(num_imgs)]
     (all_labels, all_label_weights, all_bbox_targets, all_bbox_weights,
-     pos_inds_list, neg_inds_list,IoU_list, softIoU_list) = multi_apply(
+     pos_inds_list, neg_inds_list,all_IoUs, all_softIoUs) = multi_apply(
          anchor_target_single,
          anchor_list,
          valid_flag_list,
@@ -64,6 +64,7 @@ def anchor_target(anchor_list,
          label_channels=label_channels,
          sampling=sampling,
          unmap_outputs=unmap_outputs)
+    pdb.set_trace()
     # no valid anchors
     if any([labels is None for labels in all_labels]):
         return None
@@ -75,6 +76,9 @@ def anchor_target(anchor_list,
     label_weights_list = images_to_levels(all_label_weights, num_level_anchors)
     bbox_targets_list = images_to_levels(all_bbox_targets, num_level_anchors)
     bbox_weights_list = images_to_levels(all_bbox_weights, num_level_anchors)
+    pdb.set_trace()
+    IoU_list=images_to_levels(all_IoUs, num_level_anchors)
+    softIoU_list=images_to_levels(all_softIoUs, num_level_anchors)    
     return (labels_list, label_weights_list, bbox_targets_list,
             bbox_weights_list, num_total_pos, num_total_neg, IoU_list, softIoU_list)
 
