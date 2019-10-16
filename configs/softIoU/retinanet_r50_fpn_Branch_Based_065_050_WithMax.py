@@ -34,14 +34,14 @@ model = dict(
             gamma=2.0,
             alpha=0.25,
             loss_weight=1.0),
-        loss_bbox=dict(type='SmoothL1Loss', beta=0.11, loss_weight=1.0)))
+        loss_bbox=dict(type='IoULoss', reduction=None, loss_weight=1.0)))
 # training and testing settings
 train_cfg = dict(
     maxIoUAssigner=dict(
-        type='MaxSoftIoUAssigner',
-        pos_iou_thr=0.55,
-        neg_iou_thr=0.55,
-        min_pos_iou=0.55,
+        type='MaxIoUAssigner',
+        pos_iou_thr=0.50,
+        neg_iou_thr=0.50,
+        min_pos_iou=0,
         ignore_iof_thr=-1),
     maxSoftIoUTupleExtractor=dict(
         type='MaxSoftIoUTupleAssigner',

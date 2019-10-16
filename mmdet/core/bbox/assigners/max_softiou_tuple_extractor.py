@@ -110,12 +110,12 @@ class MaxSoftIoUTupleAssigner(BaseAssigner):
         #5.Concat IoUs and softIoUs as 2xN matrix 
         IoU_tuples=np.concatenate((np.expand_dims(IoUs,1),np.expand_dims(softIoUs,1)),axis=1)
 
-        #6.Append it to the file
-        f = open(self.filename, "ab")
-        np.savetxt(f, IoU_tuples)
-        pdb.set_trace()
+        #6.Append it to the file --- deprecated
+        # f = open(self.filename, "ab")
+        # np.savetxt(f, IoU_tuples)
+        # pdb.set_trace()
 	
-	
+        # 6. also return iou tuple.
         return assign_result
 
     def assign_wrt_overlaps(self, overlaps, gt_labels=None):
