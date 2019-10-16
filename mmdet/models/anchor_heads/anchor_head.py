@@ -73,7 +73,7 @@ class AnchorHead(nn.Module):
 
         self.num_anchors = len(self.anchor_ratios) * len(self.anchor_scales)
         self._init_layers()
-
+        self.filename = './testing.dat'
     def _init_layers(self):
         self.conv_cls = nn.Conv2d(self.feat_channels,
                                   self.num_anchors * self.cls_out_channels, 1)
@@ -185,6 +185,7 @@ class AnchorHead(nn.Module):
          num_total_pos, num_total_neg, IoU_list, softIoU_list) = cls_reg_targets
         num_total_samples = (
             num_total_pos + num_total_neg if self.sampling else num_total_pos)
+        pdb.set_trace()
         losses_cls, losses_bbox = multi_apply(
             self.loss_single,
             cls_scores,
