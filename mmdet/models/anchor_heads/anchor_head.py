@@ -134,6 +134,10 @@ class AnchorHead(nn.Module):
                     bbox_targets, bbox_weights, IoUs, softIoUs, track_thr, num_total_samples, cfg):
         # classification loss
         pdb.set_trace()
+        IoUs=IoUs.reshape(-1)
+        softIoUs=softIoUs.reshape(-1)   
+        idx=softIoUs.nonzero()     
+        
         labels = labels.reshape(-1)
         label_weights = label_weights.reshape(-1)
         cls_score = cls_score.permute(0, 2, 3,
@@ -148,7 +152,7 @@ class AnchorHead(nn.Module):
             bbox_pred,
             bbox_targets,
             bbox_weights,
-            avg_factor=num_total_samples)
+            avg_factor=num_total_samples)        
         return loss_cls, loss_bbox
 
     @force_fp32(apply_to=('cls_scores', 'bbox_preds'))
