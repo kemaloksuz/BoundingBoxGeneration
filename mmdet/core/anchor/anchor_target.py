@@ -142,8 +142,8 @@ def anchor_target_single(flat_anchors,
     #import pdb
     #pdb.set_trace()
     track_inds = track_sampling_result.pos_inds
-    pos_inds = cls_sampling_result.pos_inds
-    neg_inds = cls_sampling_result.neg_inds
+    pos_inds = sampling_result.pos_inds
+    neg_inds = sampling_result.neg_inds
     if len(pos_inds) > 0:
         pos_bbox_targets = bbox2delta(sampling_result.pos_bboxes,
                                       sampling_result.pos_gt_bboxes,
