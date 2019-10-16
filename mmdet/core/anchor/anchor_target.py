@@ -153,7 +153,7 @@ def anchor_target_single(flat_anchors,
         if gt_labels is None:
             labels[pos_inds] = 1
         else:
-            labels[pos_inds] = gt_labels[cls_sampling_result.pos_assigned_gt_inds]
+            labels[pos_inds] = gt_labels[sampling_result.pos_assigned_gt_inds]
         if cfg.pos_weight <= 0:
             label_weights[pos_inds] = 1.0
         else:
