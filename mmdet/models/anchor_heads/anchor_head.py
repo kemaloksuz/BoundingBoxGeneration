@@ -136,7 +136,7 @@ class AnchorHead(nn.Module):
         pdb.set_trace()
         IoUs=IoUs.reshape(-1)
         softIoUs=softIoUs.reshape(-1)   
-        idx=softIoUs.nonzero()     
+        idx=softIoUs.nonzero().squeeze()     
 
         labels = labels.reshape(-1)
         label_weights = label_weights.reshape(-1)
@@ -157,7 +157,8 @@ class AnchorHead(nn.Module):
             bbox_weights) 
         pdb.set_trace()           
         with torch.no_grad():
-            det_cls_score=cls_score[idx,labels].detach().sigmoid().cpu().numpy()       
+            det_labels=labels[idx]
+            det_cls_score=cls_score[idx,det_labels].sigmoid().cpu().numpy()       
             det_iou=loss_bbox[idx].cpu().numpy()
             anchor_iou=IoUs[idx].cpu().numpy()
             anchor_segmrate=softIoUs[idx].cpu().numpy()
