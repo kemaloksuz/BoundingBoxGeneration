@@ -93,7 +93,7 @@ class MaxSoftIoUTupleAssigner(BaseAssigner):
             overlaps[:, ignore_max_overlaps > self.ignore_iof_thr] = -1
 
         assign_result = self.assign_wrt_overlaps(overlaps, gt_labels)
-        #pdb.set_trace()
+        pdb.set_trace()
         max_overlaps, argmax_overlaps = overlaps.max(dim=0)
         max_segm_rate, _ = segm_rate[:, argmax_overlaps]
         #1.Get the indices of nonzero values in assign_result.assigned_gt_inds, say matched_anchors
