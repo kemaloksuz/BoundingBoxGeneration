@@ -186,6 +186,11 @@ class AnchorHead(nn.Module):
         num_total_samples = (
             num_total_pos + num_total_neg if self.sampling else num_total_pos)
         pdb.set_trace()
+        print(softIoU_list[0].nonzero().size())
+        print(softIoU_list[1].nonzero().size())
+        print(softIoU_list[2].nonzero().size())
+        print(softIoU_list[3].nonzero().size())
+        print(softIoU_list[4].nonzero().size())
         losses_cls, losses_bbox = multi_apply(
             self.loss_single,
             cls_scores,
