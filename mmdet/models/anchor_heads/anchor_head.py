@@ -136,12 +136,12 @@ class AnchorHead(nn.Module):
         IoUs=IoUs.reshape(-1)
         softIoUs=softIoUs.reshape(-1)   
         idx=softIoUs.nonzero().squeeze() 
-        pos_idx=(IoUs>0.5).nonzero().squeeze()
+        #pos_idx=(IoUs>0.5).nonzero().squeeze()
 
         labels = labels.reshape(-1)
-        pdb.set_trace()
-        print(labels[pos_idx], labels.max())
-        print(labels[idx], labels.min())
+        #pdb.set_trace()
+        #print(labels[pos_idx], labels.max())
+        #print(labels[idx], labels.min())
         label_weights = label_weights.reshape(-1)
         cls_score = cls_score.permute(0, 2, 3,
                                       1).reshape(-1, self.cls_out_channels)
