@@ -156,8 +156,11 @@ class AnchorHead(nn.Module):
             if idx.size()[0]>0:
                 det_labels=labels[idx]
                 det_cls_score=cls_score[idx,det_labels].sigmoid().cpu().numpy()     
-                pdb.set_trace()             
-                det_iou=loss_bbox[idx].cpu().numpy()
+                pdb.set_trace()    
+                if loss_bbox.size()[0]>0:
+                    det_iou=loss_bbox[idx].cpu().numpy()
+                else:
+                    det_iou=torch.cuda.FloatTensor(idx.size()[0]).fill_(0)
                 anchor_iou=IoUs[idx].cpu().numpy()
                 anchor_segmrate=softIoUs[idx].cpu().numpy()
                 tuples=np.concatenate((np.expand_dims(det_cls_score,1),np.expand_dims(det_iou,1),np.expand_dims(anchor_iou,1),np.expand_dims(anchor_segmrate,1)),axis=1)
