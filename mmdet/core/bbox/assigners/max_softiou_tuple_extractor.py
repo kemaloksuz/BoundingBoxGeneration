@@ -95,7 +95,7 @@ class MaxSoftIoUTupleAssigner(BaseAssigner):
         assign_result = self.assign_wrt_overlaps(overlaps, gt_labels)
         pdb.set_trace()
         max_overlaps, argmax_overlaps = overlaps.max(dim=0)
-        max_segm_rate, _ = segm_rate[:, argmax_overlaps]
+        segm_rates, _ = segm_rate[argmax_overlaps, :]
         #1.Get the indices of nonzero values in assign_result.assigned_gt_inds, say matched_anchors
         #matched_anchors=torch.nonzero(assign_result.gt_inds).squeeze().cpu().numpy()
 
@@ -118,7 +118,7 @@ class MaxSoftIoUTupleAssigner(BaseAssigner):
         # pdb.set_trace()
 	
         # 6. also return iou tuple.
-        return assign_result, max_overlaps, max_segm_rate
+        return assign_result, max_overlaps, segm_rates
 
     def assign_wrt_overlaps(self, overlaps, gt_labels=None):
         """Assign w.r.t. the overlaps of bboxes with gts.
