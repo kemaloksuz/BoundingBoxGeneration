@@ -44,7 +44,7 @@ class MaxSoftIoUTupleAssigner(BaseAssigner):
         self.gt_max_assign_all = gt_max_assign_all
         self.ignore_iof_thr = ignore_iof_thr
         self.ignore_wrt_candidates = ignore_wrt_candidates
-        self.filename = './testing.dat'
+        #self.filename = './testing.dat'
 
 
     def assign(self, bboxes, gt_bboxes, gt_bboxes_ignore=None, gt_labels=None, gt_masks=None):
@@ -102,13 +102,13 @@ class MaxSoftIoUTupleAssigner(BaseAssigner):
         matched_gts=assign_result.gt_inds[matched_anchors].squeeze().cpu().numpy()
 
         #3.Find overlaps(matched_idx), say softIoUs
-        softIoUs=segm_rate.cpu().numpy()[matched_gts-1,matched_anchors]
+        softIoUs=torch.from_numpy(segm_rate.cpu().numpy()[matched_gts-1,matched_anchors]).float().to(device)
 
         #4.Find bbox_ious(matched_idx), say IoUs
-        IoUs=overlaps.cpu().numpy()[matched_gts-1,matched_anchors]
+        IoUs=torch.from_numpy(overlaps.cpu().numpy()[matched_gts-1,matched_anchors]).float().to(device)
 
         #5.Concat IoUs and softIoUs as 2xN matrix 
-        IoU_tuples=np.concatenate((np.expand_dims(IoUs,1),np.expand_dims(softIoUs,1)),axis=1)
+        #IoU_tuples=np.concatenate((np.expand_dims(IoUs,1),np.expand_dims(softIoUs,1)),axis=1)
 
         #6.Append it to the file --- deprecated
         # f = open(self.filename, "ab")
@@ -116,7 +116,7 @@ class MaxSoftIoUTupleAssigner(BaseAssigner):
         # pdb.set_trace()
 	
         # 6. also return iou tuple.
-        return assign_result
+        return assign_result, IoUs, softIoUs
 
     def assign_wrt_overlaps(self, overlaps, gt_labels=None):
         """Assign w.r.t. the overlaps of bboxes with gts.

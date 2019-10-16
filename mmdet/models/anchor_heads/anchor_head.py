@@ -9,7 +9,7 @@ from mmdet.core import (AnchorGenerator, anchor_target, delta2bbox, force_fp32,
                         multi_apply, multiclass_nms)
 from ..builder import build_loss
 from ..registry import HEADS
-
+import pdb
 
 @HEADS.register_module
 class AnchorHead(nn.Module):
@@ -131,8 +131,9 @@ class AnchorHead(nn.Module):
         return anchor_list, valid_flag_list
 
     def loss_single(self, cls_score, bbox_pred, labels, label_weights,
-                    bbox_targets, bbox_weights, num_total_samples, num_reg_samples, cfg):
+                    bbox_targets, bbox_weights, IoUs, softIoUs, num_total_samples, cfg):
         # classification loss
+        pdb.set_trace()
         labels = labels.reshape(-1)
         label_weights = label_weights.reshape(-1)
         cls_score = cls_score.permute(0, 2, 3,
@@ -147,7 +148,7 @@ class AnchorHead(nn.Module):
             bbox_pred,
             bbox_targets,
             bbox_weights,
-            avg_factor=num_reg_samples)
+            avg_factor=num_total_samples)
         return loss_cls, loss_bbox
 
     @force_fp32(apply_to=('cls_scores', 'bbox_preds'))
@@ -181,7 +182,7 @@ class AnchorHead(nn.Module):
         if cls_reg_targets is None:
             return None
         (labels_list, label_weights_list, bbox_targets_list, bbox_weights_list,
-         num_total_pos, num_total_neg, num_total_reg) = cls_reg_targets
+         num_total_pos, num_total_neg, num_total_track, IoU_list, softIoU_list, track_inds_list) = cls_reg_targets
         num_total_samples = (
             num_total_pos + num_total_neg if self.sampling else num_total_pos)
         losses_cls, losses_bbox = multi_apply(
@@ -192,8 +193,10 @@ class AnchorHead(nn.Module):
             label_weights_list,
             bbox_targets_list,
             bbox_weights_list,
+            track_inds_list,
+            IoU_list, 
+            softIoU_list,
             num_total_samples=num_total_samples,
-            num_reg_samples=num_total_reg,
             cfg=cfg)
         return dict(loss_cls=losses_cls, loss_bbox=losses_bbox)
 

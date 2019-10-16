@@ -49,7 +49,7 @@ def anchor_target(anchor_list,
     if gt_masks_list is None:
         gt_masks_list = [None for _ in range(num_imgs)]
     (all_labels, all_label_weights, all_bbox_targets, all_bbox_weights,
-     pos_inds_list, neg_inds_list,reg_inds_list) = multi_apply(
+     pos_inds_list, neg_inds_list,track_inds_list,IoU_list, softIoU_list) = multi_apply(
          anchor_target_single,
          anchor_list,
          valid_flag_list,
@@ -70,14 +70,14 @@ def anchor_target(anchor_list,
     # sampled anchors of all images
     num_total_pos = sum([max(inds.numel(), 1) for inds in pos_inds_list])
     num_total_neg = sum([max(inds.numel(), 1) for inds in neg_inds_list])
-    num_total_reg = sum([max(inds.numel(), 1) for inds in reg_inds_list])
+    num_total_track = sum([max(inds.numel(), 1) for inds in track_inds_list])
     # split targets to a list w.r.t. multiple levels
     labels_list = images_to_levels(all_labels, num_level_anchors)
     label_weights_list = images_to_levels(all_label_weights, num_level_anchors)
     bbox_targets_list = images_to_levels(all_bbox_targets, num_level_anchors)
     bbox_weights_list = images_to_levels(all_bbox_weights, num_level_anchors)
     return (labels_list, label_weights_list, bbox_targets_list,
-            bbox_weights_list, num_total_pos, num_total_neg, num_total_reg)
+            bbox_weights_list, num_total_pos, num_total_neg, num_total_track, IoU_list, softIoU_list, track_inds_list)
 
 
 def images_to_levels(target, num_level_anchors):
@@ -121,17 +121,17 @@ def anchor_target_single(flat_anchors,
             anchors, gt_bboxes, gt_bboxes_ignore, None, cfg, gt_masks)
     else:
         #Regression Assignment
-        reg_assigner = build_assigner(cfg.maxIoUAssigner)
-        reg_assign_result = reg_assigner.assign(anchors, gt_bboxes,
+        assigner = build_assigner(cfg.maxIoUAssigner)
+        assign_result = reg_assigner.assign(anchors, gt_bboxes,
                                              gt_bboxes_ignore, gt_labels,gt_masks)
         bbox_sampler = PseudoSampler()
-        reg_sampling_result = bbox_sampler.sample(reg_assign_result, anchors,
+        sampling_result = bbox_sampler.sample(assign_result, anchors,
                                               gt_bboxes)
         #Classificaion Assignment        
-        cls_assigner = build_assigner(cfg.maxSoftIoUTupleExtractor)
-        cls_assign_result = cls_assigner.assign(anchors, gt_bboxes,
+        track_assigner = build_assigner(cfg.maxSoftIoUTupleExtractor)
+        track_assign_result, IoUs, softIoUs = track_assigner.assign(anchors, gt_bboxes,
                                              gt_bboxes_ignore, gt_labels,gt_masks)
-        cls_sampling_result = bbox_sampler.sample(cls_assign_result, anchors,
+        track_sampling_result = bbox_sampler.sample(track_assign_result, anchors,
                                               gt_bboxes)       
 
     num_valid_anchors = anchors.shape[0]
@@ -141,16 +141,15 @@ def anchor_target_single(flat_anchors,
     label_weights = anchors.new_zeros(num_valid_anchors, dtype=torch.float)
     #import pdb
     #pdb.set_trace()
-    reg_inds = reg_sampling_result.pos_inds
+    track_inds = track_sampling_result.pos_inds
     pos_inds = cls_sampling_result.pos_inds
     neg_inds = cls_sampling_result.neg_inds
-    if len(reg_inds) > 0:
-        pos_bbox_targets = bbox2delta(reg_sampling_result.pos_bboxes,
-                                      reg_sampling_result.pos_gt_bboxes,
+    if len(pos_inds) > 0:
+        pos_bbox_targets = bbox2delta(sampling_result.pos_bboxes,
+                                      sampling_result.pos_gt_bboxes,
                                       target_means, target_stds)
-        bbox_targets[reg_inds, :] = pos_bbox_targets
-        bbox_weights[reg_inds, :] = 1.0
-    if len(pos_inds) > 0:        
+        bbox_targets[pos_inds, :] = pos_bbox_targets
+        bbox_weights[pos_inds, :] = 1.0
         if gt_labels is None:
             labels[pos_inds] = 1
         else:
@@ -169,9 +168,11 @@ def anchor_target_single(flat_anchors,
         label_weights = unmap(label_weights, num_total_anchors, inside_flags)
         bbox_targets = unmap(bbox_targets, num_total_anchors, inside_flags)
         bbox_weights = unmap(bbox_weights, num_total_anchors, inside_flags)
+        IoUs= unmap(IoUs, num_total_anchors, inside_flags)
+        softIoUs= unmap(softIoUs, num_total_anchors, inside_flags)
 
     return (labels, label_weights, bbox_targets, bbox_weights, pos_inds,
-            neg_inds, reg_inds)
+            neg_inds, track_inds, IoUs, softIoUs)
 
 
 def anchor_inside_flags(flat_anchors, valid_flags, img_shape,
