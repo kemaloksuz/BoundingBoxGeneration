@@ -146,8 +146,7 @@ class AnchorHead(nn.Module):
         loss_cls = self.loss_cls(
             cls_score, labels, label_weights)
         pdb.set_trace()
-        with torch.no_grad():
-            cls_score=cls_score[idx,labels].detach().sigmoid()
+
         # regression loss
         bbox_targets = bbox_targets.reshape(-1, 4)
         bbox_weights = bbox_weights.reshape(-1, 4)
@@ -157,6 +156,14 @@ class AnchorHead(nn.Module):
             bbox_targets,
             bbox_weights) 
         pdb.set_trace()           
+        with torch.no_grad():
+            det_cls_score=cls_score[idx,labels].detach().sigmoid().cpu().numpy()       
+            det_iou=loss_bbox[idx].cpu().numpy()
+            anchor_iou=IoUs[idx].cpu().numpy()
+            anchor_segmrate=softIoUs[idx].cpu().numpy()
+            tuples=np.concatenate((np.expand_dims(det_cls_score,1),np.expand_dims(det_iou,1),np.expand_dims(anchor_iou,1),np.expand_dims(anchor_segmrate,1)),axis=1)
+            f = open(self.filename, "ab")
+            np.savetxt(f, IoU_tuples)            
         return loss_cls, loss_bbox
 
     @force_fp32(apply_to=('cls_scores', 'bbox_preds'))
