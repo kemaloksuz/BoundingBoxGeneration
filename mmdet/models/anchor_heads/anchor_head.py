@@ -171,7 +171,7 @@ class AnchorHead(nn.Module):
                 tuples=np.concatenate((np.expand_dims(det_cls_score,1),np.expand_dims(det_iou,1),np.expand_dims(anchor_iou,1),np.expand_dims(anchor_segmrate,1)),axis=1)
                 f = open(self.filename, "ab")
                 np.savetxt(f, tuples)            
-        pdb.set_trace()
+#        pdb.set_trace()
         return loss_cls, loss_bbox
 
     @force_fp32(apply_to=('cls_scores', 'bbox_preds'))
