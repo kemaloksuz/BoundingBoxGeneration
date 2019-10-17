@@ -116,5 +116,6 @@ data
 *.log.json
 work_dirs/
 *.bbox.json
+*.result
 # Pytorch
 *.pth
