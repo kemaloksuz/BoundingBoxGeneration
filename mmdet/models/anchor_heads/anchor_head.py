@@ -158,8 +158,10 @@ class AnchorHead(nn.Module):
             bbox_weights) 
         with torch.no_grad():
             if idx.size()[0]>0:
-                det_labels=labels[idx]
+                det_labels=labels[idx] - 1
+                det_labels[det_labels<0] = 0
                 det_cls_score=cls_score[idx,det_labels].sigmoid().cpu().numpy()     
+                det_cls_loss = loss_cls[idx, :].sum(dim=1).cpu().numpy()
                 if loss_bbox.dim()>0:
                     det_iou=loss_bbox[idx].cpu().numpy()
                 else:
@@ -169,6 +171,7 @@ class AnchorHead(nn.Module):
                 tuples=np.concatenate((np.expand_dims(det_cls_score,1),np.expand_dims(det_iou,1),np.expand_dims(anchor_iou,1),np.expand_dims(anchor_segmrate,1)),axis=1)
                 f = open(self.filename, "ab")
                 np.savetxt(f, tuples)            
+        pdb.set_trace()
         return loss_cls, loss_bbox
 
     @force_fp32(apply_to=('cls_scores', 'bbox_preds'))
