@@ -168,7 +168,7 @@ class AnchorHead(nn.Module):
                     det_iou=torch.cuda.FloatTensor(idx.size()[0]).fill_(0).cpu().numpy()
                 anchor_iou=IoUs[idx].cpu().numpy()
                 anchor_segmrate=softIoUs[idx].cpu().numpy()
-                tuples=np.concatenate((np.expand_dims(det_cls_score,1),np.expand_dims(det_iou,1),np.expand_dims(anchor_iou,1),np.expand_dims(anchor_segmrate,1)),axis=1)
+                tuples=np.concatenate((np.expand_dims(anchor_iou,1),np.expand_dims(anchor_segmrate,1),np.expand_dims(det_iou,1), np.expand_dims(det_cls_score,1), np.expand_dims(det_cls_loss,1)),axis=1)
                 f = open(self.filename, "ab")
                 np.savetxt(f, tuples)            
 #        pdb.set_trace()
