@@ -75,7 +75,7 @@ class MaxSoftIoUConditionalAssigner(BaseAssigner):
 
         bboxes = bboxes[:, :4]
         overlaps = bbox_overlaps(gt_bboxes, bboxes)
-        segm_ious = segm_iou(gt_masks, gt_bboxes, bboxes, overlaps, 0.) 
+        segm_ious = segm_iou(gt_masks, gt_bboxes, bboxes, overlaps, 0.35) 
         FP_indices = (segm_ious < 0.5)* (overlaps > 0.45)
         FN_indices = (segm_ious < 0.35) * (overlaps > 0.35) * (overlaps < 0.45)
         overlaps[FP_indices]=0.400
