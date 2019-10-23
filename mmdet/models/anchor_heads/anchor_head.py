@@ -164,7 +164,7 @@ class AnchorHead(nn.Module):
                 det_cls_score=cls_score[idx,det_labels].sigmoid().cpu().numpy()     
                 det_cls_loss = loss_cls[idx, :].sum(dim=1).cpu().numpy()
                 #pdb.set_trace()
-                det_cls_score_max = cls_score[idx, :].max(dim=1)[0].cpu().numpy()
+                det_cls_score_max = cls_score[idx, :].max(dim=1)[0].sigmoid().cpu().numpy()
                 if loss_bbox.dim()>0:
                     det_iou=loss_bbox[idx].cpu().numpy()
                 else:
