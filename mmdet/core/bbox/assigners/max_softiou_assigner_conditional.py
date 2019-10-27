@@ -84,7 +84,7 @@ class MaxSoftIoUConditionalAssigner(BaseAssigner):
         overlaps = bbox_overlaps(gt_bboxes, bboxes)
         if self.neg_del_iou_thr<self.neg_iou_thr and self.neg_del_iou_thr>0:        
             min_segm=self.neg_del_iou_thr
-        else
+        else:
             min_segm=self.min_pos_segm_iou_thr
         segm_ious = segm_iou(gt_masks, gt_bboxes, bboxes, overlaps, min_segm) 
 
