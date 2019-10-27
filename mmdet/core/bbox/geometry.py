@@ -145,14 +145,13 @@ def segm_overlaps(gt_masks, gt_bboxes, bboxes, overlaps, min_overlap,plot=0):
     #print("t=",nonzero_iou_ind.size(), end1 - start, end - start)
     return soft_ious
 
-def segm_iou(gt_masks, gt_bboxes, bboxes, overlaps, min_overlap,plot=0): 
+def segm_iou(gt_masks, gt_bboxes, bboxes, overlaps, min_overlap=0): 
     #import pdb
 
     #import time
     with torch.no_grad():
    # start = time.time()
         segm_ious=overlaps.data.new_zeros(overlaps.size())
-        soft_ious=overlaps.data.new_zeros(overlaps.size())
         #Convert list to torch
         all_gt_masks=torch.from_numpy(gt_masks).type(torch.cuda.ByteTensor)
         gt_number,image_h,image_w=all_gt_masks.size()
@@ -167,39 +166,6 @@ def segm_iou(gt_masks, gt_bboxes, bboxes, overlaps, min_overlap,plot=0):
             all_boxes[:,[0,2]]=torch.clamp(all_boxes[:,[0,2]], max=image_w-1)
             all_boxes[:,[1,3]]=torch.clamp(all_boxes[:,[1,3]], max=image_h-1)
             segm_ious[i,larger_ind]=integral_image_fetch(integral_images[i],all_boxes)/integral_images[i,-1,-1]
-
-        if plot:
-            import matplotlib.pyplot as plt
-            from matplotlib import patches as patch
-            import random
-            larger_ind=overlaps>min_overlap
-            nonzero_iou_ind=torch.nonzero(larger_ind)
-            #gt_mask_size=torch.sum(gt_masks,dim=[1,2]).type(torch.cuda.FloatTensor)
-            #end1 = time.time()
-            #bboxes=bboxes.type(torch.cuda.IntTensor) 
-            bboxes=torch.clamp(bboxes, min=0)
-            bboxes[:,[0,2]]=torch.clamp(bboxes[:,[0,2]], max=image_w-1)
-            bboxes[:,[1,3]]=torch.clamp(bboxes[:,[1,3]], max=image_h-1)
-
-            no=random.randint(0,nonzero_iou_ind.shape[0])
-            pltgt,pltanc=nonzero_iou_ind[no]
-           # print(pltgt,pltanc)
-            fig, ax = plt.subplots(1)
-            ax.imshow(gt_masks[pltgt].cpu().numpy())
-
-            tempRect=patch.Rectangle((bboxes[pltanc,0],bboxes[pltanc,1]), bboxes[pltanc,2]-bboxes[pltanc,0], bboxes[pltanc,3]-bboxes[pltanc,1],linewidth=3,edgecolor='r',facecolor='none')
-            ax.add_patch(tempRect) 
-            fntsize=14
-            tempRect=patch.Rectangle((gt_bboxes[pltgt,0],gt_bboxes[pltgt,1]), gt_bboxes[pltgt,2]-gt_bboxes[pltgt,0], gt_bboxes[pltgt,3]-gt_bboxes[pltgt,1],linewidth=3,edgecolor='g',facecolor='none')
-            ax.add_patch(tempRect)        
-
-            ax.tick_params(labelsize=fntsize)      
-            plt.xlabel('x', fontsize=fntsize)
-            plt.ylabel('y', fontsize=fntsize)
-            ax.text(0, 0, "iou= "+np.array2string(overlaps[pltgt,pltanc].cpu().numpy())+", "+\
-                "\n segm_rate="+np.array2string(segm_ious[pltgt,pltanc].cpu().numpy())+", "+\
-                "\n soft_iou="+np.array2string(soft_ious[pltgt,pltanc].cpu().numpy()), fontsize=12)
-            plt.show()
     #end = time.time()
     #print("t=",nonzero_iou_ind.size(), end1 - start, end - start)
     return segm_ious

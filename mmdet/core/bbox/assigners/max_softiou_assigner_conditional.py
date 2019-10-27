@@ -33,16 +33,23 @@ class MaxSoftIoUConditionalAssigner(BaseAssigner):
     def __init__(self,
                  pos_iou_thr,
                  neg_iou_thr,
-                 min_pos_iou=.0,
+                 min_pos_segm_iou_thr,
+                 max_neg_segm_iou_thr,
+                 neg_del_iou_thr,                 
+                 min_pos_iou,
                  gt_max_assign_all=True,
                  ignore_iof_thr=-1,
                  ignore_wrt_candidates=True):
         self.pos_iou_thr = pos_iou_thr
         self.neg_iou_thr = neg_iou_thr
+        self.min_pos_segm_iou_thr = min_pos_segm_iou_thr
+        self.max_neg_segm_iou_thr = max_neg_segm_iou_thr
+        self.neg_del_iou_thr = neg_del_iou_thr          
         self.min_pos_iou = min_pos_iou
         self.gt_max_assign_all = gt_max_assign_all
         self.ignore_iof_thr = ignore_iof_thr
         self.ignore_wrt_candidates = ignore_wrt_candidates
+        self.epsilon = 0.0001
 
     def assign(self, bboxes, gt_bboxes, gt_bboxes_ignore=None, gt_labels=None, gt_masks=None):
         """Assign gt to bboxes.
@@ -75,11 +82,20 @@ class MaxSoftIoUConditionalAssigner(BaseAssigner):
 
         bboxes = bboxes[:, :4]
         overlaps = bbox_overlaps(gt_bboxes, bboxes)
-        segm_ious = segm_iou(gt_masks, gt_bboxes, bboxes, overlaps, 0.35) 
-        FP_indices = (segm_ious < 0.4)* (overlaps > 0.45)
-        FN_indices = (segm_ious < 0.35) * (overlaps > 0.35) * (overlaps < 0.45)
-        overlaps[FP_indices]=0.400
-        overlaps[FN_indices]=0.330
+        segm_ious = segm_iou(gt_masks, gt_bboxes, bboxes, overlaps) 
+        pdb.set_trace()
+
+        if self.neg_del_iou_thr<self.neg_iou_thr and self.neg_del_iou_thr>0:
+            delete_neg_ind = (segm_ious > self.max_neg_segm_iou_thr) * (overlaps < self.neg_iou_thr) * (overlaps > self.neg_del_iou_thr)
+
+        if self.min_pos_segm_iou_thr>0:        
+            delete_pos_ind = (segm_ious < self.min_pos_segm_iou_thr) * (overlaps > self.pos_iou_thr)
+
+        if self.neg_del_iou_thr<self.neg_iou_thr and self.neg_del_iou_thr>0:
+            overlaps[delete_pos_ind]=self.pos_iou_thr-self.epsilon
+
+        if self.min_pos_segm_iou_thr>0:            
+            overlaps[delete_neg_ind]=self.neg_iou_thr+self.epsilon
 #        overlaps=bbox_ious*overlaps
         
         if (self.ignore_iof_thr > 0) and (gt_bboxes_ignore is not None) and (
