@@ -82,7 +82,11 @@ class MaxSoftIoUConditionalAssigner(BaseAssigner):
 
         bboxes = bboxes[:, :4]
         overlaps = bbox_overlaps(gt_bboxes, bboxes)
-        segm_ious = segm_iou(gt_masks, gt_bboxes, bboxes, overlaps) 
+        if self.neg_del_iou_thr<self.neg_iou_thr and self.neg_del_iou_thr>0:        
+            min_segm=self.neg_del_iou_thr
+        else
+            min_segm=self.min_pos_segm_iou_thr
+        segm_ious = segm_iou(gt_masks, gt_bboxes, bboxes, overlaps, min_segm) 
 
         if self.neg_del_iou_thr<self.neg_iou_thr and self.neg_del_iou_thr>0:
             delete_neg_ind = (segm_ious > self.max_neg_segm_iou_thr) * (overlaps < self.neg_iou_thr) * (overlaps > self.neg_del_iou_thr)
