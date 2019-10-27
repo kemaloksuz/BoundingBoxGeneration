@@ -100,10 +100,10 @@ class MaxSoftIoUConditionalAssigner(BaseAssigner):
 #            pdb.set_trace()
 
         if self.neg_del_iou_thr<self.neg_iou_thr and self.neg_del_iou_thr>0:
-            overlaps[delete_pos_ind]=self.pos_iou_thr-self.epsilon
+            overlaps[delete_neg_ind]=self.neg_iou_thr+self.epsilon            
 
         if self.min_pos_segm_iou_thr>0:            
-            overlaps[delete_neg_ind]=self.neg_iou_thr+self.epsilon
+            overlaps[delete_pos_ind]=self.pos_iou_thr-self.epsilon
 #        overlaps=bbox_ious*overlaps
         
         if (self.ignore_iof_thr > 0) and (gt_bboxes_ignore is not None) and (
