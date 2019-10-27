@@ -42,7 +42,7 @@ train_cfg = dict(
         pos_iou_thr=0.50,
         neg_iou_thr=0.40,
         min_pos_segm_iou_thr=0.30,
-        max_neg_segm_iou_thr=0.90,
+        max_neg_segm_iou_thr=0.50,
         neg_del_iou_thr=0.35, #Less than neg_iou_thr, else no effect
         min_pos_iou=0.,
         ignore_iof_thr=-1),
@@ -127,7 +127,7 @@ total_epochs = 12
 device_ids = range(2)
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/retinanet_r50_fpn_CSoftIoU_05_04_03_09_035'
+work_dir = './work_dirs/retinanet_r50_fpn_CSoftIoU_05_04_03_05_035'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
