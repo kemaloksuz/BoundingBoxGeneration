@@ -49,7 +49,7 @@ class MaxSoftIoUConditionalAssigner(BaseAssigner):
         self.gt_max_assign_all = gt_max_assign_all
         self.ignore_iof_thr = ignore_iof_thr
         self.ignore_wrt_candidates = ignore_wrt_candidates
-        self.epsilon = 0.0001
+        self.epsilon = 0.001
 
     def assign(self, bboxes, gt_bboxes, gt_bboxes_ignore=None, gt_labels=None, gt_masks=None):
         """Assign gt to bboxes.
