@@ -88,8 +88,17 @@ class MaxSoftIoUConditionalAssigner(BaseAssigner):
         if self.neg_del_iou_thr<self.neg_iou_thr and self.neg_del_iou_thr>0:
             delete_neg_ind = (segm_ious > self.max_neg_segm_iou_thr) * (overlaps < self.neg_iou_thr) * (overlaps > self.neg_del_iou_thr)
 
+        a=torch.nonzero(delete_neg_ind)
+        if a.size()[0]>0:
+            pdb.set_trace()
+
         if self.min_pos_segm_iou_thr>0:        
             delete_pos_ind = (segm_ious < self.min_pos_segm_iou_thr) * (overlaps > self.pos_iou_thr)
+
+        b=torch.nonzero(delete_pos_ind)
+
+        if b.size()[0]>0:
+            pdb.set_trace()
 
         if self.neg_del_iou_thr<self.neg_iou_thr and self.neg_del_iou_thr>0:
             overlaps[delete_pos_ind]=self.pos_iou_thr-self.epsilon
