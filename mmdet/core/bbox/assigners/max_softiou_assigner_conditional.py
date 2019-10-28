@@ -36,6 +36,7 @@ class MaxSoftIoUConditionalAssigner(BaseAssigner):
                  min_pos_segm_iou_thr,
                  max_neg_segm_iou_thr,
                  neg_del_iou_thr,                 
+                 pos_del_iou_thr,                 
                  min_pos_iou,
                  gt_max_assign_all=True,
                  ignore_iof_thr=-1,
@@ -44,7 +45,8 @@ class MaxSoftIoUConditionalAssigner(BaseAssigner):
         self.neg_iou_thr = neg_iou_thr
         self.min_pos_segm_iou_thr = min_pos_segm_iou_thr
         self.max_neg_segm_iou_thr = max_neg_segm_iou_thr
-        self.neg_del_iou_thr = neg_del_iou_thr          
+        self.neg_del_iou_thr = neg_del_iou_thr  
+        self.pos_del_iou_thr=pos_del_iou_thr        
         self.min_pos_iou = min_pos_iou
         self.gt_max_assign_all = gt_max_assign_all
         self.ignore_iof_thr = ignore_iof_thr
@@ -96,7 +98,7 @@ class MaxSoftIoUConditionalAssigner(BaseAssigner):
 #            pdb.set_trace()
 
         if self.min_pos_segm_iou_thr>0:        
-            delete_pos_ind = (segm_ious < self.min_pos_segm_iou_thr) * (overlaps > self.pos_iou_thr)
+            delete_pos_ind = (segm_ious < self.min_pos_segm_iou_thr) * (overlaps > self.pos_iou_thr) * (overlaps < self.pos_del_iou_thr)
 
 #        b=torch.nonzero(delete_pos_ind)
 
