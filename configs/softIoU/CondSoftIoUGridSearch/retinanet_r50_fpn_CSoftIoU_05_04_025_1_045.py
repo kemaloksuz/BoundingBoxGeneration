@@ -44,6 +44,7 @@ train_cfg = dict(
         min_pos_segm_iou_thr=0.25,
         max_neg_segm_iou_thr=1.,
         neg_del_iou_thr=0.40, #Less than neg_iou_thr, else no effect
+        pos_del_iou_thr=1.0,  #Larger than pos_iou_thr, else no effect      
         min_pos_iou=0.,
         ignore_iof_thr=-1),
     allowed_border=-1,
