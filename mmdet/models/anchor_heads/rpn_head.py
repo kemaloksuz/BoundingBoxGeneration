@@ -40,7 +40,8 @@ class RPNHead(AnchorHead):
              gt_bboxes,
              img_metas,
              cfg,
-             gt_bboxes_ignore=None):
+             gt_bboxes_ignore=None,
+             gt_masks=None):
         losses = super(RPNHead, self).loss(
             cls_scores,
             bbox_preds,
@@ -48,7 +49,8 @@ class RPNHead(AnchorHead):
             None,
             img_metas,
             cfg,
-            gt_bboxes_ignore=gt_bboxes_ignore)
+            gt_bboxes_ignore=gt_bboxes_ignore,
+            gt_masks=gt_masks)
         return dict(
             loss_rpn_cls=losses['loss_cls'], loss_rpn_bbox=losses['loss_bbox'])
 
