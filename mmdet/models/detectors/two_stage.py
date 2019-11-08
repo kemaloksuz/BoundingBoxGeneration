@@ -157,7 +157,8 @@ class TwoStageDetector(BaseDetector, RPNTestMixin, BBoxTestMixin,
                 assign_result = bbox_assigner.assign(proposal_list[i],
                                                      gt_bboxes[i],
                                                      gt_bboxes_ignore[i],
-                                                     gt_labels[i])
+                                                     gt_labels[i],
+                                                     gt_masks[i])
                 sampling_result = bbox_sampler.sample(
                     assign_result,
                     proposal_list[i],
