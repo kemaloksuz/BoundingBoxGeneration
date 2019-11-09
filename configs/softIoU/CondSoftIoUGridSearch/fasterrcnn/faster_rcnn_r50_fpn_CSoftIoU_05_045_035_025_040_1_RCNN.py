@@ -82,7 +82,7 @@ train_cfg = dict(
             ignore_iof_thr=-1),
         sampler=dict(
             type='RandomSampler',
-            num=32,
+            num=512,
             pos_fraction=0.25,
             neg_pos_ub=-1,
             add_gt_as_proposals=True),
@@ -172,7 +172,7 @@ log_config = dict(
 total_epochs = 12
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/faster_rcnn_r50_fpn_CSoftIoU_05_045_035_025_040_1_RCNN'
+work_dir = './work_dirs/faster_rcnn_r50_fpn_CSoftIoU_05_045_035_025_040_1_RCNN_512'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
