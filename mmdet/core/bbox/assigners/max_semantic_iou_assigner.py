@@ -11,6 +11,7 @@ from collections import OrderedDict
 import numpy as np
 import os.path as osp
 from mmdet.core import tensor2imgs
+import pdb
 
 class MaxSemanticIoUAssigner(BaseAssigner):
     """Assign a corresponding gt bbox or background to each bbox.
@@ -183,7 +184,7 @@ class MaxSemanticIoUAssigner(BaseAssigner):
 
     def get_indices(self, labels, CLASSES, CLASSES_sorted):
         labels = labels - 1 
-        names = np.take(CLASSES, labels)
+        names = np.take(CLASSES, labels.cpu().numpy())
         indices_ = []
         for name in names:
             indices_.append(np.where(CLASSES_sorted == name)[0][0])
@@ -205,15 +206,16 @@ class MaxSemanticIoUAssigner(BaseAssigner):
 
         for idx, box in enumerate(bboxes):
             #!!!!!!!NEED TO CROP CORRECTLY!!!!
+            pdb.set_trace()
             area = self.convert_boxes(box)
-            part = img.crop(area)
+            part = transforms.functional.crop(img, box[0], box[1], box[2]- box[0], box[3]- box[1])
 
             # transform images
-            transforms = self.get_transforms(part)
+            transforms_fun = self.get_transforms(part)
             if part.mode!='RGB':
                 part=part.convert('RGB')
 
-            part_ = transforms(part).to(self.device)
+            part_ = transforms_fun(part).to(self.device)
             part_ = part_.unsqueeze(0) 
                 
             # iterate over converted labels
@@ -224,7 +226,7 @@ class MaxSemanticIoUAssigner(BaseAssigner):
                     probs = torch.softmax(raw_output[0], dim=0)
 #                    part_inversed = misc_functions.get_transforms_inverse(part_[0,:,:,:].cpu())
 #                    saliency_map = misc_functions.save_saliency_map(part_inversed, cam[0,:,:,:], \
-                                                                './dummy.jpg')
+#                                                                './dummy.jpg')
             cam = self.fullgrad.saliency(part_, target_class=torch.tensor([labels_[idx]]))
             saliency_map = self.normalize_saliency_map(cam[0,:,:,:])            
 

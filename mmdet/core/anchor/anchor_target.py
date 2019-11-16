@@ -48,7 +48,7 @@ def anchor_target(anchor_list,
     if gt_labels_list is None:
         gt_labels_list = [None for _ in range(num_imgs)]
     if imgs is None:
-        img_list = [None for _ in range(num_imgs)]        
+        imgs = [None for _ in range(num_imgs)]        
     (all_labels, all_label_weights, all_bbox_targets, all_bbox_weights,
      pos_inds_list, neg_inds_list) = multi_apply(
          anchor_target_single,
@@ -64,7 +64,7 @@ def anchor_target(anchor_list,
          label_channels=label_channels,
          sampling=sampling,
          unmap_outputs=unmap_outputs,
-         img=img_list)
+         img=imgs)
     # no valid anchors
     if any([labels is None for labels in all_labels]):
         return None
