@@ -12,6 +12,8 @@ from collections import OrderedDict
 import numpy as np
 import os.path as osp
 import pdb
+from PIL import Image
+
 
 
 class MaxSemanticIoUAssigner(BaseAssigner):
@@ -158,8 +160,8 @@ class MaxSemanticIoUAssigner(BaseAssigner):
 
     def integral_image_compute(self, masks, gt_number, h, w, device):
         integral_images= [None] * gt_number
-        pad_row=torch.zeros([gt_number,1,w]).type(torch.DoubleTensor).to(device)
-        pad_col=torch.zeros([gt_number,h+1,1]).type(torch.DoubleTensor).to(device)
+        pad_row=torch.zeros([gt_number,1,w]).type(torch.FloatTensor).to(device)
+        pad_col=torch.zeros([gt_number,h+1,1]).type(torch.FloatTensor).to(device)
         integral_images=torch.cumsum(torch.cumsum(torch.cat([pad_col,torch.cat([pad_row,masks],dim=1)], dim=2),dim=1), dim=2)
         return integral_images
 
@@ -195,8 +197,8 @@ class MaxSemanticIoUAssigner(BaseAssigner):
     def normalize_saliency_map(self, saliency_map):
         saliency_map = saliency_map - torch.min(saliency_map)
         saliency_map = saliency_map / torch.max(saliency_map)
-        saliency_map = (saliency_map / torch.sum(saliency_map))*(self.size*self.size)
-        return torch.clip(saliency_map,min=0,max=1)
+        saliency_map = (saliency_map / torch.sum(saliency_map))*(self.im_scale*self.im_scale)
+        return torch.clamp(saliency_map,min=0,max=1)
 
     def tensor2imgs(self, tensor, mean=(0, 0, 0), std=(1, 1, 1), to_rgb=True):
         num_imgs = tensor.size(0)
@@ -211,17 +213,16 @@ class MaxSemanticIoUAssigner(BaseAssigner):
         return imgs
 
     def seperate_parts(self, img_tensor, bboxes, labels, img_meta, debug=True):
-        partwlabel = []
         integral_list = []
 
         # convert labels to sorted labels
         labels_ = self.get_indices(labels, self.CLASSES, self.CLASSES_sorted)
 
         for idx, box in enumerate(bboxes):
-            #!!!!!!!NEED TO CROP CORRECTLY!!!!
-            pdb.set_trace()
-            img = self.tensor2imgs(img_tensor, **img_meta[0]['img_norm_cfg'])
-            part = transforms.functional.crop(img, box[0], box[1], box[2]- box[0], box[3]- box[1])
+            #!!!!!!!NEED TO CROP CORRECTLY and GET ONLY RELEVANT IMAGE!!!!
+            img_arr = self.tensor2imgs(img_tensor, img_meta['img_norm_cfg']['mean'], img_meta['img_norm_cfg']['std'])[0]
+            img=Image.fromarray(img_arr.astype('uint8'), 'RGB')
+            part = transforms.functional.crop(img, box[0].item(), box[1].item(), box[2].item()- box[0].item(), box[3].item()- box[1].item())
 
             # transform images
             transforms_fun = self.get_transforms(part)
@@ -243,7 +244,7 @@ class MaxSemanticIoUAssigner(BaseAssigner):
             cam = self.fullgrad.saliency(part_, target_class=torch.tensor([labels_[idx]]))
             saliency_map = self.normalize_saliency_map(cam[0,:,:,:])            
 
-            integral_saliency_map = self.integral_image_compute(saliency_map, 1, self.size, self.size, device = self.device).squeeze()
+            integral_saliency_map = self.integral_image_compute(saliency_map, 1, self.im_scale, self.im_scale, device = self.device).squeeze()
 
             integral_list.append(integral_saliency_map)        
             if debug:
@@ -253,7 +254,7 @@ class MaxSemanticIoUAssigner(BaseAssigner):
         return integral_list
 
 
-    def find_gt_scaling_factors(gt_bboxes):
+    def find_gt_scaling_factors(self, gt_bboxes):
         scaling_factor_x=(gt_bboxes[:, 2]-gt_bboxes[:, 0])/self.im_scale
         scaling_factor_y=(gt_bboxes[:, 3]-gt_bboxes[:, 1])/self.im_scale
         return scaling_factor_x, scaling_factor_y
@@ -261,7 +262,7 @@ class MaxSemanticIoUAssigner(BaseAssigner):
     def saliency_aware_bbox_overlaps(self,gt_bboxes, bboxes, gt_labels, img, img_meta):
         rows = gt_bboxes.size(0)
         cols = bboxes.size(0)
-        _, gt_saliency_integral_maps = self.seperate_parts(img, gt_bboxes, gt_labels, img_meta)
+        gt_saliency_integral_maps = self.seperate_parts(img, gt_bboxes, gt_labels, img_meta)
 
         with torch.no_grad():
             saliency_aware_overlap=gt_bboxes.data.new_zeros(rows,cols)
@@ -277,7 +278,7 @@ class MaxSemanticIoUAssigner(BaseAssigner):
                 rb[i,:,1]/=scaling_factor_y  
                 intersected_regions=torch.concat([lt[i,:,:],rb[i,:,:]], axis=2)
                 #Compute Saliency Map
-                saliency_aware_overlap[i,:]=self.integral_image_fetch(gt_saliency_integral_maps[i], intersected_regions)
+                saliency_aware_overlap[i,:]= self.integral_image_fetch(gt_saliency_integral_maps[i], intersected_regions)
 
 
 
