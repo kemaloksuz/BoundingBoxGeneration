@@ -2,13 +2,14 @@ import torch
 
 from .assign_result import AssignResult
 from .base_assigner import BaseAssigner
-from fullgrad import FullGrad
+from .fullgrad.fullgrad import FullGrad
 import torchvision.transforms as transforms
 from mmcv.parallel import MMDataParallel
 import torchvision.models as models
 import torch.nn as nn
 from collections import OrderedDict
-
+import numpy as np
+import os.path as osp
 
 class MaxSemanticIoUAssigner(BaseAssigner):
     """Assign a corresponding gt bbox or background to each bbox.
@@ -70,7 +71,7 @@ class MaxSemanticIoUAssigner(BaseAssigner):
         self.classifier = ignore_wrt_candidates
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")        
         self.model = self.init_model(model_path).to(self.device)       
-        self.model = MMDataParallel(misc_functions.init_model(model_path), \
+        self.model = MMDataParallel(self.init_model(model_path), \
                                         device_ids=range(2)).cuda()
         self.fullgrad = FullGrad(self.model, self.device)
         self.im_scale=im_scale
@@ -105,7 +106,7 @@ class MaxSemanticIoUAssigner(BaseAssigner):
         return checkpoint
 
     def load_pretrained_weights(self, model, weight_path):
-        checkpoint = load_checkpoint(weight_path)
+        checkpoint = self.load_checkpoint(weight_path)
         if 'state_dict' in checkpoint:
             state_dict = checkpoint['state_dict']
         else:
@@ -143,7 +144,7 @@ class MaxSemanticIoUAssigner(BaseAssigner):
         model = models.vgg16_bn(pretrained = False)
         num_ftrs = model.classifier[6].in_features
         model.classifier[6] = nn.Linear(num_ftrs, num_classes)
-        model=load_pretrained_weights(model, path)
+        model=self.load_pretrained_weights(model, path)
         for child in model.children():
             if not isinstance(child, torch.nn.modules.pooling.AdaptiveAvgPool2d):
                 for i in range(len(child)):
@@ -220,8 +221,8 @@ class MaxSemanticIoUAssigner(BaseAssigner):
                     self.model.eval()
                     raw_output = self.model(part_)
                     probs = torch.softmax(raw_output[0], dim=0)
-                    part_inversed = misc_functions.get_transforms_inverse(part_[0,:,:,:].cpu())
-                    saliency_map = misc_functions.save_saliency_map(part_inversed, cam[0,:,:,:], \
+#                    part_inversed = misc_functions.get_transforms_inverse(part_[0,:,:,:].cpu())
+#                    saliency_map = misc_functions.save_saliency_map(part_inversed, cam[0,:,:,:], \
                                                                 './dummy.jpg')
             cam = self.fullgrad.saliency(part_, target_class=torch.tensor([labels_[idx]]))
             saliency_map = self.normalize_saliency_map(cam[0,:,:,:])            
@@ -305,7 +306,7 @@ class MaxSemanticIoUAssigner(BaseAssigner):
 
         return ious    
 
-    def assign(self, bboxes, gt_bboxes, img, gt_bboxes_ignore=None, gt_labels=None):
+    def assign(self, bboxes, gt_bboxes, gt_bboxes_ignore=None, gt_labels=None, img=None):
         """Assign gt to bboxes.
 
         This method assign a gt bbox to every bbox (proposal/anchor), each bbox
