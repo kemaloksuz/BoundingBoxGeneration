@@ -5,13 +5,15 @@ from .base_assigner import BaseAssigner
 from .fullgrad.fullgrad import FullGrad
 import torchvision.transforms as transforms
 from mmcv.parallel import MMDataParallel
+import mmcv
 import torchvision.models as models
 import torch.nn as nn
 from collections import OrderedDict
 import numpy as np
 import os.path as osp
-from .mmdet.core.utils.misc import tensor2imgs
+from mmdet.core.utils.misc import tensor2imgs
 import pdb
+
 
 class MaxSemanticIoUAssigner(BaseAssigner):
     """Assign a corresponding gt bbox or background to each bbox.
@@ -197,6 +199,18 @@ class MaxSemanticIoUAssigner(BaseAssigner):
         saliency_map = (saliency_map / torch.sum(saliency_map))*(self.size*self.size)
         return torch.clip(saliency_map,min=0,max=1)
 
+    def tensor2imgs(self, tensor, mean=(0, 0, 0), std=(1, 1, 1), to_rgb=True):
+        num_imgs = tensor.size(0)
+        mean = np.array(mean, dtype=np.float32)
+        std = np.array(std, dtype=np.float32)
+        imgs = []
+        for img_id in range(num_imgs):
+            img = tensor[img_id, ...].cpu().numpy().transpose(1, 2, 0)
+            img = mmcv.imdenormalize(
+                img, mean, std, to_bgr=to_rgb).astype(np.uint8)
+            imgs.append(np.ascontiguousarray(img))
+        return imgs
+
     def seperate_parts(self, img_tensor, bboxes, labels, img_meta, debug=True):
         partwlabel = []
         integral_list = []
@@ -207,7 +221,7 @@ class MaxSemanticIoUAssigner(BaseAssigner):
         for idx, box in enumerate(bboxes):
             #!!!!!!!NEED TO CROP CORRECTLY!!!!
             pdb.set_trace()
-            img = tensor2imgs(img_tensor, **img_meta[0]['img_norm_cfg'])
+            img = self.tensor2imgs(img_tensor, **img_meta[0]['img_norm_cfg'])
             part = transforms.functional.crop(img, box[0], box[1], box[2]- box[0], box[3]- box[1])
 
             # transform images
