@@ -2,7 +2,7 @@ import torch
 
 from .assign_result import AssignResult
 from .base_assigner import BaseAssigner
-from fullgrad.fullgrad import FullGrad
+from fullgrad import FullGrad
 import torchvision.transforms as transforms
 from mmcv.parallel import MMDataParallel
 import torchvision.models as models
@@ -105,18 +105,6 @@ class MaxSemanticIoUAssigner(BaseAssigner):
         return checkpoint
 
     def load_pretrained_weights(self, model, weight_path):
-    r"""Loads pretrianed weights to model.
-    Features::
-        - Incompatible layers (unmatched in name or size) will be ignored.
-        - Can automatically deal with keys containing "module.".
-    Args:
-        model (nn.Module): network model.
-        weight_path (str): path to pretrained weights.
-    Examples::
-        >>> from torchreid.utils import load_pretrained_weights
-        >>> weight_path = 'log/my_model/model-best.pth.tar'
-        >>> load_pretrained_weights(model, weight_path)
-    """
         checkpoint = load_checkpoint(weight_path)
         if 'state_dict' in checkpoint:
             state_dict = checkpoint['state_dict']
@@ -202,7 +190,7 @@ class MaxSemanticIoUAssigner(BaseAssigner):
     def normalize_saliency_map(self, saliency_map):
         saliency_map = saliency_map - torch.min(saliency_map)
         saliency_map = saliency_map / torch.max(saliency_map)
-        saliency_map = (saliency_map / torch.sum(saliency_map))*(self.size*self.size))
+        saliency_map = (saliency_map / torch.sum(saliency_map))*(self.size*self.size)
         return torch.clip(saliency_map,min=0,max=1)
 
     def seperate_parts(self, img, bboxes, labels, debug=True):
@@ -315,7 +303,7 @@ class MaxSemanticIoUAssigner(BaseAssigner):
                 "\n soft_iou="+np.array2string(soft_ious[pltgt,pltanc].cpu().numpy()), fontsize=12)
             plt.show()
 
-    return ious    
+        return ious    
 
     def assign(self, bboxes, gt_bboxes, img, gt_bboxes_ignore=None, gt_labels=None):
         """Assign gt to bboxes.
