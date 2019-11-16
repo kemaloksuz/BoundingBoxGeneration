@@ -15,6 +15,7 @@ def anchor_target(anchor_list,
                   gt_labels_list=None,
                   label_channels=1,
                   sampling=True,
+                  imgs=None,
                   unmap_outputs=True):
     """Compute regression and classification targets for anchors.
 
@@ -46,6 +47,8 @@ def anchor_target(anchor_list,
         gt_bboxes_ignore_list = [None for _ in range(num_imgs)]
     if gt_labels_list is None:
         gt_labels_list = [None for _ in range(num_imgs)]
+    if imgs is None:
+        img_list = [None for _ in range(num_imgs)]        
     (all_labels, all_label_weights, all_bbox_targets, all_bbox_weights,
      pos_inds_list, neg_inds_list) = multi_apply(
          anchor_target_single,
@@ -60,7 +63,8 @@ def anchor_target(anchor_list,
          cfg=cfg,
          label_channels=label_channels,
          sampling=sampling,
-         unmap_outputs=unmap_outputs)
+         unmap_outputs=unmap_outputs,
+         img=img_list)
     # no valid anchors
     if any([labels is None for labels in all_labels]):
         return None
@@ -102,7 +106,8 @@ def anchor_target_single(flat_anchors,
                          cfg,
                          label_channels=1,
                          sampling=True,
-                         unmap_outputs=True):
+                         unmap_outputs=True,
+                         img=None):
     inside_flags = anchor_inside_flags(flat_anchors, valid_flags,
                                        img_meta['img_shape'][:2],
                                        cfg.allowed_border)
@@ -117,7 +122,7 @@ def anchor_target_single(flat_anchors,
     else:
         bbox_assigner = build_assigner(cfg.assigner)
         assign_result = bbox_assigner.assign(anchors, gt_bboxes,
-                                             gt_bboxes_ignore, gt_labels)
+                                             gt_bboxes_ignore, gt_labels, img)
         bbox_sampler = PseudoSampler()
         sampling_result = bbox_sampler.sample(assign_result, anchors,
                                               gt_bboxes)
