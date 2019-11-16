@@ -58,6 +58,7 @@ class MaxSemanticIoUAssigner(BaseAssigner):
                  pos_iou_thr,
                  neg_iou_thr,
                  model_path,
+                 img_path,
                  min_pos_iou=.0,
                  gt_max_assign_all=True,
                  ignore_iof_thr=-1,
@@ -70,7 +71,7 @@ class MaxSemanticIoUAssigner(BaseAssigner):
         self.gt_max_assign_all = gt_max_assign_all
         self.ignore_iof_thr = ignore_iof_thr
         self.ignore_wrt_candidates = ignore_wrt_candidates
-        self.classifier = ignore_wrt_candidates
+        self.img_path = img_path
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")        
         self.model = self.init_model(model_path).to(self.device)       
         self.model = MMDataParallel(self.init_model(model_path), \
@@ -196,18 +197,17 @@ class MaxSemanticIoUAssigner(BaseAssigner):
         saliency_map = (saliency_map / torch.sum(saliency_map))*(self.size*self.size)
         return torch.clip(saliency_map,min=0,max=1)
 
-    def seperate_parts(self, img, bboxes, labels, img_metas, debug=True):
+    def seperate_parts(self, img_tensor, bboxes, labels, img_meta, debug=True):
         partwlabel = []
         integral_list = []
 
         # convert labels to sorted labels
-        labels_ = self.get_indices(labels, self.CLASSES, \
-                                                    self.CLASSES_sorted)
+        labels_ = self.get_indices(labels, self.CLASSES, self.CLASSES_sorted)
 
         for idx, box in enumerate(bboxes):
             #!!!!!!!NEED TO CROP CORRECTLY!!!!
             pdb.set_trace()
-            area = self.convert_boxes(box)
+            img = tensor2imgs(img_tensor, **img_meta[0]['img_norm_cfg'])
             part = transforms.functional.crop(img, box[0], box[1], box[2]- box[0], box[3]- box[1])
 
             # transform images
@@ -245,10 +245,10 @@ class MaxSemanticIoUAssigner(BaseAssigner):
         scaling_factor_y=(gt_bboxes[:, 3]-gt_bboxes[:, 1])/self.im_scale
         return scaling_factor_x, scaling_factor_y
 
-    def saliency_aware_bbox_overlaps(self,gt_bboxes, bboxes, gt_labels, img, img_metas):
+    def saliency_aware_bbox_overlaps(self,gt_bboxes, bboxes, gt_labels, img, img_meta):
         rows = gt_bboxes.size(0)
         cols = bboxes.size(0)
-        _, gt_saliency_integral_maps = self.seperate_parts(img, gt_bboxes, gt_labels, img_metas)
+        _, gt_saliency_integral_maps = self.seperate_parts(img, gt_bboxes, gt_labels, img_meta)
 
         with torch.no_grad():
             saliency_aware_overlap=gt_bboxes.data.new_zeros(rows,cols)
@@ -309,7 +309,7 @@ class MaxSemanticIoUAssigner(BaseAssigner):
 
         return ious    
 
-    def assign(self, bboxes, gt_bboxes, gt_bboxes_ignore=None, gt_labels=None, img=None, img_metas=None):
+    def assign(self, bboxes, gt_bboxes, gt_bboxes_ignore=None, gt_labels=None, img=None, img_meta=None):
         """Assign gt to bboxes.
 
         This method assign a gt bbox to every bbox (proposal/anchor), each bbox
@@ -338,7 +338,7 @@ class MaxSemanticIoUAssigner(BaseAssigner):
         if bboxes.shape[0] == 0 or gt_bboxes.shape[0] == 0:
             raise ValueError('No gt or bboxes')
         bboxes = bboxes[:, :4]
-        overlaps = self.saliency_aware_bbox_overlaps(gt_bboxes, bboxes, gt_labels, img, img_metas)
+        overlaps = self.saliency_aware_bbox_overlaps(gt_bboxes, bboxes, gt_labels, img, img_meta)
 
         if (self.ignore_iof_thr > 0) and (gt_bboxes_ignore is not None) and (
                 gt_bboxes_ignore.numel() > 0):

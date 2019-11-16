@@ -122,7 +122,7 @@ def anchor_target_single(flat_anchors,
     else:
         bbox_assigner = build_assigner(cfg.assigner)
         assign_result = bbox_assigner.assign(anchors, gt_bboxes,
-                                             gt_bboxes_ignore, gt_labels, img)
+                                             gt_bboxes_ignore, gt_labels, img, img_meta)
         bbox_sampler = PseudoSampler()
         sampling_result = bbox_sampler.sample(assign_result, anchors,
                                               gt_bboxes)
