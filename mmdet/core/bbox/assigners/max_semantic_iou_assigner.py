@@ -11,7 +11,6 @@ import torch.nn as nn
 from collections import OrderedDict
 import numpy as np
 import os.path as osp
-from mmdet.core.utils.misc import tensor2imgs
 import pdb
 
 
