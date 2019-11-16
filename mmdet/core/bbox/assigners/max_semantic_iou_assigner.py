@@ -10,6 +10,7 @@ import torch.nn as nn
 from collections import OrderedDict
 import numpy as np
 import os.path as osp
+from mmdet.core import tensor2imgs
 
 class MaxSemanticIoUAssigner(BaseAssigner):
     """Assign a corresponding gt bbox or background to each bbox.
@@ -194,7 +195,7 @@ class MaxSemanticIoUAssigner(BaseAssigner):
         saliency_map = (saliency_map / torch.sum(saliency_map))*(self.size*self.size)
         return torch.clip(saliency_map,min=0,max=1)
 
-    def seperate_parts(self, img, bboxes, labels, debug=True):
+    def seperate_parts(self, img, bboxes, labels, img_metas, debug=True):
         partwlabel = []
         integral_list = []
 
@@ -242,10 +243,10 @@ class MaxSemanticIoUAssigner(BaseAssigner):
         scaling_factor_y=(gt_bboxes[:, 3]-gt_bboxes[:, 1])/self.im_scale
         return scaling_factor_x, scaling_factor_y
 
-    def saliency_aware_bbox_overlaps(self,gt_bboxes, bboxes, gt_labels, img):
+    def saliency_aware_bbox_overlaps(self,gt_bboxes, bboxes, gt_labels, img, img_metas):
         rows = gt_bboxes.size(0)
         cols = bboxes.size(0)
-        _, gt_saliency_integral_maps = self.seperate_parts(img, gt_bboxes, gt_labels)
+        _, gt_saliency_integral_maps = self.seperate_parts(img, gt_bboxes, gt_labels, img_metas)
 
         with torch.no_grad():
             saliency_aware_overlap=gt_bboxes.data.new_zeros(rows,cols)
@@ -306,7 +307,7 @@ class MaxSemanticIoUAssigner(BaseAssigner):
 
         return ious    
 
-    def assign(self, bboxes, gt_bboxes, gt_bboxes_ignore=None, gt_labels=None, img=None):
+    def assign(self, bboxes, gt_bboxes, gt_bboxes_ignore=None, gt_labels=None, img=None, img_metas=None):
         """Assign gt to bboxes.
 
         This method assign a gt bbox to every bbox (proposal/anchor), each bbox
@@ -335,7 +336,7 @@ class MaxSemanticIoUAssigner(BaseAssigner):
         if bboxes.shape[0] == 0 or gt_bboxes.shape[0] == 0:
             raise ValueError('No gt or bboxes')
         bboxes = bboxes[:, :4]
-        overlaps = self.saliency_aware_bbox_overlaps(gt_bboxes, bboxes, gt_labels, img)
+        overlaps = self.saliency_aware_bbox_overlaps(gt_bboxes, bboxes, gt_labels, img, img_metas)
 
         if (self.ignore_iof_thr > 0) and (gt_bboxes_ignore is not None) and (
                 gt_bboxes_ignore.numel() > 0):
