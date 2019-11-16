@@ -42,6 +42,7 @@ train_cfg = dict(
         pos_iou_thr=0.5,
         neg_iou_thr=0.4,
         model_path='/home/cancam/imgworkspace/fullgrad-saliency/models/vgg16bn_fromscratch_90_best.pth',
+        img_path=data_root + 'train2017/',
         min_pos_iou=0,
         ignore_iof_thr=-1,
         b=0),
