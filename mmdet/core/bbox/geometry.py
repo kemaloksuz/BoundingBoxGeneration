@@ -85,7 +85,7 @@ def integral_image_fetch(mask,bboxes):
     area=mask[BRy,BRx]+mask[TLy,TLx]-mask[TLy,BRx]-mask[BRy,TLx]
     return area
 
-def segm_overlaps(gt_masks, gt_bboxes, bboxes, overlaps, min_overlap,plot=0): 
+def segm_overlaps(gt_masks, gt_bboxes, bboxes, overlaps, min_overlap, harmonic_mean_weight=1, plot=0): 
     #import pdb
 
     #import time
@@ -100,6 +100,7 @@ def segm_overlaps(gt_masks, gt_bboxes, bboxes, overlaps, min_overlap,plot=0):
         integral_images=integral_image_compute(all_gt_masks,gt_number,image_h,image_w).type(torch.cuda.FloatTensor) 
         #end1 = time.time()
         for i in range(gt_number):
+            #larger_ind = overlaps[i,:] > (min_overlap / (2-min_overlap))
             larger_ind = overlaps[i,:] > (min_overlap / (2-min_overlap))
             nonzero_iou_ind=torch.nonzero(larger_ind)
             all_boxes=bboxes[nonzero_iou_ind,:].squeeze(dim=1).type(torch.cuda.IntTensor) 
@@ -107,7 +108,7 @@ def segm_overlaps(gt_masks, gt_bboxes, bboxes, overlaps, min_overlap,plot=0):
             all_boxes[:,[0,2]]=torch.clamp(all_boxes[:,[0,2]], max=image_w-1)
             all_boxes[:,[1,3]]=torch.clamp(all_boxes[:,[1,3]], max=image_h-1)
             segm_ious[i,larger_ind]=integral_image_fetch(integral_images[i],all_boxes)/integral_images[i,-1,-1]
-            soft_ious[i,larger_ind]=(2*segm_ious[i,larger_ind]*overlaps[i,larger_ind])/(segm_ious[i,larger_ind]+overlaps[i,larger_ind])
+            soft_ious[i,larger_ind]=(1+harmonic_mean_weight)/(harmonic_mean_weight/overlaps[i,larger_ind]+1/segm_ious[i,larger_ind]) 
 
         if plot:
             import matplotlib.pyplot as plt

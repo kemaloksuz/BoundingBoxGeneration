@@ -34,6 +34,7 @@ class MaxSoftIoUAssigner(BaseAssigner):
                  pos_iou_thr,
                  neg_iou_thr,
                  min_pos_iou=.0,
+                 harmonic_mean_weight=1,
                  gt_max_assign_all=True,
                  ignore_iof_thr=-1,
                  ignore_wrt_candidates=True):
@@ -43,6 +44,7 @@ class MaxSoftIoUAssigner(BaseAssigner):
         self.gt_max_assign_all = gt_max_assign_all
         self.ignore_iof_thr = ignore_iof_thr
         self.ignore_wrt_candidates = ignore_wrt_candidates
+        self.harmonic_mean_weight = harmonic_mean_weight
 
     def assign(self, bboxes, gt_bboxes, gt_bboxes_ignore=None, gt_labels=None, gt_masks=None):
         """Assign gt to bboxes.
@@ -75,7 +77,7 @@ class MaxSoftIoUAssigner(BaseAssigner):
 
         bboxes = bboxes[:, :4]
         bbox_ious = bbox_overlaps(gt_bboxes, bboxes)
-        overlaps = segm_overlaps(gt_masks, gt_bboxes, bboxes, bbox_ious, self.pos_iou_thr) 
+        overlaps = segm_overlaps(gt_masks, gt_bboxes, bboxes, bbox_ious, self.min_pos_iou, self.harmonic_mean_weight) 
 #        overlaps=bbox_ious*overlaps
         
         if (self.ignore_iof_thr > 0) and (gt_bboxes_ignore is not None) and (
