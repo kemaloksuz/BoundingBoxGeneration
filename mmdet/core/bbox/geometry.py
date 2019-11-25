@@ -86,7 +86,7 @@ def integral_image_fetch(mask,bboxes):
     bboxes[:,[2,3]]-=1
     return area
 
-def mask_plotter(mask_aware_ious, overlaps, gt_masks, gt_bboxes, condition, bboxes, fntsize=14):
+def mask_plotter(mask_aware_ious, overlaps, gt_masks, gt_bboxes, cond, bboxes, fntsize=14):
     '''
     condition=[minSoftIoU, maxSoftIoU, minIoU, maxIoU]
     '''
@@ -94,7 +94,7 @@ def mask_plotter(mask_aware_ious, overlaps, gt_masks, gt_bboxes, condition, bbox
     #bboxes[:,[0,2]]=torch.clamp(bboxes[:,[0,2]], max=image_w-1)
     #bboxes[:,[1,3]]=torch.clamp(bboxes[:,[1,3]], max=image_h-1)
     pdb.set_trace()
-    valid_ind=mask_aware_ious>condition[0] and mask_aware_ious<condition[1] and overlaps>condition[2] and overlaps<condition[3]  
+    valid_ind=mask_aware_ious>cond[0] and mask_aware_ious<cond[1] and overlaps>cond[2] and overlaps<cond[3]  
     nonzero_iou_ind=torch.nonzero(valid_ind)
     valid_set_size=nonzero_iou_ind.shape[0]
     if valid_set_size==0:
@@ -251,7 +251,7 @@ def mask_aware_bbox_overlaps(gt_masks, bboxes1, bboxes2, plot=0, overlaps=None):
     print("minimax",torch.min(all_boxes[:,0]),torch.min(all_boxes[:,1]),torch.max(all_boxes[:,2]),torch.max(all_boxes[:,3]), torch.sum(all_boxes)) 
     print("check2=====", torch.sum(bboxes2))
     if plot==1:
-        condition=np.array([0, 0.4, 0.5, 1])
-        mask_plotter(mask_aware_ious, overlaps, gt_masks, bboxes1, bboxes2, condition)
+        cond=np.array([0, 0.4, 0.5, 1])
+        mask_plotter(mask_aware_ious, overlaps, gt_masks, bboxes1, bboxes2, cond)
     pdb.set_trace()
     return mask_aware_ious    
