@@ -93,7 +93,7 @@ def mask_plotter(mask_aware_ious, overlaps, gt_masks, gt_bboxes, condition, bbox
     #bboxes=torch.clamp(bboxes, min=0)
     #bboxes[:,[0,2]]=torch.clamp(bboxes[:,[0,2]], max=image_w-1)
     #bboxes[:,[1,3]]=torch.clamp(bboxes[:,[1,3]], max=image_h-1)
-
+    pdb.set_trace()
     valid_ind=mask_aware_ious>condition[0] and mask_aware_ious<condition[1] and overlaps>condition[2] and overlaps<condition[3]  
     nonzero_iou_ind=torch.nonzero(valid_ind)
     valid_set_size=nonzero_iou_ind.shape[0]
