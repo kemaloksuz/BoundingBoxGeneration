@@ -240,9 +240,9 @@ def mask_aware_bbox_overlaps(gt_masks, bboxes1, bboxes2, plot=0, overlaps=None):
         all_boxes=torch.clamp(bboxes2, min=0)
         all_boxes[:,[0,2]]=torch.clamp(all_boxes[:,[0,2]], max=image_w-1)
         all_boxes[:,[1,3]]=torch.clamp(all_boxes[:,[1,3]], max=image_h-1)
+        norm_factor=area1/integral_images[:,-1,-1]
         for i in range(gt_number):
-            norm_factor=area2/integral_images[i,-1,-1]
-            overlap[i, :]=integral_image_fetch(integral_images[i],all_boxes)*norm_factor
+            overlap[i, :]=integral_image_fetch(integral_images[i],all_boxes)*norm_factor[i]
 
     mask_aware_ious = overlap / (area1[:, None] + area2 - overlap)
     if plot==1:
