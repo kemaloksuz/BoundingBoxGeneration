@@ -115,7 +115,7 @@ def mask_plotter(mask_aware_ious, overlaps, gt_masks, gt_bboxes, bboxes, cond, f
     plt.xlabel('x', fontsize=fntsize)
     plt.ylabel('y', fontsize=fntsize)
     ax.text(0, 0, "IoU= "+np.array2string(overlaps[pltgt,pltanc].cpu().numpy())+", "+\
-                "\n MaskIoU="+np.array2string(segm_ious[pltgt,pltanc].cpu().numpy()), fontsize=fntsize)
+                "\n MaskIoU="+np.array2string(mask_aware_ious[pltgt,pltanc].cpu().numpy()), fontsize=fntsize)
     plt.show()
 
 def segm_overlaps(gt_masks, gt_bboxes, bboxes, overlaps, min_overlap, harmonic_mean_weight=1, plot=0): 
