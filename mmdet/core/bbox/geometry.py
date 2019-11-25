@@ -238,7 +238,7 @@ def mask_aware_bbox_overlaps(gt_masks, bboxes1, bboxes2, plot=0, overlaps=None):
         gt_number,image_h,image_w=all_gt_masks.size()
         print(gt_number,image_h, image_w)
         pdb.set_trace()
-        integral_images=integral_image_compute(all_gt_masks,gt_number,image_h,image_w).type(torch.cuda.FloatTensor) 
+        integral_images=integral_image_compute(all_gt_masks,gt_number,image_h,image_w).type(torch.cuda.DoubleTensor) 
         all_boxes=torch.clamp(bboxes2, min=0)
         all_boxes[:,[0,2]]=torch.clamp(all_boxes[:,[0,2]], max=image_w-1)
         all_boxes[:,[1,3]]=torch.clamp(all_boxes[:,[1,3]], max=image_h-1)
