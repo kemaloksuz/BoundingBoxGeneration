@@ -1,6 +1,5 @@
 import torch
 import numpy as np
-from mmdet.core.mask.mask_target import mask_target_single
 
 def bbox_overlaps(bboxes1, bboxes2, mode='iou', is_aligned=False):
     """Calculate overlap between two set of bboxes.
@@ -62,9 +61,6 @@ def bbox_overlaps(bboxes1, bboxes2, mode='iou', is_aligned=False):
             ious = overlap / (area1[:, None])
 
     return ious
-
-def area(bboxes):
-    return (bboxes[:,2]-bboxes[:,0])*(bboxes[:,3]-bboxes[:,1])
 
 def integral_image_compute(masks,gt_number,h,w):
     integral_images= [None] * gt_number
@@ -170,3 +166,49 @@ def segm_iou(gt_masks, gt_bboxes, bboxes, overlaps, min_overlap=0):
     #end = time.time()
     #print("t=",nonzero_iou_ind.size(), end1 - start, end - start)
     return segm_ious
+
+def mask_aware_bbox_overlaps(gt_masks, bboxes1, bboxes2, min_overlap=0):
+    """Calculate overlap between two set of bboxes.
+
+    If ``is_aligned`` is ``False``, then calculate the ious between each bbox
+    of bboxes1 and bboxes2, otherwise the ious between each aligned pair of
+    bboxes1 and bboxes2.
+
+    Args:
+        bboxes1 (Tensor): shape (m, 4)
+        bboxes2 (Tensor): shape (n, 4), if is_aligned is ``True``, then m and n
+            must be equal.
+        mode (str): "iou" (intersection over union) or iof (intersection over
+            foreground).
+
+    Returns:
+        ious(Tensor): shape (m, n) if is_aligned == False else shape (m, 1)
+    """
+
+    rows = bboxes1.size(0)
+    cols = bboxes2.size(0)
+
+    if rows * cols == 0:
+        return bboxes1.new(rows, 1) if is_aligned else bboxes1.new(rows, cols)
+
+    area1 = (bboxes1[:, 2] - bboxes1[:, 0] + 1) * (bboxes1[:, 3] - bboxes1[:, 1] + 1)
+    area2 = (bboxes2[:, 2] - bboxes2[:, 0] + 1) * (bboxes2[:, 3] - bboxes2[:, 1] + 1)
+    overlap=bboxes1.data.new_zeros(rows, cols)
+    with torch.no_grad():
+   # start = time.time()
+        #Convert list to torch
+        all_gt_masks=torch.from_numpy(gt_masks).type(torch.cuda.ByteTensor)
+        gt_number,image_h,image_w=all_gt_masks.size()
+        #pdb.set_trace()
+        integral_images=integral_image_compute(all_gt_masks,gt_number,image_h,image_w).type(torch.cuda.FloatTensor) 
+        all_boxes=torch.clamp(bboxes2, min=0)
+        all_boxes[:,[0,2]]=torch.clamp(all_boxes[:,[0,2]], max=image_w-1)
+        all_boxes[:,[1,3]]=torch.clamp(all_boxes[:,[1,3]], max=image_h-1)
+        #end1 = time.time()
+        for i in range(gt_number):
+            norm_factor=area2/integral_images[i,-1,-1]
+            overlap[i, :]=integral_image_fetch(integral_images[i],all_boxes)*norm_factor
+
+    mask_aware_ious = overlap / (area1 + area2 - overlap)
+    
+    return mask_aware_ious    
