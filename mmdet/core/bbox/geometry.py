@@ -75,7 +75,6 @@ def integral_image_compute(masks,gt_number,h,w):
 
 def integral_image_fetch(mask,bboxes):
     #import pdb
-    pdb.set_trace()
     bboxes[:,[2,3]]+=1
     print(torch.min(bboxes[:,0]),torch.min(bboxes[:,1]),torch.max(bboxes[:,2]),torch.max(bboxes[:,3]))
     #Create indices
@@ -232,6 +231,7 @@ def mask_aware_bbox_overlaps(gt_masks, bboxes1, bboxes2, plot=0, overlaps=None):
     area1 = (bboxes1[:, 2] - bboxes1[:, 0] + 1) * (bboxes1[:, 3] - bboxes1[:, 1] + 1)
     area2 = (bboxes2[:, 2] - bboxes2[:, 0] + 1) * (bboxes2[:, 3] - bboxes2[:, 1] + 1)
     overlap=bboxes1.data.new_zeros(rows, cols)
+    print("check1=====", torch.sum(bboxes2))
     with torch.no_grad():
         #Convert list to torch
         all_gt_masks=torch.from_numpy(gt_masks).type(torch.cuda.ByteTensor)
@@ -249,8 +249,9 @@ def mask_aware_bbox_overlaps(gt_masks, bboxes1, bboxes2, plot=0, overlaps=None):
 
     mask_aware_ious = overlap / (area1[:, None] + area2 - overlap)
     print("minimax",torch.min(all_boxes[:,0]),torch.min(all_boxes[:,1]),torch.max(all_boxes[:,2]),torch.max(all_boxes[:,3]), torch.sum(all_boxes)) 
+    print("check2=====", torch.sum(bboxes2))
     if plot==1:
         condition=[0, 0.4, 0.5, 1]
         mask_plotter(mask_aware_ious, overlaps, gt_masks, bboxes1, bboxes2, condition)
-    
+    pdb.set_trace()
     return mask_aware_ious    
