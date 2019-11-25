@@ -60,7 +60,6 @@ def bbox_overlaps(bboxes1, bboxes2, mode='iou', is_aligned=False):
         if mode == 'iou':
             area2 = (bboxes2[:, 2] - bboxes2[:, 0] + 1) * (
                 bboxes2[:, 3] - bboxes2[:, 1] + 1)
-            pdb.set_trace()
             ious = overlap / (area1[:, None] + area2 - overlap)
         else:
             ious = overlap / (area1[:, None])
@@ -76,7 +75,7 @@ def integral_image_compute(masks,gt_number,h,w):
 
 def integral_image_fetch(mask,bboxes):
     #import pdb
-    #pdb.set_trace()
+    pdb.set_trace()
     bboxes[:,[2,3]]+=1
     #Create indices
     TLx=bboxes[:,0].tolist()
