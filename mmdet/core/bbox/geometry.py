@@ -76,14 +76,14 @@ def integral_image_compute(masks,gt_number,h,w):
 def integral_image_fetch(mask,bboxes):
     #import pdb
     pdb.set_trace()
-    boxes=bboxes[:,[2,3]]+1
-    print(torch.min(boxes[:,0]),torch.min(boxes[:,1]),torch.max(boxes[:,2]),torch.max(boxes[:,3]))
+    #bboxes[:,[2,3]]+=1
+    print(torch.min(bboxes[:,0]),torch.min(bboxes[:,1]),torch.max(bboxes[:,2]),torch.max(bboxes[:,3]))
     #Create indices
-    TLx=boxes[:,0].tolist()
-    TLy=boxes[:,1].tolist()
-    BRx=boxes[:,2].tolist()
-    BRy=boxes[:,3].tolist()
-    area=mask[BRy,BRx]+mask[TLy,TLx]-mask[TLy,BRx]-mask[BRy,TLx]
+    TLx=bboxes[:,0].tolist()
+    TLy=bboxes[:,1].tolist()
+    BRx=bboxes[:,2].tolist()
+    BRy=bboxes[:,3].tolist()
+    area=mask[BRy+1,BRx+1]+mask[TLy,TLx]-mask[TLy,BRx+1]-mask[BRy+1,TLx]
     return area
 
 def mask_plotter(mask_aware_ious, overlaps, gt_masks, gt_bboxes, condition, bboxes, fntsize=14):
