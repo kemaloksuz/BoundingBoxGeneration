@@ -99,7 +99,7 @@ def mask_plotter(mask_aware_ious, overlaps, gt_masks, gt_bboxes, bboxes, cond, f
     valid_set_size=nonzero_iou_ind.shape[0]
     if valid_set_size==0:
         return
-    no=random.randint(0,valid_set_size)
+    no=random.randint(0,valid_set_size-1)
     pltgt,pltanc=nonzero_iou_ind[no]
     
     
@@ -251,7 +251,7 @@ def mask_aware_bbox_overlaps(gt_masks, bboxes1, bboxes2, plot=0, overlaps=None):
     print("minimax",torch.min(all_boxes[:,0]),torch.min(all_boxes[:,1]),torch.max(all_boxes[:,2]),torch.max(all_boxes[:,3]), torch.sum(all_boxes)) 
     print("check2=====", torch.sum(bboxes2))
     if plot==1:
-        cond=np.array([ 0.5, 1, 0, 0.4])
+        cond=np.array([ 1, 2, 0, 1.])
         mask_plotter(mask_aware_ious, overlaps, gt_masks, bboxes1, bboxes2, cond)
     pdb.set_trace()
     return mask_aware_ious    
