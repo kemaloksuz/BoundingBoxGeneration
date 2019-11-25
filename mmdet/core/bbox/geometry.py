@@ -245,7 +245,10 @@ def mask_aware_bbox_overlaps(gt_masks, bboxes1, bboxes2, plot=0, overlaps=None):
         print("minimax",torch.min(all_boxes[:,0]),torch.min(all_boxes[:,1]),torch.max(all_boxes[:,2]),torch.max(all_boxes[:,3]), torch.sum(all_boxes))
         norm_factor=area1.type(torch.cuda.DoubleTensor)/integral_images[:,-1,-1]
         for i in range(gt_number):
-            overlap[i, :]=integral_image_fetch(integral_images[i],all_boxes)*norm_factor[i]
+            overlap[i, :]=integral_image_fetch(integral_images[i],all_boxes)
+            print("maxx=", torch.max(overlap))
+            overlap[i, :]*=norm_factor[i]
+            print("maxx2=", torch.max(overlap))
 
     mask_aware_ious = overlap / (area1[:, None] + area2 - overlap)
     print("minimax",torch.min(all_boxes[:,0]),torch.min(all_boxes[:,1]),torch.max(all_boxes[:,2]),torch.max(all_boxes[:,3]), torch.sum(all_boxes)) 
