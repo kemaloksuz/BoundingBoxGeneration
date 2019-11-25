@@ -76,13 +76,13 @@ def integral_image_compute(masks,gt_number,h,w):
 def integral_image_fetch(mask,bboxes):
     #import pdb
     pdb.set_trace()
-    bboxes[:,[2,3]]+=1
-    print(torch.min(bboxes[:,0]),torch.min(bboxes[:,1]),torch.max(bboxes[:,2]),torch.max(bboxes[:,3]))
+    boxes=bboxes[:,[2,3]]+1
+    print(torch.min(boxes[:,0]),torch.min(boxes[:,1]),torch.max(boxes[:,2]),torch.max(boxes[:,3]))
     #Create indices
-    TLx=bboxes[:,0].tolist()
-    TLy=bboxes[:,1].tolist()
-    BRx=bboxes[:,2].tolist()
-    BRy=bboxes[:,3].tolist()
+    TLx=boxes[:,0].tolist()
+    TLy=boxes[:,1].tolist()
+    BRx=boxes[:,2].tolist()
+    BRy=boxes[:,3].tolist()
     area=mask[BRy,BRx]+mask[TLy,TLx]-mask[TLy,BRx]-mask[BRy,TLx]
     return area
 
