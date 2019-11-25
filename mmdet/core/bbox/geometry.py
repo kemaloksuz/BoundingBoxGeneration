@@ -77,6 +77,7 @@ def integral_image_fetch(mask,bboxes):
     #import pdb
     pdb.set_trace()
     bboxes[:,[2,3]]+=1
+    print(torch.min(bboxes[:,0]),torch.min(bboxes[:,1]),torch.max(bboxes[:,2]),torch.max(bboxes[:,3]))
     #Create indices
     TLx=bboxes[:,0].tolist()
     TLy=bboxes[:,1].tolist()
