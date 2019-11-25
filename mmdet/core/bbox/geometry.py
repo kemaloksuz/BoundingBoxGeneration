@@ -42,11 +42,9 @@ def bbox_overlaps(bboxes1, bboxes2, mode='iou', is_aligned=False):
         overlap = wh[:, 0] * wh[:, 1]
         area1 = (bboxes1[:, 2] - bboxes1[:, 0] + 1) * (
             bboxes1[:, 3] - bboxes1[:, 1] + 1)
-
         if mode == 'iou':
             area2 = (bboxes2[:, 2] - bboxes2[:, 0] + 1) * (
                 bboxes2[:, 3] - bboxes2[:, 1] + 1)
-            pdb.set_trace()
             ious = overlap / (area1 + area2 - overlap)
         else:
             ious = overlap / area1
@@ -62,6 +60,7 @@ def bbox_overlaps(bboxes1, bboxes2, mode='iou', is_aligned=False):
         if mode == 'iou':
             area2 = (bboxes2[:, 2] - bboxes2[:, 0] + 1) * (
                 bboxes2[:, 3] - bboxes2[:, 1] + 1)
+            pdb.set_trace()
             ious = overlap / (area1[:, None] + area2 - overlap)
         else:
             ious = overlap / (area1[:, None])
@@ -245,7 +244,7 @@ def mask_aware_bbox_overlaps(gt_masks, bboxes1, bboxes2, plot=0, overlaps=None):
             norm_factor=area2/integral_images[i,-1,-1]
             overlap[i, :]=integral_image_fetch(integral_images[i],all_boxes)*norm_factor
 
-    mask_aware_ious = overlap / (area1 + area2 - overlap)
+    mask_aware_ious = overlap / (area1[:, None] + area2 - overlap)
     if plot==1:
         condition=[0, 0.4, 0.5, 1]
         mask_plotter(mask_aware_ious, overlaps, gt_masks, bboxes1, bboxes2, condition)
