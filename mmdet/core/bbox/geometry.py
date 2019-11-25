@@ -86,7 +86,7 @@ def integral_image_fetch(mask,bboxes):
     bboxes[:,[2,3]]-=1
     return area
 
-def mask_plotter(mask_aware_ious, overlaps, gt_masks, gt_bboxes, cond, bboxes, fntsize=14):
+def mask_plotter(mask_aware_ious, overlaps, gt_masks, gt_bboxes, bboxes, cond, fntsize=14):
     '''
     condition=[minSoftIoU, maxSoftIoU, minIoU, maxIoU]
     '''
