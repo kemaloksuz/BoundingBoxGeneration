@@ -104,7 +104,7 @@ def mask_plotter(mask_aware_ious, overlaps, gt_masks, gt_bboxes, bboxes, cond, f
     
     
     fig, ax = plt.subplots(1)
-    ax.imshow(gt_masks[pltgt].cpu().numpy())
+    ax.imshow(gt_masks[pltgt])
     tempRect=patch.Rectangle((bboxes[pltanc,0],bboxes[pltanc,1]), bboxes[pltanc,2]-bboxes[pltanc,0], bboxes[pltanc,3]-bboxes[pltanc,1],linewidth=3,edgecolor='r',facecolor='none')
     ax.add_patch(tempRect) 
     
