@@ -76,14 +76,15 @@ def integral_image_compute(masks,gt_number,h,w):
 def integral_image_fetch(mask,bboxes):
     #import pdb
     pdb.set_trace()
-    #bboxes[:,[2,3]]+=1
+    bboxes[:,[2,3]]+=1
     print(torch.min(bboxes[:,0]),torch.min(bboxes[:,1]),torch.max(bboxes[:,2]),torch.max(bboxes[:,3]))
     #Create indices
     TLx=bboxes[:,0].tolist()
     TLy=bboxes[:,1].tolist()
     BRx=bboxes[:,2].tolist()
     BRy=bboxes[:,3].tolist()
-    area=mask[BRy+1,BRx+1]+mask[TLy,TLx]-mask[TLy,BRx+1]-mask[BRy+1,TLx]
+    area=mask[BRy,BRx]+mask[TLy,TLx]-mask[TLy,BRx]-mask[BRy,TLx]
+    bboxes[:,[2,3]]-=1
     return area
 
 def mask_plotter(mask_aware_ious, overlaps, gt_masks, gt_bboxes, condition, bboxes, fntsize=14):
@@ -241,12 +242,13 @@ def mask_aware_bbox_overlaps(gt_masks, bboxes1, bboxes2, plot=0, overlaps=None):
         all_boxes=torch.clamp(bboxes2, min=0)
         all_boxes[:,[0,2]]=torch.clamp(all_boxes[:,[0,2]], max=image_w-1)
         all_boxes[:,[1,3]]=torch.clamp(all_boxes[:,[1,3]], max=image_h-1)
-        print("minimax",torch.min(all_boxes[:,0]),torch.min(all_boxes[:,1]),torch.max(all_boxes[:,2]),torch.max(all_boxes[:,3]))
+        print("minimax",torch.min(all_boxes[:,0]),torch.min(all_boxes[:,1]),torch.max(all_boxes[:,2]),torch.max(all_boxes[:,3]), torch.sum(all_boxes))
         norm_factor=area1/integral_images[:,-1,-1]
         for i in range(gt_number):
             overlap[i, :]=integral_image_fetch(integral_images[i],all_boxes)*norm_factor[i]
 
     mask_aware_ious = overlap / (area1[:, None] + area2 - overlap)
+    print("minimax",torch.min(all_boxes[:,0]),torch.min(all_boxes[:,1]),torch.max(all_boxes[:,2]),torch.max(all_boxes[:,3]), torch.sum(all_boxes)) 
     if plot==1:
         condition=[0, 0.4, 0.5, 1]
         mask_plotter(mask_aware_ious, overlaps, gt_masks, bboxes1, bboxes2, condition)
