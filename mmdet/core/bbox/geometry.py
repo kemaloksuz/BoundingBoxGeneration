@@ -234,7 +234,7 @@ def mask_aware_bbox_overlaps(gt_masks, bboxes1, bboxes2, plot=0, overlaps=None):
     rb = torch.min(bboxes1[:, None, 2:], bboxes2[:, 2:])  # [rows, cols, 2]
 
     wh = (rb - lt + 1).clamp(min=0)  # [rows, cols, 2]
-    intersection_area = wh[:, :, 0] * wh[:, :, 1]
+    intersection_area = (wh[:, :, 0] * wh[:, :, 1]).type(torch.cuda.DoubleTensor) 
 
     overlap=bboxes1.data.new_zeros(rows, cols).type(torch.cuda.DoubleTensor) 
     area2=bboxes1.data.new_zeros(rows, cols).type(torch.cuda.DoubleTensor) 
