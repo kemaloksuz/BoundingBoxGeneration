@@ -99,6 +99,7 @@ def mask_plotter(mask_aware_ious, overlaps, gt_masks, gt_bboxes, bboxes, cond, f
     valid_set_size=nonzero_iou_ind.shape[0]
     if valid_set_size==0:
         return
+    print(valid_set_size, " candidates are found with the desired condition")
     no=random.randint(0,valid_set_size-1)
     pltgt,pltanc=nonzero_iou_ind[no]
     
