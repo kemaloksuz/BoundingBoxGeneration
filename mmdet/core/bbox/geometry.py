@@ -243,22 +243,17 @@ def mask_aware_bbox_overlaps(gt_masks, bboxes1, bboxes2, plot=0, overlaps=None):
     with torch.no_grad():
         #Convert list to torch
         all_gt_masks=torch.from_numpy(gt_masks).type(torch.cuda.ByteTensor)
-        gt_number,image_h,image_w=all_gt_masks.size()
-
-        
- 
+        gt_number,image_h,image_w=all_gt_masks.size() 
         pdb.set_trace()
         integral_images=integral_image_compute(all_gt_masks,gt_number,image_h,image_w).type(torch.cuda.DoubleTensor) 
         all_boxes=torch.clamp(bboxes2, min=0)
         all_boxes[:,[0,2]]=torch.clamp(all_boxes[:,[0,2]], max=image_w-1)
         all_boxes[:,[1,3]]=torch.clamp(all_boxes[:,[1,3]], max=image_h-1)
-        print("minimax",torch.min(all_boxes[:,0]),torch.min(all_boxes[:,1]),torch.max(all_boxes[:,2]),torch.max(all_boxes[:,3]), torch.sum(all_boxes))
         norm_factor=area1/integral_images[:,-1,-1]
         for i in range(gt_number):
             temp=integral_image_fetch(integral_images[i],all_boxes)
             area2[i,:]=area2_unnorm+(temp*(norm_factor[i]+1))-2*intersection_area[i,:]
             overlap[i, :]=temp*norm_factor[i]
-            print(i,"maxx2=", torch.max(overlap[i, :]))
         mask_aware_ious = overlap / (area1[:, None] + area2 - overlap)
 
     print("minimax",torch.min(all_boxes[:,0]),torch.min(all_boxes[:,1]),torch.max(all_boxes[:,2]),torch.max(all_boxes[:,3]), torch.sum(all_boxes)) 
