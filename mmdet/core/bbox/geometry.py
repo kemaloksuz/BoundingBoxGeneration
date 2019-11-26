@@ -256,7 +256,7 @@ def mask_aware_bbox_overlaps(gt_masks, bboxes1, bboxes2, plot=0, overlaps=None):
         norm_factor=area1/integral_images[:,-1,-1]
         for i in range(gt_number):
             temp=integral_image_fetch(integral_images[i],all_boxes)
-            area2[i,:]=area2_unnorm+(temp*norm_factor[i]+1)-2*intersection_area[i,:]
+            area2[i,:]=area2_unnorm+(temp*(norm_factor[i]+1))-2*intersection_area[i,:]
             overlap[i, :]=temp*norm_factor[i]
             print(i,"maxx2=", torch.max(overlap[i, :]))
         mask_aware_ious = overlap / (area1[:, None] + area2 - overlap)
