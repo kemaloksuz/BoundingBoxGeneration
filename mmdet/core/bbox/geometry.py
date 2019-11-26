@@ -229,14 +229,24 @@ def mask_aware_bbox_overlaps(gt_masks, bboxes1, bboxes2, plot=0, overlaps=None):
         return bboxes1.new(rows, 1)
 
     area1 = (bboxes1[:, 2] - bboxes1[:, 0] + 1).type(torch.cuda.DoubleTensor) * (bboxes1[:, 3] - bboxes1[:, 1] + 1).type(torch.cuda.DoubleTensor)
-    area2 = (bboxes2[:, 2] - bboxes2[:, 0] + 1).type(torch.cuda.DoubleTensor) * (bboxes2[:, 3] - bboxes2[:, 1] + 1).type(torch.cuda.DoubleTensor)
+    area2_unnorm = (bboxes2[:, 2] - bboxes2[:, 0] + 1).type(torch.cuda.DoubleTensor) * (bboxes2[:, 3] - bboxes2[:, 1] + 1).type(torch.cuda.DoubleTensor)
+    lt = torch.max(bboxes1[:, None, :2], bboxes2[:, :2])  # [rows, cols, 2]
+    rb = torch.min(bboxes1[:, None, 2:], bboxes2[:, 2:])  # [rows, cols, 2]
+
+    wh = (rb - lt + 1).clamp(min=0)  # [rows, cols, 2]
+    intersection_area = wh[:, :, 0] * wh[:, :, 1]
+
     overlap=bboxes1.data.new_zeros(rows, cols).type(torch.cuda.DoubleTensor) 
+    area2=bboxes1.data.new_zeros(rows, cols).type(torch.cuda.DoubleTensor) 
+
     print("check1=====", torch.sum(bboxes2))
     with torch.no_grad():
         #Convert list to torch
         all_gt_masks=torch.from_numpy(gt_masks).type(torch.cuda.ByteTensor)
         gt_number,image_h,image_w=all_gt_masks.size()
-        print(gt_number,image_h, image_w)
+
+        
+ 
         pdb.set_trace()
         integral_images=integral_image_compute(all_gt_masks,gt_number,image_h,image_w).type(torch.cuda.DoubleTensor) 
         all_boxes=torch.clamp(bboxes2, min=0)
@@ -245,12 +255,12 @@ def mask_aware_bbox_overlaps(gt_masks, bboxes1, bboxes2, plot=0, overlaps=None):
         print("minimax",torch.min(all_boxes[:,0]),torch.min(all_boxes[:,1]),torch.max(all_boxes[:,2]),torch.max(all_boxes[:,3]), torch.sum(all_boxes))
         norm_factor=area1/integral_images[:,-1,-1]
         for i in range(gt_number):
-            overlap[i, :]=integral_image_fetch(integral_images[i],all_boxes)
-            print(i,"maxx=", torch.max(overlap[i, :]))
-            overlap[i, :]*=norm_factor[i]
+            temp=integral_image_fetch(integral_images[i],all_boxes)
+            area2[i,:]=area2_unnorm+(temp*norm_factor[i]+1)-2*intersection_area[i,:]
+            overlap[i, :]=temp*norm_factor[i]
             print(i,"maxx2=", torch.max(overlap[i, :]))
+        mask_aware_ious = overlap / (area1[:, None] + area2 - overlap)
 
-    mask_aware_ious = overlap / (area1[:, None] + area2 - overlap)
     print("minimax",torch.min(all_boxes[:,0]),torch.min(all_boxes[:,1]),torch.max(all_boxes[:,2]),torch.max(all_boxes[:,3]), torch.sum(all_boxes)) 
     print("check2=====", torch.sum(bboxes2))
     if plot==1:
