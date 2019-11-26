@@ -259,7 +259,7 @@ def mask_aware_bbox_overlaps(gt_masks, bboxes1, bboxes2, plot=0, overlaps=None):
 
     print("check2=====", torch.sum(bboxes2))
     if plot==1:
-        cond=np.array([ 0., 0.4, 0.5, 1.])
+        cond=np.array([ 0.75, 2, 0., 1.])
         mask_plotter(mask_aware_ious, overlaps, gt_masks, bboxes1, bboxes2, cond)
     pdb.set_trace()
     return mask_aware_ious    
