@@ -76,7 +76,7 @@ def integral_image_compute(masks,gt_number,h,w):
 def integral_image_fetch(mask,bboxes):
     #import pdb
     bboxes[:,[2,3]]+=1
-    print(torch.min(bboxes[:,0]),torch.min(bboxes[:,1]),torch.max(bboxes[:,2]),torch.max(bboxes[:,3]))
+    #print(torch.min(bboxes[:,0]),torch.min(bboxes[:,1]),torch.max(bboxes[:,2]),torch.max(bboxes[:,3]))
     #Create indices
     TLx=bboxes[:,0].tolist()
     TLy=bboxes[:,1].tolist()
@@ -93,7 +93,7 @@ def mask_plotter(mask_aware_ious, overlaps, gt_masks, gt_bboxes, bboxes, cond, f
     #bboxes=torch.clamp(bboxes, min=0)
     #bboxes[:,[0,2]]=torch.clamp(bboxes[:,[0,2]], max=image_w-1)
     #bboxes[:,[1,3]]=torch.clamp(bboxes[:,[1,3]], max=image_h-1)
-    pdb.set_trace()
+    #pdb.set_trace()
     valid_ind=(mask_aware_ious>cond[0]) & (mask_aware_ious<cond[1]) & (overlaps>cond[2]) & (overlaps<cond[3])
     nonzero_iou_ind=np.nonzero(valid_ind)
     valid_set_size=nonzero_iou_ind.shape[0]
@@ -105,7 +105,6 @@ def mask_plotter(mask_aware_ious, overlaps, gt_masks, gt_bboxes, bboxes, cond, f
     
     
     fig, ax = plt.subplots(1)
-    ax.imshow(gt_masks[pltgt])
     tempRect=patch.Rectangle((bboxes[pltanc,0],bboxes[pltanc,1]), bboxes[pltanc,2]-bboxes[pltanc,0], bboxes[pltanc,3]-bboxes[pltanc,1],linewidth=3,edgecolor='r',facecolor='none')
     ax.add_patch(tempRect) 
     
@@ -130,12 +129,11 @@ def segm_overlaps(gt_masks, gt_bboxes, bboxes, overlaps, min_overlap, harmonic_m
         #Convert list to torch
         all_gt_masks=torch.from_numpy(gt_masks).type(torch.cuda.ByteTensor)
         gt_number,image_h,image_w=all_gt_masks.size()
-        #pdb.set_trace()
         integral_images=integral_image_compute(all_gt_masks,gt_number,image_h,image_w).type(torch.cuda.FloatTensor) 
         #end1 = time.time()
         for i in range(gt_number):
             #larger_ind = overlaps[i,:] > (min_overlap / (2-min_overlap))
-            larger_ind = overlaps[i,:] > (min_overlap / (2-min_overlap))
+            larger_ind = overlaps[i,:] > 0
             nonzero_iou_ind=torch.nonzero(larger_ind)
             all_boxes=bboxes[nonzero_iou_ind,:].squeeze(dim=1).type(torch.cuda.IntTensor) 
             all_boxes=torch.clamp(all_boxes, min=0)
@@ -148,34 +146,6 @@ def segm_overlaps(gt_masks, gt_bboxes, bboxes, overlaps, min_overlap, harmonic_m
             condition=[0, 0.4, 0.5, 1]
             mask_plotter(mask_aware_ious, overlaps, gt_masks, bboxes1, bboxes2, condition)
 
-            larger_ind=overlaps>min_overlap
-            nonzero_iou_ind=torch.nonzero(larger_ind)
-            #gt_mask_size=torch.sum(gt_masks,dim=[1,2]).type(torch.cuda.FloatTensor)
-            #end1 = time.time()
-            #bboxes=bboxes.type(torch.cuda.IntTensor) 
-            bboxes=torch.clamp(bboxes, min=0)
-            bboxes[:,[0,2]]=torch.clamp(bboxes[:,[0,2]], max=image_w-1)
-            bboxes[:,[1,3]]=torch.clamp(bboxes[:,[1,3]], max=image_h-1)
-
-            no=random.randint(0,nonzero_iou_ind.shape[0])
-            pltgt,pltanc=nonzero_iou_ind[no]
-           # print(pltgt,pltanc)
-            fig, ax = plt.subplots(1)
-            ax.imshow(gt_masks[pltgt].cpu().numpy())
-
-            tempRect=patch.Rectangle((bboxes[pltanc,0],bboxes[pltanc,1]), bboxes[pltanc,2]-bboxes[pltanc,0], bboxes[pltanc,3]-bboxes[pltanc,1],linewidth=3,edgecolor='r',facecolor='none')
-            ax.add_patch(tempRect) 
-            fntsize=14
-            tempRect=patch.Rectangle((gt_bboxes[pltgt,0],gt_bboxes[pltgt,1]), gt_bboxes[pltgt,2]-gt_bboxes[pltgt,0], gt_bboxes[pltgt,3]-gt_bboxes[pltgt,1],linewidth=3,edgecolor='g',facecolor='none')
-            ax.add_patch(tempRect)        
-
-            ax.tick_params(labelsize=fntsize)      
-            plt.xlabel('x', fontsize=fntsize)
-            plt.ylabel('y', fontsize=fntsize)
-            ax.text(0, 0, "iou= "+np.array2string(overlaps[pltgt,pltanc].cpu().numpy())+", "+\
-                "\n segm_rate="+np.array2string(segm_ious[pltgt,pltanc].cpu().numpy())+", "+\
-                "\n soft_iou="+np.array2string(soft_ious[pltgt,pltanc].cpu().numpy()), fontsize=12)
-            plt.show()
     #end = time.time()
     #print("t=",nonzero_iou_ind.size(), end1 - start, end - start)
     return soft_ious
@@ -229,37 +199,36 @@ def mask_aware_bbox_overlaps(gt_masks, bboxes1, bboxes2, plot=0, overlaps=None):
     if rows * cols == 0:
         return bboxes1.new(rows, 1)
 
-    area1 = (bboxes1[:, 2] - bboxes1[:, 0] + 1).type(torch.cuda.DoubleTensor) * (bboxes1[:, 3] - bboxes1[:, 1] + 1).type(torch.cuda.DoubleTensor)
-    area2_unnorm = (bboxes2[:, 2] - bboxes2[:, 0] + 1).type(torch.cuda.DoubleTensor) * (bboxes2[:, 3] - bboxes2[:, 1] + 1).type(torch.cuda.DoubleTensor)
+    area1 = (bboxes1[:, 2] - bboxes1[:, 0] + 1) * (bboxes1[:, 3] - bboxes1[:, 1] + 1)
+    area2 = (bboxes2[:, 2] - bboxes2[:, 0] + 1) * (bboxes2[:, 3] - bboxes2[:, 1] + 1)
     lt = torch.max(bboxes1[:, None, :2], bboxes2[:, :2])  # [rows, cols, 2]
     rb = torch.min(bboxes1[:, None, 2:], bboxes2[:, 2:])  # [rows, cols, 2]
 
     wh = (rb - lt + 1).clamp(min=0)  # [rows, cols, 2]
-    intersection_area = (wh[:, :, 0] * wh[:, :, 1]).type(torch.cuda.DoubleTensor) 
+    intersection = (wh[:, :, 0] * wh[:, :, 1]) 
 
-    overlap=bboxes1.data.new_zeros(rows, cols).type(torch.cuda.DoubleTensor) 
-    area2=bboxes1.data.new_zeros(rows, cols).type(torch.cuda.DoubleTensor) 
-
-    print("check1=====", torch.sum(bboxes2))
+    #area2_norm=bboxes1.data.new_zeros(rows, cols).type(torch.cuda.DoubleTensor) 
     with torch.no_grad():
+        overlap=bboxes1.data.new_zeros(rows, cols)
         #Convert list to torch
         all_gt_masks=torch.from_numpy(gt_masks).type(torch.cuda.ByteTensor)
         gt_number,image_h,image_w=all_gt_masks.size() 
-        pdb.set_trace()
-        integral_images=integral_image_compute(all_gt_masks,gt_number,image_h,image_w).type(torch.cuda.DoubleTensor) 
-        all_boxes=torch.clamp(bboxes2, min=0)
-        all_boxes[:,[0,2]]=torch.clamp(all_boxes[:,[0,2]], max=image_w-1)
-        all_boxes[:,[1,3]]=torch.clamp(all_boxes[:,[1,3]], max=image_h-1)
+        integral_images=integral_image_compute(all_gt_masks,gt_number,image_h,image_w).type(torch.cuda.FloatTensor)
         norm_factor=area1/integral_images[:,-1,-1]
         for i in range(gt_number):
-            temp=integral_image_fetch(integral_images[i],all_boxes)
-            overlap[i, :]=temp*norm_factor[i]
-            area2[i,:]=area2_unnorm-intersection_area[i,:]+overlap[i, :]
-        mask_aware_ious = overlap / (area1[:, None] + area2 - overlap)
+            larger_ind = intersection[i,:] > 0
+            nonzero_iou_ind=torch.nonzero(larger_ind)
+            all_boxes=bboxes2[nonzero_iou_ind,:].squeeze(dim=1).type(torch.cuda.IntTensor) 
+            all_boxes=torch.clamp(all_boxes, min=0)
+            all_boxes[:,[0,2]]=torch.clamp(all_boxes[:,[0,2]], max=image_w-1)
+            all_boxes[:,[1,3]]=torch.clamp(all_boxes[:,[1,3]], max=image_h-1)
+            overlap[i, larger_ind]=integral_image_fetch(integral_images[i],all_boxes)*norm_factor[i]
+            #area2_norm[i,:]=area2_unnorm-intersection_area[i,:]+overlap[i, :]
+        #mask_aware_ious = overlap / (area1[:, None] + area2 - overlap)
+        mask_aware_ious = overlap /  (area1[:, None] + area2 - intersection)
+        #print("diff:",torch.sum(torch.abs(mask_aware_ious-mask_aware_ious2)))
 
-    print("check2=====", torch.sum(bboxes2))
     if plot==1:
         cond=np.array([ 0.75, 2, 0., 1.])
         mask_plotter(mask_aware_ious, overlaps, gt_masks, bboxes1, bboxes2, cond)
-    pdb.set_trace()
     return mask_aware_ious    

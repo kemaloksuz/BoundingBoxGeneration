@@ -73,8 +73,8 @@ class MaxMaskAwareIoUAssigner(BaseAssigner):
         if bboxes.shape[0] == 0 or gt_bboxes.shape[0] == 0:
             raise ValueError('No gt or bboxes')
         bboxes = bboxes[:, :4]
-        bbox_ious = bbox_overlaps(gt_bboxes, bboxes)
-        overlaps = mask_aware_bbox_overlaps(gt_masks, gt_bboxes, bboxes, 1, bbox_ious)
+        #bbox_ious = bbox_overlaps(gt_bboxes, bboxes)
+        overlaps = mask_aware_bbox_overlaps(gt_masks, gt_bboxes, bboxes)
 
         if (self.ignore_iof_thr > 0) and (gt_bboxes_ignore is not None) and (
                 gt_bboxes_ignore.numel() > 0):
