@@ -2,7 +2,7 @@
 #SBATCH -p akya-cuda
 #SBATCH -A bcam
 #SBATCH 
-#SBATCH -J 2-06-05-03
+#SBATCH -J 6-055-045
 #SBATCH -N 1
 #SBATCH -n 1
 #SBATCH -c 10
@@ -11,8 +11,8 @@
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=bariscancam@gmail.com
 #SBATCH --time=15-00:00:00
-#SBATCH --output=/truba_scratch/bcam/output/softIoU/WsoftIoU-2-06-05-alpha03.out
-#SBATCH --error=/truba_scratch/bcam/output/softIoU/WsoftIoU-06-05-alpha03.err
+#SBATCH --output=/truba_scratch/bcam/output/softIoU/WsoftIoU-6-055-045.out
+#SBATCH --error=/truba_scratch/bcam/output/softIoU/WsoftIoU-6-055-045.err
 
 ###################  Init. CUDA ##########################
 export CUDA_HOME=/truba_scratch/bcam/software/cuda-10.0
@@ -41,5 +41,5 @@ source /truba_scratch/bcam/software/miniconda3/bin/activate open-mmlab
 
 ###################  Run ##########################
 cd /truba/home/bcam/imgworkspace/mmdetection
-python tools/train.py configs/softIoU/WeightedSoftIoU/retinanet_r50_fpn_WsoftIoU_2_06_05_WithMax_alpha03.py --gpus 2
+python tools/train.py configs/softIoU/WeightedSoftIoU/retinanet_r50_fpn_WsoftIoU_6_055_045_WithMax.py --gpus 2
 ######################################################################
