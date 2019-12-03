@@ -31,8 +31,8 @@ class AnchorHead(nn.Module):
     iteration_counter=0
     pos_sum=0.
     neg_sum=0.
-    #max_record=3125000
-    max_record=312
+    max_record=3125000
+    #max_record=312
     flag=1
     def __init__(self,
                  num_classes,
@@ -164,10 +164,12 @@ class AnchorHead(nn.Module):
                 AnchorHead.pos_sum+=pos_number
                 AnchorHead.neg_sum+=(all_number-pos_number)
                 if AnchorHead.iteration_counter%1000==0:
-                    print("counter=", AnchorHead.iteration_counter, "total pos=",AnchorHead.pos_sum, "total_neg=",AnchorHead.neg_sum)
+                    with open(self.filename, 'a') as f:
+                        f.write("%s,%s" % (AnchorHead.pos_sum, AnchorHead.neg_sum))
+                    #print("counter=", AnchorHead.iteration_counter, "total pos=",AnchorHead.pos_sum, "total_neg=",AnchorHead.neg_sum)
             elif AnchorHead.flag==1:
                 AnchorHead.flag=0
-                with open(self.filename, 'w') as f:
+                with open(self.filename, 'a') as f:
                     f.write("%s,%s" % (AnchorHead.pos_sum, AnchorHead.neg_sum))
 
         return loss_cls, loss_bbox
