@@ -164,11 +164,9 @@ class AnchorHead(nn.Module):
                 AnchorHead.neg_sum+=(all_number-pos_number)
                 print(AnchorHead.iteration_counter, all_number, pos_number, AnchorHead.pos_sum, AnchorHead.neg_sum)
             elif AnchorHead.flag==1:
+                AnchorHead.flag=0
                 with open('Output.txt', 'w') as f:
                     f.write("%s,%s" % (AnchorHead.pos_sum, AnchorHead.neg_sum)
-                AnchorHead.flag=0
-
-
         return loss_cls, loss_bbox
 
     @force_fp32(apply_to=('cls_scores', 'bbox_preds'))
