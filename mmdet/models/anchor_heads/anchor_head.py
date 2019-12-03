@@ -9,7 +9,7 @@ from mmdet.core import (AnchorGenerator, anchor_target, delta2bbox, force_fp32,
                         multi_apply, multiclass_nms)
 from ..builder import build_loss
 from ..registry import HEADS
-
+import pdb
 
 @HEADS.register_module
 class AnchorHead(nn.Module):
@@ -148,6 +148,17 @@ class AnchorHead(nn.Module):
             bbox_targets,
             bbox_weights,
             avg_factor=num_total_samples)
+
+        with torch.no_grad():
+            if 1:
+                print(labels)
+                print(label_weights)
+                print(bbox_weights)
+                pdb.set_trace()
+                #tuples=np.concatenate((np.expand_dims(anchor_iou,1),np.expand_dims(anchor_segmrate,1),np.expand_dims(det_iou,1), np.expand_dims(det_cls_score,1), np.expand_dims(det_cls_loss,1), np.expand_dims(det_cls_score_max,1), np.expand_dims(det_cls_score_argmax,1)),axis=1)
+                #f = open(self.filename, "ab")
+                #np.savetxt(f, tuples)        
+
         return loss_cls, loss_bbox
 
     @force_fp32(apply_to=('cls_scores', 'bbox_preds'))
