@@ -165,12 +165,12 @@ class AnchorHead(nn.Module):
                 AnchorHead.neg_sum+=(all_number-pos_number)
                 if AnchorHead.iteration_counter%1000==0:
                     with open(self.filename, 'a') as f:
-                        f.write("iteration %s:, Positive Anchor: %s, Negative Anchor: %s" % (AnchorHead.iteration_counter, AnchorHead.pos_sum, AnchorHead.neg_sum))
+                        f.write("iteration %s:, Positive Anchor: %s, Negative Anchor: %s \n" % (AnchorHead.iteration_counter, AnchorHead.pos_sum, AnchorHead.neg_sum))
                     #print("counter=", AnchorHead.iteration_counter, "total pos=",AnchorHead.pos_sum, "total_neg=",AnchorHead.neg_sum)
             elif AnchorHead.flag==1:
                 AnchorHead.flag=0
                 with open(self.filename, 'a') as f:
-                    f.write("iteration %s:, Positive Anchor: %s, Negative Anchor: %s" % (AnchorHead.iteration_counter, AnchorHead.pos_sum, AnchorHead.neg_sum))
+                    f.write("iteration %s:, Positive Anchor: %s, Negative Anchor: %s \n" % (AnchorHead.iteration_counter, AnchorHead.pos_sum, AnchorHead.neg_sum))
 
         return loss_cls, loss_bbox
 
