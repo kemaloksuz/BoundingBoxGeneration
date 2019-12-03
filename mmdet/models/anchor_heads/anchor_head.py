@@ -163,7 +163,7 @@ class AnchorHead(nn.Module):
                 pos_number=(bbox_weights.sum()/4).item()
                 AnchorHead.pos_sum+=pos_number
                 AnchorHead.neg_sum+=(all_number-pos_number)
-                if AnchorHead.iteration_counter%1000==0
+                if AnchorHead.iteration_counter%1000==0:
                     print("counter=", AnchorHead.iteration_counter, "total pos=",AnchorHead.pos_sum, "total_neg=",AnchorHead.neg_sum)
             elif AnchorHead.flag==1:
                 AnchorHead.flag=0
