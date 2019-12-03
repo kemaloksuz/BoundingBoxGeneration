@@ -31,8 +31,8 @@ class AnchorHead(nn.Module):
     iteration_counter=0
     pos_sum=0.
     neg_sum=0.
-    #max_record=3125000
-    max_record=312
+    max_record=3125000
+    #max_record=312
     flag=1
     def __init__(self,
                  num_classes,
