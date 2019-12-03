@@ -44,6 +44,7 @@ class AnchorHead(nn.Module):
                  anchor_base_sizes=None,
                  target_means=(.0, .0, .0, .0),
                  target_stds=(1.0, 1.0, 1.0, 1.0),
+                 filename='Output.txt',
                  loss_cls=dict(
                      type='CrossEntropyLoss',
                      use_sigmoid=True,
@@ -61,7 +62,7 @@ class AnchorHead(nn.Module):
             anchor_strides) if anchor_base_sizes is None else anchor_base_sizes
         self.target_means = target_means
         self.target_stds = target_stds
-
+        self.filename=filename
         self.use_sigmoid_cls = loss_cls.get('use_sigmoid', False)
         self.sampling = loss_cls['type'] not in ['FocalLoss', 'GHMC']
         if self.use_sigmoid_cls:
@@ -166,7 +167,7 @@ class AnchorHead(nn.Module):
                     print("counter=", AnchorHead.iteration_counter, "total pos=",AnchorHead.pos_sum, "total_neg=",AnchorHead.neg_sum)
             elif AnchorHead.flag==1:
                 AnchorHead.flag=0
-                with open('Output.txt', 'w') as f:
+                with open(self.filename, 'w') as f:
                     f.write("%s,%s" % (AnchorHead.pos_sum, AnchorHead.neg_sum))
 
         return loss_cls, loss_bbox
