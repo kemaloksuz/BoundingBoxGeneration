@@ -31,8 +31,8 @@ class AnchorHead(nn.Module):
     iteration_counter=0
     pos_sum=0.
     neg_sum=0.
-    #max_record=3125000
-    max_record=312
+    max_record=3125000
+    #max_record=312
     flag=1
     def __init__(self,
                  num_classes,
@@ -162,12 +162,13 @@ class AnchorHead(nn.Module):
                 pos_number=(bbox_weights.sum()/4).item()
                 AnchorHead.pos_sum+=pos_number
                 AnchorHead.neg_sum+=(all_number-pos_number)
-                print(AnchorHead.iteration_counter, all_number, pos_number, AnchorHead.pos_sum, AnchorHead.neg_sum)
+                if AnchorHead.iteration_counter%1000==0
+                    print("counter=", AnchorHead.iteration_counter, "total pos=",AnchorHead.pos_sum, "total_neg=",AnchorHead.neg_sum)
             elif AnchorHead.flag==1:
                 AnchorHead.flag=0
                 with open('Output.txt', 'w') as f:
                     f.write("%s,%s" % (AnchorHead.pos_sum, AnchorHead.neg_sum))
-                    
+
         return loss_cls, loss_bbox
 
     @force_fp32(apply_to=('cls_scores', 'bbox_preds'))
