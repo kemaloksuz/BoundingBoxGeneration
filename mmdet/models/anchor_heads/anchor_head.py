@@ -162,11 +162,11 @@ class AnchorHead(nn.Module):
                 pos_number=(bbox_weights.sum()/4).item()
                 AnchorHead.pos_sum+=pos_number
                 AnchorHead.neg_sum+=(all_number-pos_number)
-                #print(AnchorHead.iteration_counter, all_number, pos_number, AnchorHead.pos_sum, AnchorHead.neg_sum)
+                print(AnchorHead.iteration_counter, all_number, pos_number, AnchorHead.pos_sum, AnchorHead.neg_sum)
             elif AnchorHead.flag==1:
                 with open('Output.txt', 'w') as f:
                     f.write("%s,%s" % (AnchorHead.pos_sum, AnchorHead.neg_sum)
-                AnchorHead.flag==0
+                AnchorHead.flag=0
 
 
         return loss_cls, loss_bbox
