@@ -31,6 +31,9 @@ class AnchorHead(nn.Module):
     iteration_counter=0
     pos_sum=0.
     neg_sum=0.
+    #max_record=3125000
+    max_record=312
+    flag=1
     def __init__(self,
                  num_classes,
                  in_channels,
@@ -153,17 +156,18 @@ class AnchorHead(nn.Module):
             avg_factor=num_total_samples)
 
         with torch.no_grad():
-            if 1:
+            if AnchorHead.iteration_counter<AnchorHead.max_record:
                 AnchorHead.iteration_counter+=1
                 all_number=label_weights.sum().item()
                 pos_number=(bbox_weights.sum()/4).item()
                 AnchorHead.pos_sum+=pos_number
-                AnchorHead.neg_sum+=all_number
-                print(AnchorHead.iteration_counter, all_number, pos_number, AnchorHead.pos_sum, AnchorHead.neg_sum)
+                AnchorHead.neg_sum+=(all_number-pos_number)
+                #print(AnchorHead.iteration_counter, all_number, pos_number, AnchorHead.pos_sum, AnchorHead.neg_sum)
+            elif AnchorHead.flag==1:
+                with open('Output.txt', 'w') as f:
+                    f.write("%s,%s" % (AnchorHead.pos_sum, AnchorHead.neg_sum)
+                AnchorHead.flag==0
 
-                #tuples=np.concatenate((np.expand_dims(anchor_iou,1),np.expand_dims(anchor_segmrate,1),np.expand_dims(det_iou,1), np.expand_dims(det_cls_score,1), np.expand_dims(det_cls_loss,1), np.expand_dims(det_cls_score_max,1), np.expand_dims(det_cls_score_argmax,1)),axis=1)
-                #f = open(self.filename, "ab")
-                #np.savetxt(f, tuples)        
 
         return loss_cls, loss_bbox
 
