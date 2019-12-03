@@ -166,7 +166,8 @@ class AnchorHead(nn.Module):
             elif AnchorHead.flag==1:
                 AnchorHead.flag=0
                 with open('Output.txt', 'w') as f:
-                    f.write("%s,%s" % (AnchorHead.pos_sum, AnchorHead.neg_sum)
+                    f.write("%s,%s" % (AnchorHead.pos_sum, AnchorHead.neg_sum))
+                    
         return loss_cls, loss_bbox
 
     @force_fp32(apply_to=('cls_scores', 'bbox_preds'))
