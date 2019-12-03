@@ -28,6 +28,9 @@ class AnchorHead(nn.Module):
         loss_bbox (dict): Config of localization loss.
     """  # noqa: W605
 
+    iteration_counter=0
+    pos_sum=0.
+    neg_sum=0.
     def __init__(self,
                  num_classes,
                  in_channels,
@@ -151,10 +154,13 @@ class AnchorHead(nn.Module):
 
         with torch.no_grad():
             if 1:
-                print(labels)
-                print(label_weights)
-                print(bbox_weights)
-                pdb.set_trace()
+                AnchorHead.iteration_counter+=1
+                all_number=label_weights.sum().item()
+                pos_number=(bbox_weights.sum()/4).item()
+                AnchorHead.pos_sum+=pos_number
+                AnchorHead.neg_sum+=all_number
+                print(AnchorHead.iteration_counter, all_number, pos_number, AnchorHead.pos_sum, AnchorHead.neg_sum)
+
                 #tuples=np.concatenate((np.expand_dims(anchor_iou,1),np.expand_dims(anchor_segmrate,1),np.expand_dims(det_iou,1), np.expand_dims(det_cls_score,1), np.expand_dims(det_cls_loss,1), np.expand_dims(det_cls_score_max,1), np.expand_dims(det_cls_score_argmax,1)),axis=1)
                 #f = open(self.filename, "ab")
                 #np.savetxt(f, tuples)        
