@@ -43,6 +43,7 @@ train_cfg = dict(
         pos_iou_thr=0.6,
         neg_iou_thr=0.5,
         min_pos_iou=0,
+        maskIOUweight=0.2,
         ignore_iof_thr=-1),
     allowed_border=-1,
     pos_weight=-1,

@@ -175,7 +175,7 @@ def segm_iou(gt_masks, gt_bboxes, bboxes, overlaps, min_overlap=0):
     #print("t=",nonzero_iou_ind.size(), end1 - start, end - start)
     return segm_ious
 
-def mask_aware_bbox_overlaps(gt_masks, bboxes1, bboxes2, plot=0, overlaps=None):
+def mask_aware_bbox_overlaps(gt_masks, bboxes1, bboxes2, maskIOUweight=1, plot=0, overlaps=None):
     """Calculate overlap between two set of bboxes.
 
     If ``is_aligned`` is ``False``, then calculate the ious between each bbox
@@ -226,6 +226,8 @@ def mask_aware_bbox_overlaps(gt_masks, bboxes1, bboxes2, plot=0, overlaps=None):
             #area2_norm[i,:]=area2_unnorm-intersection_area[i,:]+overlap[i, :]
         #mask_aware_ious = overlap / (area1[:, None] + area2 - overlap)
         mask_aware_ious = overlap /  (area1[:, None] + area2 - intersection)
+        ious = intersection / (area1[:, None] + area2 - intersection)
+        mask_aware_ious=maskIOUweight*mask_aware_ious+(1-maskIOUweight)*ious
         #print("diff:",torch.sum(torch.abs(mask_aware_ious-mask_aware_ious2)))
 
     if plot==1:

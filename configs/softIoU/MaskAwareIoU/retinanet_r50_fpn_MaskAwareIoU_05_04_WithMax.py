@@ -42,6 +42,7 @@ train_cfg = dict(
         type='MaxMaskAwareIoUAssigner',
         pos_iou_thr=0.50,
         neg_iou_thr=0.40,
+        maskIOUweight=0.2,
         min_pos_iou=0,
         ignore_iof_thr=-1),
     allowed_border=-1,

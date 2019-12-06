@@ -34,12 +34,14 @@ class MaxMaskAwareIoUAssigner(BaseAssigner):
                  pos_iou_thr,
                  neg_iou_thr,
                  min_pos_iou=.0,
+                 maskIOUweight=1,
                  gt_max_assign_all=True,
                  ignore_iof_thr=-1,
                  ignore_wrt_candidates=True):
         self.pos_iou_thr = pos_iou_thr
         self.neg_iou_thr = neg_iou_thr
         self.min_pos_iou = min_pos_iou
+        self.maskIOUweight=maskIOUweight
         self.gt_max_assign_all = gt_max_assign_all
         self.ignore_iof_thr = ignore_iof_thr
         self.ignore_wrt_candidates = ignore_wrt_candidates
@@ -74,7 +76,7 @@ class MaxMaskAwareIoUAssigner(BaseAssigner):
             raise ValueError('No gt or bboxes')
         bboxes = bboxes[:, :4]
         #bbox_ious = bbox_overlaps(gt_bboxes, bboxes)
-        overlaps = mask_aware_bbox_overlaps(gt_masks, gt_bboxes, bboxes)
+        overlaps = mask_aware_bbox_overlaps(gt_masks, gt_bboxes, bboxes, maskIOUweight)
 
         if (self.ignore_iof_thr > 0) and (gt_bboxes_ignore is not None) and (
                 gt_bboxes_ignore.numel() > 0):
