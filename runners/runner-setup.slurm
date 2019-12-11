@@ -1,7 +1,6 @@
 #!/bin/bash
 #SBATCH -p akya-cuda
 #SBATCH -A bcam
-#SBATCH --reservation sefa
 #SBATCH -J setup
 #SBATCH -N 1
 #SBATCH -n 1
