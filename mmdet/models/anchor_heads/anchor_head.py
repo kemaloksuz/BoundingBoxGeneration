@@ -132,7 +132,7 @@ class AnchorHead(nn.Module):
         return anchor_list, valid_flag_list
 
     def loss_single(self, cls_score, bbox_pred, labels, label_weights,
-                    bbox_targets, bbox_weights, IoUs, softIoUs, track_thr, pos_anchors, pos_gts, num_total_samples, cfg):
+                    bbox_targets, bbox_weights, IoUs, softIoUs, pos_anchors, pos_gts, img_shape, num_total_samples, cfg):
         # classification loss
         IoUs=IoUs.reshape(-1)
         softIoUs=softIoUs.reshape(-1)   
@@ -158,8 +158,8 @@ class AnchorHead(nn.Module):
             bbox_targets,
             bbox_weights) 
         #pdb.set_trace()
-        print(cls_score.size())
-        bboxes = delta2bbox(pos_anchors, bbox_pred, self.target_means, self.target_stds)            
+        print(cls_score.size(), img_shape)
+        bboxes = delta2bbox(pos_anchors, bbox_pred, self.target_means, self.target_stds, img_shape)            
         loss_bbox_IoU_correct = self.loss_bbox(
             bboxes,
             pos_gts,
@@ -235,10 +235,9 @@ class AnchorHead(nn.Module):
             bbox_weights_list,
             IoU_list, 
             softIoU_list,
-            track_thr_list,
             pos_anchors_list,
             pos_gts_list,    
-            #img_shape_list,        
+            img_shape_list,        
             num_total_samples=num_total_samples,
             cfg=cfg)
         return dict(loss_cls=losses_cls, loss_bbox=losses_bbox)
