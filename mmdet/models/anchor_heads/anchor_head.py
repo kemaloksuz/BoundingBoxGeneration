@@ -158,6 +158,7 @@ class AnchorHead(nn.Module):
             bbox_targets,
             bbox_weights) 
         pdb.set_trace()
+        print(img_shape)
         bboxes = delta2bbox(pos_anchors, bbox_pred, self.target_means, self.target_stds,img_shape)            
         loss_bbox_IoU_correct = self.loss_bbox(
             bboxes,
