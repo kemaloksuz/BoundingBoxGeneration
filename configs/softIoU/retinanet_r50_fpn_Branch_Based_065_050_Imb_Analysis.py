@@ -29,10 +29,8 @@ model = dict(
         target_means=[.0, .0, .0, .0],
         target_stds=[1.0, 1.0, 1.0, 1.0],
         loss_cls=dict(
-            type='FocalLoss',
+            type='CrossEntropyLoss',
             use_sigmoid=True,
-            gamma=2.0,
-            alpha=0.25,
             reduction='none',
             loss_weight=1.0),
         loss_bbox=dict(type='IoULoss', reduction='none', loss_weight=1.0)))
@@ -108,7 +106,7 @@ data = dict(
         img_prefix=data_root + 'val2017/',
         pipeline=test_pipeline))
 # optimizer
-optimizer = dict(type='SGD', lr=0., momentum=0., weight_decay=0.0001)
+optimizer = dict(type='SGD', lr=0., momentum=0., weight_decay=0.)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 # learning policy
 lr_config = dict(
@@ -131,7 +129,7 @@ total_epochs = 1
 device_ids = range(2)
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/retinanet_r50_fpn_Branch_Based_065_050_WithMax'
+work_dir = './work_dirs/Imbalance_Analysis'
 load_from = './work_dirs/retinanet_r50_fpn_1x/epoch_12.pth'
 resume_from = None
 workflow = [('train', 1)]

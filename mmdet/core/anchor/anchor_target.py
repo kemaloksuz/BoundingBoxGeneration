@@ -7,7 +7,7 @@ import pdb
 def anchor_target(anchor_list,
                   valid_flag_list,
                   gt_bboxes_list,
-		  gt_masks_list,
+		              gt_masks_list,
                   img_metas,
                   target_means,
                   target_stds,
@@ -49,7 +49,7 @@ def anchor_target(anchor_list,
     if gt_masks_list is None:
         gt_masks_list = [None for _ in range(num_imgs)]
     (all_labels, all_label_weights, all_bbox_targets, all_bbox_weights,
-     pos_inds_list, neg_inds_list,all_IoUs, all_softIoUs, track_threshold) = multi_apply(
+     pos_inds_list, neg_inds_list,all_IoUs, all_softIoUs, track_threshold, all_pos_anchors, all_pos_gts) = multi_apply(
          anchor_target_single,
          anchor_list,
          valid_flag_list,
@@ -77,8 +77,10 @@ def anchor_target(anchor_list,
     bbox_weights_list = images_to_levels(all_bbox_weights, num_level_anchors)
     IoU_list=images_to_levels(all_IoUs, num_level_anchors)
     softIoU_list=images_to_levels(all_softIoUs, num_level_anchors)    
+    pos_anchors_list=images_to_levels(all_pos_anchors, num_level_anchors)
+    pos_gts_list=images_to_levels(all_pos_gts, num_level_anchors)    
     return (labels_list, label_weights_list, bbox_targets_list,
-            bbox_weights_list, num_total_pos, num_total_neg, IoU_list, softIoU_list, track_threshold)
+            bbox_weights_list, num_total_pos, num_total_neg, IoU_list, softIoU_list, track_threshold, pos_anchors_list,pos_gts_list)
 
 
 def images_to_levels(target, num_level_anchors):
@@ -136,6 +138,8 @@ def anchor_target_single(flat_anchors,
     num_valid_anchors = anchors.shape[0]
     bbox_targets = torch.zeros_like(anchors)
     bbox_weights = torch.zeros_like(anchors)
+    pos_anchors = torch.zeros_like(anchors)
+    pos_gts = torch.zeros_like(anchors)    
     labels = anchors.new_zeros(num_valid_anchors, dtype=torch.long)
     label_weights = anchors.new_zeros(num_valid_anchors, dtype=torch.float)
     #import pdb
@@ -147,6 +151,8 @@ def anchor_target_single(flat_anchors,
                                       sampling_result.pos_gt_bboxes,
                                       target_means, target_stds)
         bbox_targets[pos_inds, :] = pos_bbox_targets
+        pos_anchors[pos_inds, :] = sampling_result.pos_bboxes
+        pos_gts[pos_inds, :] = sampling_result.pos_gt_bboxes        
         bbox_weights[pos_inds, :] = 1.0
         if gt_labels is None:
             labels[pos_inds] = 1
@@ -167,9 +173,11 @@ def anchor_target_single(flat_anchors,
         bbox_weights = unmap(bbox_weights, num_total_anchors, inside_flags)
         IoUs= unmap(IoUs, num_total_anchors, inside_flags)
         softIoUs= unmap(softIoUs, num_total_anchors, inside_flags)
+        pos_anchors= unmap(pos_anchors, num_total_anchors, inside_flags)
+        pos_gts= unmap(pos_gts, num_total_anchors, inside_flags)        
 
     return (labels, label_weights, bbox_targets, bbox_weights, pos_inds,
-            neg_inds, IoUs, softIoUs, track_threshold)
+            neg_inds, IoUs, softIoUs, track_threshold, pos_anchors, pos_gts)
 
 
 def anchor_inside_flags(flat_anchors, valid_flags, img_shape,

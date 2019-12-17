@@ -132,7 +132,7 @@ class AnchorHead(nn.Module):
         return anchor_list, valid_flag_list
 
     def loss_single(self, cls_score, bbox_pred, labels, label_weights,
-                    bbox_targets, bbox_weights, IoUs, softIoUs, track_thr, num_total_samples, cfg):
+                    bbox_targets, bbox_weights, IoUs, softIoUs, track_thr, pos_anchors, pos_gts,  num_total_samples, cfg):
         # classification loss
         IoUs=IoUs.reshape(-1)
         softIoUs=softIoUs.reshape(-1)   
@@ -157,6 +157,10 @@ class AnchorHead(nn.Module):
             bbox_pred,
             bbox_targets,
             bbox_weights) 
+        loss_bbox_IoU_correct = self.loss_bbox(
+            pos_gts,
+            pos_anchors,
+            bbox_weights)         
         with torch.no_grad():
             if idx.size()[0]>0:
                 det_labels=labels[idx] - 1
@@ -168,11 +172,13 @@ class AnchorHead(nn.Module):
                 det_cls_score_argmax = cls_score[idx, :].max(dim=1)[1].cpu().numpy()
                 if loss_bbox.dim()>0:
                     det_iou=loss_bbox[idx].cpu().numpy()
+                    det_iou_correct=loss_bbox_IoU_correct[idx].cpu().numpy()
                 else:
                     det_iou=torch.cuda.FloatTensor(idx.size()[0]).fill_(0).cpu().numpy()
+                    det_iou_correct=torch.cuda.FloatTensor(idx.size()[0]).fill_(0).cpu().numpy()
                 anchor_iou=IoUs[idx].cpu().numpy()
                 anchor_segmrate=softIoUs[idx].cpu().numpy()
-                tuples=np.concatenate((np.expand_dims(anchor_iou,1),np.expand_dims(anchor_segmrate,1),np.expand_dims(det_iou,1), np.expand_dims(det_cls_score,1), np.expand_dims(det_cls_loss,1), np.expand_dims(det_cls_score_max,1), np.expand_dims(det_cls_score_argmax,1)),axis=1)
+                tuples=np.concatenate((np.expand_dims(anchor_iou,1),np.expand_dims(anchor_segmrate,1),np.expand_dims(det_iou,1), np.expand_dims(det_cls_score,1), np.expand_dims(det_cls_loss,1), np.expand_dims(det_cls_score_max,1), np.expand_dims(det_cls_score_argmax,1), np.expand_dims(det_iou_correct,1)),axis=1)
                 f = open(self.filename, "ab")
                 np.savetxt(f, tuples)            
 #        pdb.set_trace()
@@ -209,7 +215,7 @@ class AnchorHead(nn.Module):
         if cls_reg_targets is None:
             return None
         (labels_list, label_weights_list, bbox_targets_list, bbox_weights_list,
-         num_total_pos, num_total_neg, IoU_list, softIoU_list, track_thr_list) = cls_reg_targets
+         num_total_pos, num_total_neg, IoU_list, softIoU_list, track_thr_list, pos_anchors_list, pos_gts_list) = cls_reg_targets
         num_total_samples = (
             num_total_pos + num_total_neg if self.sampling else num_total_pos)
         losses_cls, losses_bbox = multi_apply(
@@ -223,6 +229,8 @@ class AnchorHead(nn.Module):
             IoU_list, 
             softIoU_list,
             track_thr_list,
+            pos_anchors_list,
+            pos_gts_list,            
             num_total_samples=num_total_samples,
             cfg=cfg)
         return dict(loss_cls=losses_cls, loss_bbox=losses_bbox)
