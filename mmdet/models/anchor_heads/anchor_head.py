@@ -224,7 +224,7 @@ class AnchorHead(nn.Module):
          num_total_pos, num_total_neg, IoU_list, softIoU_list, track_thr_list, pos_anchors_list, pos_gts_list) = cls_reg_targets
         num_total_samples = (
             num_total_pos + num_total_neg if self.sampling else num_total_pos)
-        #pdb.set_trace()
+        pdb.set_trace()
         losses_cls, losses_bbox = multi_apply(
             self.loss_single,
             cls_scores,
