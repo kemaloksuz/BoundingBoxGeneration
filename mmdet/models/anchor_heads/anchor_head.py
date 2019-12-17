@@ -157,8 +157,8 @@ class AnchorHead(nn.Module):
             bbox_pred,
             bbox_targets,
             bbox_weights) 
-        pdb.set_trace()
-        print(img_shape)
+        #pdb.set_trace()
+        print(cls_score.size(), img_shape)
         bboxes = delta2bbox(pos_anchors, bbox_pred, self.target_means, self.target_stds,img_shape)            
         loss_bbox_IoU_correct = self.loss_bbox(
             bboxes,
@@ -224,7 +224,7 @@ class AnchorHead(nn.Module):
          num_total_pos, num_total_neg, IoU_list, softIoU_list, track_thr_list, pos_anchors_list, pos_gts_list) = cls_reg_targets
         num_total_samples = (
             num_total_pos + num_total_neg if self.sampling else num_total_pos)
-        pdb.set_trace()
+        #pdb.set_trace()
         losses_cls, losses_bbox = multi_apply(
             self.loss_single,
             cls_scores,
