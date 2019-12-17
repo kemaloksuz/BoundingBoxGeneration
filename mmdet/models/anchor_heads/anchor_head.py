@@ -161,7 +161,7 @@ class AnchorHead(nn.Module):
             pos_gts,
             pos_anchors,
             bbox_weights)         
-        pdb.set_trace()
+        #pdb.set_trace()
         with torch.no_grad():
             if idx.size()[0]>0:
                 det_labels=labels[idx] - 1
