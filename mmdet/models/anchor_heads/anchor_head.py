@@ -202,7 +202,7 @@ class AnchorHead(nn.Module):
         assert len(featmap_sizes) == len(self.anchor_generators)
         anchor_list, valid_flag_list = self.get_anchors(
             featmap_sizes, img_metas)
-        img_shape = [img_metas[0]['img_shape'],img_metas[0]['img_shape'],img_metas[0]['img_shape'],img_metas[0]['img_shape'],img_metas[0]['img_shape']]
+        img_shape_list = [img_metas[0]['img_shape'],img_metas[0]['img_shape'],img_metas[0]['img_shape'],img_metas[0]['img_shape'],img_metas[0]['img_shape']]
 
         label_channels = self.cls_out_channels if self.use_sigmoid_cls else 1
         cls_reg_targets = anchor_target(
