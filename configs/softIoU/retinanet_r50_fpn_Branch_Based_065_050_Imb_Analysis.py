@@ -32,8 +32,8 @@ model = dict(
             type='CrossEntropyLoss',
             use_sigmoid=True,
             reduction='none',
-            loss_weight=0.0),
-        loss_bbox=dict(type='IoULoss', reduction='none', loss_weight=0.0)))
+            loss_weight=1.0),
+        loss_bbox=dict(type='IoULoss', reduction='none', loss_weight=1.0)))
 # training and testing settings
 train_cfg = dict(
     maxIoUAssigner=dict(
