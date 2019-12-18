@@ -165,7 +165,7 @@ class AnchorHead(nn.Module):
             bbox_weights)         
         #pdb.set_trace()
         with torch.no_grad():
-            if idx.size()[0]>0:
+            if idx.dim()>0 and idx.size()[0]>0:
                 det_labels=labels[idx] - 1
                 det_labels[det_labels<0] = 0
                 det_cls_score=cls_score[idx,det_labels].sigmoid().cpu().numpy()     
@@ -181,7 +181,8 @@ class AnchorHead(nn.Module):
                     det_iou_correct=torch.cuda.FloatTensor(idx.size()[0]).fill_(0).cpu().numpy()
                 anchor_iou=IoUs[idx].cpu().numpy()
                 anchor_segmrate=softIoUs[idx].cpu().numpy()
-                tuples=np.concatenate((np.expand_dims(anchor_iou,1),np.expand_dims(anchor_segmrate,1),np.expand_dims(det_iou,1), np.expand_dims(det_cls_score,1), np.expand_dims(det_cls_loss,1), np.expand_dims(det_cls_score_max,1), np.expand_dims(det_cls_score_argmax,1), np.expand_dims(det_iou_correct,1)),axis=1)
+                #tuples=np.concatenate((np.expand_dims(anchor_iou,1),np.expand_dims(anchor_segmrate,1),np.expand_dims(det_iou,1), np.expand_dims(det_cls_score,1), np.expand_dims(det_cls_loss,1), np.expand_dims(det_cls_score_max,1), np.expand_dims(det_cls_score_argmax,1), np.expand_dims(det_iou_correct,1)),axis=1)
+                tuples=np.concatenate((np.expand_dims(anchor_iou,1),np.expand_dims(det_iou,1), np.expand_dims(det_iou_correct,1)),axis=1)
                 f = open(self.filename, "ab")
                 np.savetxt(f, tuples)            
 #        pdb.set_trace()
