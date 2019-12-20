@@ -6,7 +6,7 @@ from .base_assigner import BaseAssigner
 import pdb
 import numpy as np
 
-class MaxSoftIoUTupleAssigner(BaseAssigner):
+class MaxMaskAwareIoUTupleExtractor(BaseAssigner):
     """Assign a corresponding gt bbox or background to each bbox.
 
     Each proposals will be assigned with `-1`, `0`, or a positive integer
