@@ -74,7 +74,7 @@ class AnchorHead(nn.Module):
 
         self.num_anchors = len(self.anchor_ratios) * len(self.anchor_scales)
         self._init_layers()
-        self.filename = './testing_baseline.dat'
+        self.filename = './testing_baseline_classes.dat'
     def _init_layers(self):
         self.conv_cls = nn.Conv2d(self.feat_channels,
                                   self.num_anchors * self.cls_out_channels, 1)
@@ -136,8 +136,9 @@ class AnchorHead(nn.Module):
         # classification loss
         IoUs=IoUs.reshape(-1)
         softIoUs=softIoUs.reshape(-1)   
-        idx=softIoUs.nonzero().squeeze() 
+        #idx=softIoUs.nonzero().squeeze() 
         #pos_idx=(IoUs>0.5).nonzero().squeeze()
+        idx = (IoUs>0.5).nonzero().squeeze()
 
         labels = labels.reshape(-1)
         #pdb.set_trace()
@@ -182,7 +183,8 @@ class AnchorHead(nn.Module):
                 anchor_iou=IoUs[idx].cpu().numpy()
                 anchor_segmrate=softIoUs[idx].cpu().numpy()
                 #tuples=np.concatenate((np.expand_dims(anchor_iou,1),np.expand_dims(anchor_segmrate,1),np.expand_dims(det_iou,1), np.expand_dims(det_cls_score,1), np.expand_dims(det_cls_loss,1), np.expand_dims(det_cls_score_max,1), np.expand_dims(det_cls_score_argmax,1), np.expand_dims(det_iou_correct,1)),axis=1)
-                tuples=np.concatenate((np.expand_dims(anchor_iou,1),np.expand_dims(det_iou,1), np.expand_dims(det_iou_correct,1)),axis=1)
+                #tuples=np.concatenate((np.expand_dims(anchor_iou,1),np.expand_dims(det_iou,1), np.expand_dims(det_iou_correct,1)),axis=1)
+                tuples=np.concatenate((np.expand_dims(anchor_iou,1),np.expand_dims(det_cls_score,1), np.expand_dims(det_iou_correct,1)),axis=1)
                 f = open(self.filename, "ab")
                 np.savetxt(f, tuples)            
 #        pdb.set_trace()
