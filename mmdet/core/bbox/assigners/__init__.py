@@ -9,6 +9,6 @@ from .max_maskiou_tuple_extractor import MaxMaskAwareIoUTupleExtractor
 from .point_assigner import PointAssigner
 
 __all__ = [
-    'BaseAssigner', 'MaxIoUAssigner','MaxSoftIoUConditionalAssigner', 'MaxSoftIoUAssigner', 'MaxMaskAwareIoUAssigner','ApproxMaxIoUAssigner', 'AssignResult',
-    'PointAssigner', 'MaxMaskAwareIoUTupleExtractor'
+    'BaseAssigner', 'MaxMaskAwareIoUTupleExtractor','MaxIoUAssigner','MaxSoftIoUConditionalAssigner', 'MaxSoftIoUAssigner', 'MaxMaskAwareIoUAssigner','ApproxMaxIoUAssigner', 'AssignResult',
+    'PointAssigner'
 ]
