@@ -139,7 +139,7 @@ class AnchorHead(nn.Module):
         #idx = (softIoUs>0.25).nonzero().squeeze()
         #idx=softIoUs.nonzero().squeeze() 
         #pos_idx=(IoUs>0.5).nonzero().squeeze()
-        idx = (IoUs>0.05).nonzero().squeeze()
+        idx = (IoUs>0.1).nonzero().squeeze()
 
         labels = labels.reshape(-1)
         #pdb.set_trace()
