@@ -173,7 +173,7 @@ class AnchorHead(nn.Module):
                 det_cls_score=cls_score[idx,det_labels].sigmoid().cpu().numpy()     
                 det_cls_loss = loss_cls[idx, :].sum(dim=1).cpu().numpy()
                 #det_cls_score_max, det_cls_score_argmax = cls_score[idx, :].max(dim=1).cpu().numpy()
-                det_cls_score_max = cls_score[idx, :].max(dim=1)[0].cpu().numpy()
+                det_cls_score_max = cls_score[idx, :].max(dim=1)[0].sigmoid().cpu().numpy()
                 det_cls_score_argmax = cls_score[idx, :].max(dim=1)[1].cpu().numpy()
                 if loss_bbox.dim()>0:
                     det_iou=loss_bbox[idx].cpu().numpy()
@@ -184,7 +184,7 @@ class AnchorHead(nn.Module):
                 anchor_iou=IoUs[idx].cpu().numpy()
                 anchor_segmrate=softIoUs[idx].cpu().numpy()
                 #tuples=np.concatenate((np.expand_dims(anchor_iou,1),np.expand_dims(anchor_segmrate,1),np.expand_dims(det_iou_correct,1), np.expand_dims(det_cls_score,1), np.expand_dims(det_cls_loss,1), np.expand_dims(det_cls_score_max,1), np.expand_dims(det_cls_score_argmax,1)),axis=1)
-                tuples=np.concatenate((np.expand_dims(anchor_iou,1),np.expand_dims(anchor_segmrate,1), np.expand_dims(det_cls_score_max,1),np.expand_dims(det_iou_correct,1), np.expand_dims(det_cls_score_argmax,1)),axis=1)
+                tuples=np.concatenate((np.expand_dims(anchor_iou,1),np.expand_dims(anchor_segmrate,1), np.expand_dims(det_cls_score_max,1), np.expand_dims(det_cls_score_argmax,1),np.expand_dims(det_iou_correct,1)),axis=1)
                 #tuples=np.concatenate((np.expand_dims(anchor_iou,1),np.expand_dims(det_iou,1), np.expand_dims(det_iou_correct,1)),axis=1)
                 #tuples=np.concatenate((np.expand_dims(anchor_iou,1),np.expand_dims(det_cls_score,1), np.expand_dims(det_iou_correct,1)),axis=1)
                 f = open(self.filename, "ab")
