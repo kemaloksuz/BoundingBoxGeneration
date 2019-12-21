@@ -136,9 +136,10 @@ class AnchorHead(nn.Module):
         # classification loss
         IoUs=IoUs.reshape(-1)
         softIoUs=softIoUs.reshape(-1)   
-        idx=softIoUs.nonzero().squeeze() 
+        #idx = (softIoUs>0.25).nonzero().squeeze()
+        #idx=softIoUs.nonzero().squeeze() 
         #pos_idx=(IoUs>0.5).nonzero().squeeze()
-        #idx = (IoUs>0.05).nonzero().squeeze()
+        idx = (IoUs>0.05).nonzero().squeeze()
 
         labels = labels.reshape(-1)
         #pdb.set_trace()
@@ -187,7 +188,7 @@ class AnchorHead(nn.Module):
                 #tuples=np.concatenate((np.expand_dims(anchor_iou,1),np.expand_dims(det_iou,1), np.expand_dims(det_iou_correct,1)),axis=1)
                 #tuples=np.concatenate((np.expand_dims(anchor_iou,1),np.expand_dims(det_cls_score,1), np.expand_dims(det_iou_correct,1)),axis=1)
                 f = open(self.filename, "ab")
-                np.savetxt(f, tuples, fmt='%.5e')            
+                np.savetxt(f, tuples, fmt='%5.3f')            
 #        pdb.set_trace()
         return loss_cls, loss_bbox
 
