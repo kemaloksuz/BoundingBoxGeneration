@@ -39,10 +39,8 @@ def lrp_loss(pred,
     if weight is not None:
         weight = weight.float()
     
-    loss = torch.cos(1.57*valid_preds+1.57)+1
-    
-    parse_samples(valid_labels, valid_preds, loss)
-    
+    #loss = torch.cos(1.57*valid_preds+1.57)+1
+    loss = torch.exp((-valid_preds)/0.3)    
     if use_modulator:
         loss = torch.pow((1-valid_preds), gamma)*loss
 
