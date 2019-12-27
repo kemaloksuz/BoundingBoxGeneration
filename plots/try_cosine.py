@@ -17,8 +17,9 @@ if __name__ == '__main__':
     upper_limit = 2
     lower_limit = -1
     split = 0.001
+    eps = 1e-6
     cls_scores = np.arange(lower_limit, upper_limit, split)
-    
+
     #gammas = [3, 4, 5, 10]
     #lw_vals = [2.5, 3.1, 5, 10]
     
@@ -30,12 +31,22 @@ if __name__ == '__main__':
             param_sub = [gamma, lw]
             gamma_lw.append(param_sub)
     else:    
-        gamma_lw = [[3, 10], \
-        [3, 4], \
-        [4, 5],  \
-        [5, 2.5], \
-        [10, 2.5]]
-    
+        gamma_lw = [[10, 1], \
+        [10, 2], \
+        [10, 2.5], \
+        [10, 3], \
+        [10, 4],  \
+        [10, 5], \
+        [10, 6], \
+        [10, 7], \
+        [10, 8]]
+        
+        #gamma_lw = [[2, 1.5], \
+        #[2, 2.0], \
+        #[2, 2.5],  \
+        #[2, 3.0], \
+        #[2, 4.0], \
+        #[2, 5.0]] 
     # losses 
     ax = plt.subplot(121)
     plt.plot(figsize=(20,20))
@@ -48,15 +59,17 @@ if __name__ == '__main__':
     #            label = "Cos loss w/gamma={}, lw={}".format(gamma, lw)
     #            ax.plot(cls_scores, loss_cos, label = label, linewidth=linewidth)
     #            linewidth += 0.7
-    
+    loss_CE = -1*np.log(cls_scores) 
+    print("LOSS SIMILARITY") 
     for param in gamma_lw:
         gamma = param[0]; lw = param[1]
         loss_cos = np.power(1-cls_scores, gamma)*(np.cos((1.57)*cls_scores+1.57)+1)
         loss_cos = loss_cos * lw
         label = "Cos Loss w/gamma={}, lw={}".format(gamma,lw)
-        ax.plot(cls_scores, loss_cos, label = label, linewidth = 4.0)
-
-    loss_CE = -1*np.log(cls_scores) 
+        corr = np.correlate(loss_CE, loss_cos)[0]
+        print("gamma:{}, lw:{} => corr:{}".format(gamma,lw,corr))
+        ax.plot(cls_scores, loss_cos, label = label, linewidth = 2.0)
+ 
     ax.plot(cls_scores, loss_CE, label="CE", linewidth=5.0)
     ax.axhline(0, color='black')
     ax.axvline(0, color='black')
@@ -86,7 +99,7 @@ if __name__ == '__main__':
     #            print("gamma:{}, lw:{} => corr:{}".format(gamma, lw, corr))
     #            ax.plot(cls_scores, der_cos, label=label, linewidth=linewidth)
     #            linewidth += 0.7 
-    
+    print("DERIVATICES SIMILARITY") 
     for param in gamma_lw:
         gamma=param[0]; lw=param[1]
         der_cos = ((-1*gamma*np.power(1-cls_scores, gamma-1))*(np.cos(1.57*cls_scores+1.57)+1)) \
@@ -95,7 +108,7 @@ if __name__ == '__main__':
         label = "Cos loss w/gamma={}, lw={}".format(gamma,lw)
         corr = np.correlate(derivative_CE, der_cos)[0]
         print("gamma:{}, lw:{} => corr:{}".format(gamma, lw, corr))
-        ax.plot(cls_scores, der_cos, label=label, linewidth = 4.0)
+        ax.plot(cls_scores, der_cos, label=label, linewidth = 2.0)
 
     ax.plot(cls_scores, derivative_CE, label="CE", linewidth=5.0)
     plt.title("Derivatives")
