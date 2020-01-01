@@ -28,20 +28,20 @@ model = dict(
         anchor_strides=[8, 16, 32, 64, 128],
         target_means=[.0, .0, .0, .0],
         target_stds=[1.0, 1.0, 1.0, 1.0],
-        filename='./work_dirs/retinanet_r50_fpn_MaskAwareIoU_05_04_WithMax_w3_GammaMask1/bg_fg.txt',
+        filename='./work_dirs/retinanet_r50_fpn_MaskAwareIoU_05_05_WithMax_w2_GammaMask1/bg_fg.txt',
         loss_cls=dict(
             type='FocalLoss',
             use_sigmoid=True,
             gamma=2.0,
             alpha=0.25,
-            loss_weight=3.0),
+            loss_weight=2.0),
         loss_bbox=dict(type='SmoothL1Loss', beta=0.03, loss_weight=1.0)))
 # training and testing settings
 train_cfg = dict(
     assigner=dict(
         type='MaxMaskAwareIoUAssigner',
         pos_iou_thr=0.50,
-        neg_iou_thr=0.40,
+        neg_iou_thr=0.50,
         maskIOUweight=1.,
         min_pos_iou=0,
         ignore_iof_thr=-1),
@@ -125,7 +125,7 @@ log_config = dict(
 total_epochs = 12
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/retinanet_r50_fpn_MaskAwareIoU_05_04_WithMax_w3_GammaMask1'
+work_dir = './work_dirs/retinanet_r50_fpn_MaskAwareIoU_05_05_WithMax_w2_GammaMask1'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
