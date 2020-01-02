@@ -3,13 +3,29 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from ..registry import LOSSES
+from pathlib import Path
 from .utils import weight_reduce_loss
 import pdb
 
-def cross_entropy(pred, label, weight=None, reduction='mean', avg_factor=None):
-    # element-wise losses
-    loss = F.cross_entropy(pred, label, reduction='none')
+def get_valid_labels(valid_labels,
+                     valid_preds,
+                     loss
+                     ):
+    tuple_ = np.concatenate((np.expand_dims(valid_preds.detach().cpu().numpy(), 1), \
+                             np.expand_dims(valid_labels.detach().cpu().numpy(), 1), \
+                             np.expand_dims(loss.detach.cpu().numpy(), 1)), \
+                             axis = 1)
+    p = Path("/home/cancam/imgworkspace/mmdetection/class_analysis_ce.txt")
+    with p.open("ab") as fp:
+        np.savetxt(fp, tuple_)
+        fp.close()
 
+def cross_entropy(pred, label, weight=None, reduction='mean', avg_factor=None):
+    # element-wise losses)
+    # label'da valid labellar mı geliyor?
+    loss = F.cross_entropy(pred, label, reduction='none')
+    pdb.set_trace()
+    # check variables and send them to get_valid_labels.
     # apply weights and do the reduction
     if weight is not None:
         weight = weight.float()

@@ -13,10 +13,10 @@ def get_valid_labels(valid_labels,
                     valid_preds,
                     loss):
     tuple_ = np.concatenate((np.expand_dims(valid_preds.detach().cpu().numpy(), 1), \
-                            np.expand_dims(valid_preds.detach().cpu().numpy(), 1), \
+                            np.expand_dims(valid_labels.detach().cpu().numpy(), 1), \
                             np.expand_dims(loss.detach().cpu().numpy(), 1)), \
                             axis = 1)
-    p = Path('/home/cancam/workspace/mmdetection/class_analysis.txt')
+    p = Path('/home/cancam/imgworkspace/mmdetection/class_analysis_exp.txt')
     with p.open("ab") as fp:
         np.savetxt(fp, tuple_)
         fp.close()
@@ -35,12 +35,12 @@ def lrp_loss(pred,
     valid_inds = ((weight>0).nonzero()).flatten()
     valid_labels = label[valid_inds]
     valid_preds = pred_softmax[valid_inds, valid_labels]
-    
+    pred_labels = pred_softmax[valid_inds, :].argmax(dim=1)
     if weight is not None:
         weight = weight.float()
     
     loss = torch.exp(-1*valid_preds/gamma)
-    get_valid_labels(valid_labels, valid_preds, loss)
+    get_valid_labels(valid_labels, pred_labels, loss)
     loss = weight_reduce_loss(loss, reduction=reduction, avg_factor=avg_factor)
     return loss
 

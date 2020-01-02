@@ -147,7 +147,7 @@ data = dict(
         img_prefix=data_root + 'val2017/',
         pipeline=test_pipeline))
 # optimizer
-optimizer = dict(type='SGD', lr=0.0001, momentum=0.9, weight_decay=0.0001)
+optimizer = dict(type='SGD', lr=0.005, momentum=0.9, weight_decay=0.0001)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 # learning policy
 lr_config = dict(
@@ -166,10 +166,10 @@ log_config = dict(
     ])
 # yapf:enable
 # runtime settings
-total_epochs = 12
+total_epochs = 2
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/lrp_optimization/faster_rcnn_r50_fpn_1x_1-IoU_ExpLoss02'
+work_dir = './work_dirs/lrp_optimization/faster_rcnn_r50_fpn_1x_1-IoU_ExpLoss02_debug'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
