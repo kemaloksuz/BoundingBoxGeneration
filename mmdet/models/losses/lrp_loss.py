@@ -9,6 +9,19 @@ from ..registry import LOSSES
 from .utils import weight_reduce_loss
 import pdb
 
+def get_valid_labels(valid_labels,
+                    valid_preds,
+                    loss):
+    tuple_ = np.concatenate((np.expand_dims(valid_preds.detach().cpu().numpy(), 1), \
+                            np.expand_dims(valid_preds.detach().cpu().numpy(), 1), \
+                            np.expand_dims(loss.detach().cpu().numpy(), 1)), \
+                            axis = 1)
+    p = Path('/home/cancam/workspace/mmdetection/class_analysis.txt')
+    with p.open("ab") as fp:
+        np.savetxt(fp, tuple_)
+        fp.close()
+
+
 def lrp_loss(pred, 
              label, 
              weight=None, 
@@ -26,10 +39,9 @@ def lrp_loss(pred,
     if weight is not None:
         weight = weight.float()
     
-    #loss = torch.cos(1.57*valid_preds+1.57)+1
-    loss = torch.exp(-1*valid_preds/gamma)  
+    loss = torch.exp(-1*valid_preds/gamma)
+    get_valid_labels(valid_labels, valid_preds, loss)
     loss = weight_reduce_loss(loss, reduction=reduction, avg_factor=avg_factor)
-    
     return loss
 
 
