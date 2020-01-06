@@ -28,21 +28,22 @@ model = dict(
         anchor_strides=[8, 16, 32, 64, 128],
         target_means=[.0, .0, .0, .0],
         target_stds=[1.0, 1.0, 1.0, 1.0],
+        filename='./work_dirs/retinanet_r50_fpn_MaskAwareIoU_05_05_WithMax_GammaMask1/bg_fg.txt',
         loss_cls=dict(
             type='FocalLoss',
             use_sigmoid=True,
             gamma=2.0,
             alpha=0.25,
-            loss_weight=1.0),
-        loss_bbox=dict(type='SmoothL1Loss', beta=0.11, loss_weight=1.0)))
+            loss_weight=2.0),
+        loss_bbox=dict(type='SmoothL1Loss', beta=0.001, loss_weight=1.0)))
 # training and testing settings
 train_cfg = dict(
     assigner=dict(
-        type='MaxSoftIoUAssigner',
-        pos_iou_thr=0.55,
+        type='MaxMaskAwareIoUAssigner',
+        pos_iou_thr=0.50,
         neg_iou_thr=0.50,
+        maskIOUweight=1.,
         min_pos_iou=0,
-        harmonic_mean_weight=3,
         ignore_iof_thr=-1),
     allowed_border=-1,
     pos_weight=-1,
@@ -102,7 +103,7 @@ data = dict(
         img_prefix=data_root + 'val2017/',
         pipeline=test_pipeline))
 # optimizer
-optimizer = dict(type='SGD', lr=0.01, momentum=0.9, weight_decay=0.0001)
+optimizer = dict(type='SGD', lr=0.005, momentum=0.9, weight_decay=0.0001)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 # learning policy
 lr_config = dict(
@@ -122,10 +123,9 @@ log_config = dict(
 # yapf:enable
 # runtime settings
 total_epochs = 12
-device_ids = range(2)
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/retinanet_r50_fpn_WsoftIoU_3_055_05_WithMax'
+work_dir = './work_dirs/retinanet_r50_fpn_MaskAwareIoU_05_05_WithMax_GammaMask1'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
