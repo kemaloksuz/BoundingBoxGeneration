@@ -8,26 +8,26 @@ import pdb
 
 if __name__ == '__main__':
     
-    p = Path('/home/cancam/imgworkspace/mmdetection/analysis/class_analysis_exp.txt')
-    p_write = Path('/home/cancam/imgworkspace/mmdetection/analysis/class_analysis_exp_.txt')
+    #p = Path('/home/cancam/imgworkspace/mmdetection/analysis/class_analysis_exp.txt')
+    #p_write = Path('/home/cancam/imgworkspace/mmdetection/analysis/class_analysis_exp_.txt')
 
-    with p.open('rb') as f:
-        out_exp = np.loadtxt(f)
+    #with p.open('rb') as f:
+    #    out_exp = np.loadtxt(f)
 
-    with p_write.open('wb') as fp:
-        np.savetxt(fp, out_exp, fmt='%4.6f')
-        fp.close()
+    #with p_write.open('ab') as fp:
+    #    np.savetxt(fp, out_exp, fmt='%4.6f')
+    #    fp.close()
 
-    p = Path('/home/cancam/imgworkspace/mmdetection/analysis/class_analysis_ce.txt')
-    p_write = Path('/home/cancam/imgworkspace/mmdetection/analysis/class_analysis_ce_.txt')
-    with p.open('rb') as f:
-        out_ce = np.loadtxt(f)
+    #p = Path('/home/cancam/imgworkspace/mmdetection/analysis/class_analysis_ce.txt')
+    #p_write = Path('/home/cancam/imgworkspace/mmdetection/analysis/class_analysis_ce_.txt')
+    #with p.open('rb') as f:
+    #    out_ce = np.loadtxt(f)
     
-    with p_write.open('wb') as fp:
-        np.savetxt(fp, out_ce, fmt='%4.6f')
-        fp.close()
+    #with p_write.open('ab') as fp:
+    #    np.savetxt(fp, out_ce, fmt='%4.6f')
+    #    fp.close()
     
-    pdb.set_trace()
+    #pdb.set_trace()
     out_exp = pd.read_csv("/home/cancam/imgworkspace/mmdetection/analysis/class_analysis_exp_.txt",\
                           delim_whitespace=True, \
                           names=["pred_labels_exp","gt_labels_exp","loss_exp"])
@@ -35,26 +35,35 @@ if __name__ == '__main__':
     out_ce = pd.read_csv("/home/cancam/imgworkspace/mmdetection/analysis/class_analysis_ce_.txt",\
                           delim_whitespace=True, \
                           names=["pred_labels_ce","gt_labels_ce","loss_ce"]) 
-    pdb.set_trace()
     
-    hist_exp_pred = np.histogram(out_exp['pred_labels_exp'])
-    hist_exp_gt = np.histogram(out_exp['gt_labels_exp'])
+    hist_exp_pred = np.histogram(out_exp['pred_labels_exp'])[0]
+    hist_exp_gt = np.histogram(out_exp['gt_labels_exp'])[0]
     
-    hist_ce_pred = np.histogram(out_ce['pred_labels_ce'])
-    hist_ce_gt = np.histogram(out_ce['gt_labels_ce'])
+    hist_ce_pred = np.histogram(out_ce['pred_labels_ce'])[0]
+    hist_ce_gt = np.histogram(out_ce['gt_labels_ce'])[0]
+     
+    print("Prediction labels stats.")
+    print("Exp BG:{}".format(hist_exp_pred[0] / hist_exp_pred.sum()*100))
+    print("Exp FG:{}".format(hist_exp_pred[1:].sum() / hist_exp_pred.sum()*100))
+    print("CE BG:{}".format(hist_ce_pred[0] / hist_ce_pred.sum()*100))
+    print("CE FG:{}".format(hist_ce_pred[1:].sum() / hist_ce_pred.sum()*100)) 
+
+    print("GT labels stats.")
+    print("Exp BG:{}".format(hist_exp_gt[0] / hist_exp_gt.sum()*100))
+    print("Exp FG:{}".format(hist_exp_gt[1:].sum() / hist_exp_gt.sum()*100))
+    print("CE BG:{}".format(hist_ce_gt[0] / hist_ce_gt.sum()*100))
+    print("CE FG:{}".format(hist_ce_gt[1:].sum() / hist_ce_gt.sum()*100))
+
+    print("TOTALS:\n")
+    print("Exp fg total: {}".format(hist_exp_pred[1:].sum()))
+    print("Exp bg total: {}".format(hist_exp_pred[0]))
+    print("Exp DET total: {}".format(hist_exp_pred.sum()))
+    print("CE fg total: {}".format(hist_ce_pred[1:].sum()))
+    print("CE bg total: {}".format(hist_ce_pred[0]))
+    print("CE DET total: {}".format(hist_ce_pred.sum()))
+
    
     pdb.set_trace()
-    print("Prediction labels stats.")
-    print("Exp BG:{}".format(hist_exp_pred[0]))
-    print("Exp FG:{}".format(hist_exp_pred[1:].sum()))
-    print("CE BG:{}".format(hist_ce_pred[0]))
-    print("CE FG:{}".format(hist_ce_pred[1:].sum()))
-    
-    print("GT labels stats.")
-    print("Exp BG:{}".format(hist_exp_gt[0]))
-    print("Exp FG:{}".format(hist_exp_gt[1:].sum()))
-    print("CE BG:{}".format(hist_ce_gt[0]))
-    print("CE FG:{}".format(hist_ce_gt[1:].sum()))
 
     plt.rcParams["figure.figsize"] = (20,5)
     fig, ax = plt.subplots(2, 1, sharey=True, sharex=False)
