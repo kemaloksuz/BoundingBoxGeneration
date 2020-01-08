@@ -7,11 +7,13 @@ from .utils import weighted_loss
 
 @weighted_loss
 def smooth_l1_loss(pred, target, beta=1.0):
-    assert beta > 0
     assert pred.size() == target.size() and target.numel() > 0
     diff = torch.abs(pred - target)
-    loss = torch.where(diff < beta, 0.5 * diff * diff / beta,
+    if beta>0:
+        loss = torch.where(diff < beta, 0.5 * diff * diff / beta,
                        diff - 0.5 * beta)
+    else:
+        loss = diff
     return loss
 
 
