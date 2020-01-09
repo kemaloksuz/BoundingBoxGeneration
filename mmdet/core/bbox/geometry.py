@@ -114,8 +114,14 @@ def mask_plotter(mask_aware_ious, overlaps, gt_masks, gt_bboxes, bboxes, cond, f
     ax.tick_params(labelsize=fntsize)      
     plt.xlabel('x', fontsize=fntsize)
     plt.ylabel('y', fontsize=fntsize)
-    ax.text(0, 0, "IoU= "+np.array2string(overlaps[pltgt,pltanc].cpu().numpy())+", "+\
-                "\n MaskIoU="+np.array2string(mask_aware_ious[pltgt,pltanc].cpu().numpy()), fontsize=fntsize)
+    plt.axis('off')
+    print("IoU= "+ np.array2string(overlaps[pltgt,pltanc].cpu().numpy()))
+    print("mIoU_05= "+ np.array2string(0.5*overlaps[pltgt,pltanc].cpu().numpy()+0.5*mask_aware_ious[pltgt,pltanc].cpu().numpy()))
+    print("mIoU_1= "+ np.array2string(mask_aware_ious[pltgt,pltanc].cpu().numpy()))
+
+    maskIOUweight*mask_aware_ious+(1-maskIOUweight)*ious
+    #ax.text(0, 0, "IoU= "+np.array2string(overlaps[pltgt,pltanc].cpu().numpy())+", "+\
+    #            "\n MaskIoU="+np.array2string(mask_aware_ious[pltgt,pltanc].cpu().numpy()), fontsize=fntsize)
     plt.show()
 
 def segm_overlaps(gt_masks, gt_bboxes, bboxes, overlaps, min_overlap, harmonic_mean_weight=1, plot=0): 
