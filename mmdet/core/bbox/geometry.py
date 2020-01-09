@@ -103,28 +103,29 @@ def mask_plotter(mask_aware_ious, overlaps, gt_masks, gt_bboxes, bboxes, cond, f
     no=random.randint(0,valid_set_size-1)
     pltgt,pltanc=nonzero_iou_ind[no]
     
-    
-    fig, ax = plt.subplots(1)
+    print("IoU= "+ np.array2string(overlaps[pltgt,pltanc].cpu().numpy()))
+    print("mIoU_05= "+ np.array2string(0.5*overlaps[pltgt,pltanc].cpu().numpy()+0.5*mask_aware_ious[pltgt,pltanc].cpu().numpy()))
+    print("mIoU_1= "+ np.array2string(mask_aware_ious[pltgt,pltanc].cpu().numpy()))
+    fig, ax = plt.subplots()
+
     tempRect=patch.Rectangle((bboxes[pltanc,0],bboxes[pltanc,1]), bboxes[pltanc,2]-bboxes[pltanc,0], bboxes[pltanc,3]-bboxes[pltanc,1],linewidth=3,edgecolor='r',facecolor='none')
     ax.add_patch(tempRect) 
     
     tempRect=patch.Rectangle((gt_bboxes[pltgt,0],gt_bboxes[pltgt,1]), gt_bboxes[pltgt,2]-gt_bboxes[pltgt,0], gt_bboxes[pltgt,3]-gt_bboxes[pltgt,1],linewidth=3,edgecolor='g',facecolor='none')
     ax.add_patch(tempRect)        
 
-    ax.tick_params(labelsize=fntsize)      
+    #ax.tick_params(labelsize=fntsize)      
     plt.xlabel('x', fontsize=fntsize)
     plt.ylabel('y', fontsize=fntsize)
-    plt.axis('off')
-    print("IoU= "+ np.array2string(overlaps[pltgt,pltanc].cpu().numpy()))
-    print("mIoU_05= "+ np.array2string(0.5*overlaps[pltgt,pltanc].cpu().numpy()+0.5*mask_aware_ious[pltgt,pltanc].cpu().numpy()))
-    print("mIoU_1= "+ np.array2string(mask_aware_ious[pltgt,pltanc].cpu().numpy()))
+    #plt.axis('off')
+    ax.imshow(gt_masks[pltgt])
 
-    maskIOUweight*mask_aware_ious+(1-maskIOUweight)*ious
+
     #ax.text(0, 0, "IoU= "+np.array2string(overlaps[pltgt,pltanc].cpu().numpy())+", "+\
     #            "\n MaskIoU="+np.array2string(mask_aware_ious[pltgt,pltanc].cpu().numpy()), fontsize=fntsize)
-    plt.tight_layout()    
     plt.show()
-    plt.savefig("/home/cancam/imgworkspace/mmdetection/work_dirs/Analyis/1.pdf", edgecolor='none',format='pdf')  
+    #plt.tight_layout()    
+    #plt.savefig("/home/cancam/imgworkspace/mmdetection/work_dirs/Analysis/1.pdf", edgecolor='none',format='pdf')  
 
 def segm_overlaps(gt_masks, gt_bboxes, bboxes, overlaps, min_overlap, harmonic_mean_weight=1, plot=0): 
     #import pdb
@@ -240,5 +241,5 @@ def mask_aware_bbox_overlaps(gt_masks, bboxes1, bboxes2, maskIOUweight=1, plot=0
 
     if plot==1:
         cond=np.array([ 0.6, 1, 0., 0.45])
-        mask_plotter(mask_aware_ious, overlaps, gt_masks, bboxes1, bboxes2, cond)
+        mask_plotter(mask_aware_ious, ious, gt_masks, bboxes1, bboxes2, cond)
     return mask_aware_ious    
