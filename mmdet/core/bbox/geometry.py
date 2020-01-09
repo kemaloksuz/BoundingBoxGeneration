@@ -122,7 +122,9 @@ def mask_plotter(mask_aware_ious, overlaps, gt_masks, gt_bboxes, bboxes, cond, f
     maskIOUweight*mask_aware_ious+(1-maskIOUweight)*ious
     #ax.text(0, 0, "IoU= "+np.array2string(overlaps[pltgt,pltanc].cpu().numpy())+", "+\
     #            "\n MaskIoU="+np.array2string(mask_aware_ious[pltgt,pltanc].cpu().numpy()), fontsize=fntsize)
+    plt.tight_layout()    
     plt.show()
+    plt.savefig("/home/cancam/imgworkspace/mmdetection/work_dirs/Analyis/1.pdf", edgecolor='none',format='pdf')  
 
 def segm_overlaps(gt_masks, gt_bboxes, bboxes, overlaps, min_overlap, harmonic_mean_weight=1, plot=0): 
     #import pdb
@@ -237,6 +239,6 @@ def mask_aware_bbox_overlaps(gt_masks, bboxes1, bboxes2, maskIOUweight=1, plot=0
         #print("diff:",torch.sum(torch.abs(mask_aware_ious-mask_aware_ious2)))
 
     if plot==1:
-        cond=np.array([ 0.75, 2, 0., 1.])
+        cond=np.array([ 0.6, 1, 0., 0.45.])
         mask_plotter(mask_aware_ious, overlaps, gt_masks, bboxes1, bboxes2, cond)
     return mask_aware_ious    
