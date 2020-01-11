@@ -38,15 +38,16 @@ model = dict(
 train_cfg = dict(
     maxIoUAssigner=dict(
         type='MaxIoUAssigner',
-        pos_iou_thr=0.50,
-        neg_iou_thr=0.50,
-        min_pos_iou=0.50,
+        pos_iou_thr=0.10,
+        neg_iou_thr=0.10,
+        min_pos_iou=0.10,
         ignore_iof_thr=-1),
     maxSoftIoUTupleExtractor=dict(
-        type='MaxSoftIoUTupleAssigner',
-        pos_iou_thr=0.25,
-        neg_iou_thr=0.25,
-        min_pos_iou=0.25,
+        type='MaxMaskAwareIoUTupleExtractor',
+        pos_iou_thr=0.50,
+        neg_iou_thr=0.40,
+        maskIOUweight=1,
+        min_pos_iou=0,
         ignore_iof_thr=-1),    
     allowed_border=-1,
     pos_weight=-1,
@@ -106,7 +107,7 @@ data = dict(
         img_prefix=data_root + 'val2017/',
         pipeline=test_pipeline))
 # optimizer
-optimizer = dict(type='SGD', lr=0., momentum=0., weight_decay=0.0001)
+optimizer = dict(type='SGD', lr=0., momentum=0., weight_decay=0.)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 # learning policy
 lr_config = dict(
@@ -129,7 +130,7 @@ total_epochs = 1
 device_ids = range(2)
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/retinanet_r50_fpn_Branch_Based_065_065_WithMax'
-load_from = './work_dirs/retinanet_r50_fpn_softIoU_065_065_WithMax/epoch_12.pth'
+work_dir = './work_dirs/Imbalance_Analysis'
+load_from = '/home/cancam/imgworkspace/mmdetection-test/mmdetection/work_dirs/MaskAwareIoU_3/retinanet_r50_fpn_05_04_WithMax_Baseline/epoch_12.pth'
 resume_from = None
 workflow = [('train', 1)]
