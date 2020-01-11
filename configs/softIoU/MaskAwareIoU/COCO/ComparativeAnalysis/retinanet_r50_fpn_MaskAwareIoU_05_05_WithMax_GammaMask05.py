@@ -34,8 +34,8 @@ model = dict(
             use_sigmoid=True,
             gamma=2.0,
             alpha=0.25,
-            loss_weight=2.0),
-        loss_bbox=dict(type='SmoothL1Loss', beta=0.006, loss_weight=1.0)))
+            loss_weight=1.0),
+        loss_bbox=dict(type='SmoothL1Loss', beta=0.006, loss_weight=0.5)))
 # training and testing settings
 train_cfg = dict(
     assigner=dict(
