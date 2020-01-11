@@ -28,21 +28,20 @@ model = dict(
         anchor_strides=[8, 16, 32, 64, 128],
         target_means=[.0, .0, .0, .0],
         target_stds=[1.0, 1.0, 1.0, 1.0],
-        filename='./work_dirs/retinanet_r50_fpn_MaskAwareIoU_05_05_WithMax_GammaMask075/bg_fg.txt',
+        filename='./work_dirs/retinanet_r50_fpn_05_04_WithMax_Baseline_B0/fg_bg.txt',
         loss_cls=dict(
             type='FocalLoss',
             use_sigmoid=True,
             gamma=2.0,
             alpha=0.25,
-            loss_weight=2.0),
-        loss_bbox=dict(type='SmoothL1Loss', beta=0.003, loss_weight=1.0)))
+            loss_weight=1.0),
+        loss_bbox=dict(type='SmoothL1Loss', beta=0., loss_weight=1.0)))
 # training and testing settings
 train_cfg = dict(
     assigner=dict(
-        type='MaxMaskAwareIoUAssigner',
-        pos_iou_thr=0.50,
-        neg_iou_thr=0.50,
-        maskIOUweight=0.75,
+        type='MaxIoUAssigner',
+        pos_iou_thr=0.5,
+        neg_iou_thr=0.4,
         min_pos_iou=0,
         ignore_iof_thr=-1),
     allowed_border=-1,
@@ -61,13 +60,13 @@ img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 train_pipeline = [
     dict(type='LoadImageFromFile'),
-    dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
+    dict(type='LoadAnnotations', with_bbox=True),
     dict(type='Resize', img_scale=(1333, 800), keep_ratio=True),
     dict(type='RandomFlip', flip_ratio=0.5),
     dict(type='Normalize', **img_norm_cfg),
     dict(type='Pad', size_divisor=32),
     dict(type='DefaultFormatBundle'),
-    dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels','gt_masks']),
+    dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels']),
 ]
 test_pipeline = [
     dict(type='LoadImageFromFile'),
@@ -125,7 +124,7 @@ log_config = dict(
 total_epochs = 12
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/retinanet_r50_fpn_MaskAwareIoU_05_05_WithMax_GammaMask075'
+work_dir = './work_dirs/retinanet_r50_fpn_05_04_WithMax_Baseline_B0'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
