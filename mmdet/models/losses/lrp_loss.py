@@ -16,7 +16,7 @@ def get_valid_labels(valid_labels,
                             np.expand_dims(valid_labels.detach().cpu().numpy(), 1), \
                             np.expand_dims(loss.detach().cpu().numpy(), 1)), \
                             axis = 1)
-    p = Path('/home/cancam/imgworkspace/mmdetection/work_dirs/lrp_optimization/faster_rcnn_r50_fpn_1x_1-IoU_ExpLoss03_11/class_analysis_exp.txt')
+    p = Path('/home/cancam/imgworkspace/mmdetection/work_dirs/lrp_optimization/faster_rcnn_r50_fpn_1x_1-IoU_ExpLoss01_31_lr12/class_analysis_exp.txt')
     with p.open("ab") as fp:
         np.savetxt(fp, tuple_)
         fp.close()
