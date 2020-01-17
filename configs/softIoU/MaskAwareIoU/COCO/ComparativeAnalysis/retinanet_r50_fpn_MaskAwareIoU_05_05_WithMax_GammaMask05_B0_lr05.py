@@ -28,7 +28,7 @@ model = dict(
         anchor_strides=[8, 16, 32, 64, 128],
         target_means=[.0, .0, .0, .0],
         target_stds=[1.0, 1.0, 1.0, 1.0],
-        filename='./work_dirs/retinanet_r50_fpn_MaskAwareIoU_05_05_WithMax_GammaMask05_B0_lr2/bg_fg.txt',
+        filename='./work_dirs/retinanet_r50_fpn_MaskAwareIoU_05_05_WithMax_GammaMask05_B0_lr05/bg_fg.txt',
         loss_cls=dict(
             type='FocalLoss',
             use_sigmoid=True,
@@ -103,7 +103,7 @@ data = dict(
         img_prefix=data_root + 'val2017/',
         pipeline=test_pipeline))
 # optimizer
-optimizer = dict(type='SGD', lr=0.01, momentum=0.9, weight_decay=0.0001)
+optimizer = dict(type='SGD', lr=0.0025, momentum=0.9, weight_decay=0.0001)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 # learning policy
 lr_config = dict(
@@ -125,7 +125,7 @@ log_config = dict(
 total_epochs = 12
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/retinanet_r50_fpn_MaskAwareIoU_05_05_WithMax_GammaMask05_B0_lr2'
+work_dir = './work_dirs/retinanet_r50_fpn_MaskAwareIoU_05_05_WithMax_GammaMask05_B0_lr05'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
