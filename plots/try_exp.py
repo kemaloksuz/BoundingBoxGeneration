@@ -20,7 +20,7 @@ if __name__ == '__main__':
     eps = 1e-6
     cls_scores = np.arange(lower_limit, upper_limit, split)
     
-    scaler_vals = [0.1, 0.2, 0.3]
+    scaler_vals = [0.1, 0.15, 0.2, 0.25, 0.3, 0.5]
     scaler_vals = np.asarray(scaler_vals)
 
     # losses.
