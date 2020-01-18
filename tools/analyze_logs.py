@@ -5,7 +5,7 @@ from collections import defaultdict
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-
+import pdb
 
 def cal_train_time(log_dicts, args):
     for i, log_dict in enumerate(log_dicts):
@@ -35,6 +35,7 @@ def plot_curve(log_dicts, args):
     if args.backend is not None:
         plt.switch_backend(args.backend)
     sns.set_style(args.style)
+    pdb.set_trace()
     # if legend is None, use {filename}_{key} as legend
     legend = args.legend
     if legend is None:
@@ -78,8 +79,10 @@ def plot_curve(log_dicts, args):
                 xs = np.concatenate(xs)
                 ys = np.concatenate(ys)
                 plt.xlabel('iter')
-                plt.plot(
-                    xs, ys, label=legend[i * num_metrics + j], linewidth=0.5)
+                if args.json_logs[i]=='/Users/Kemal/Google Drive/Imbalance in Object Detection/Soft IoU/softIoU-Analysis/LossFunctions/MaskAwareGamma025_L1.json' and metric=='loss_cls':                
+                    plt.plot(xs, ys/2, label=legend[i * num_metrics + j], linewidth=0.5)
+                else:
+                    plt.plot(xs, ys, label=legend[i * num_metrics + j], linewidth=0.5)
             plt.legend()
         if args.title is not None:
             plt.title(args.title)
