@@ -82,7 +82,7 @@ class MaxMaskAwareIoUAssigner(BaseAssigner):
         pdb.set_trace()
         tuples=np.concatenate((np.expand_dims(B.cpu().numpy(),1),np.expand_dims(gt_labels.cpu().numpy(),1)),axis=1)
         f = open(self.filename, "ab")
-        np.savetxt(f, tuples, fmt='%5.3f')         
+        np.savetxt(f, tuples)         
 
         if (self.ignore_iof_thr > 0) and (gt_bboxes_ignore is not None) and (
                 gt_bboxes_ignore.numel() > 0):
