@@ -187,8 +187,8 @@ class AnchorHead(nn.Module):
                 tuples=np.concatenate((np.expand_dims(anchor_iou,1),np.expand_dims(anchor_segmrate,1), np.expand_dims(det_cls_score_max,1), np.expand_dims(det_cls_score_argmax,1),np.expand_dims(det_iou_correct,1)),axis=1)
                 #tuples=np.concatenate((np.expand_dims(anchor_iou,1),np.expand_dims(det_iou,1), np.expand_dims(det_iou_correct,1)),axis=1)
                 #tuples=np.concatenate((np.expand_dims(anchor_iou,1),np.expand_dims(det_cls_score,1), np.expand_dims(det_iou_correct,1)),axis=1)
-                f = open(self.filename, "ab")
-                np.savetxt(f, tuples, fmt='%5.3f')            
+                with open(self.filename, "a") as f:
+                    np.savetxt(f, tuples, fmt='%5.3f')  
 #        pdb.set_trace()
         return loss_cls, loss_bbox
 
