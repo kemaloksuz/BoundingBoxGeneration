@@ -1,5 +1,6 @@
 import torch
 import pdb
+import numpy as np
 
 from ..geometry import mask_aware_bbox_overlaps, bbox_overlaps
 from .assign_result import AssignResult
