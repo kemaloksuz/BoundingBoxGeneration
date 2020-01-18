@@ -79,6 +79,7 @@ class MaxMaskAwareIoUAssigner(BaseAssigner):
         bboxes = bboxes[:, :4]
         #bbox_ious = bbox_overlaps(gt_bboxes, bboxes)
         overlaps, B = mask_aware_bbox_overlaps(gt_masks, gt_bboxes, bboxes, self.maskIOUweight)
+        pdb.set_trace()
         tuples=np.concatenate((np.expand_dims(B.cpu().numpy(),1),np.expand_dims(gt_labels.cpu().numpy(),1)),axis=1)
         f = open(self.filename, "ab")
         np.savetxt(f, tuples, fmt='%5.3f')         
