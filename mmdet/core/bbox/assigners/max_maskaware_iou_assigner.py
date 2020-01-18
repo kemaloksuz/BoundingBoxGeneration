@@ -78,6 +78,9 @@ class MaxMaskAwareIoUAssigner(BaseAssigner):
         bboxes = bboxes[:, :4]
         #bbox_ious = bbox_overlaps(gt_bboxes, bboxes)
         overlaps, B = mask_aware_bbox_overlaps(gt_masks, gt_bboxes, bboxes, self.maskIOUweight)
+        tuples=np.concatenate((np.expand_dims(B.cpu().numpy(),1),np.expand_dims(gt_labels.cpu().numpy(),1)),axis=1)
+        f = open(self.filename, "ab")
+        np.savetxt(f, tuples, fmt='%5.3f')         
 
         if (self.ignore_iof_thr > 0) and (gt_bboxes_ignore is not None) and (
                 gt_bboxes_ignore.numel() > 0):
@@ -91,11 +94,7 @@ class MaxMaskAwareIoUAssigner(BaseAssigner):
                 ignore_max_overlaps, _ = ignore_overlaps.max(dim=0)
             overlaps[:, ignore_max_overlaps > self.ignore_iof_thr] = -1
 
-        assign_result = self.assign_wrt_overlaps(overlaps, gt_labels)
-        pdb.set_trace()
-        #tuples=np.concatenate((np.expand_dims(B,1),np.expand_dims(anchor_segmrate,1)),axis=1)
-        f = open(self.filename, "ab")
-        np.savetxt(f, tuples, fmt='%5.3f')         
+        assign_result = self.assign_wrt_overlaps(overlaps, gt_labels)        
         return assign_result
 
     def assign_wrt_overlaps(self, overlaps, gt_labels=None):
