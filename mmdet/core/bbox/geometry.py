@@ -242,4 +242,4 @@ def mask_aware_bbox_overlaps(gt_masks, bboxes1, bboxes2, maskIOUweight=1, plot=0
     if plot==1:
         cond=np.array([ 0.6, 1, 0., 0.45])
         mask_plotter(mask_aware_ious, ious, gt_masks, bboxes1, bboxes2, cond)
-    return mask_aware_ious    
+    return mask_aware_ious, norm_factor    

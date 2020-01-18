@@ -45,7 +45,7 @@ class MaxMaskAwareIoUAssigner(BaseAssigner):
         self.gt_max_assign_all = gt_max_assign_all
         self.ignore_iof_thr = ignore_iof_thr
         self.ignore_wrt_candidates = ignore_wrt_candidates
-
+        self.filename = './ClassesAndB.dat'
     def assign(self, bboxes, gt_bboxes, gt_bboxes_ignore=None, gt_labels=None, gt_masks=None):
         """Assign gt to bboxes.
 
@@ -76,7 +76,7 @@ class MaxMaskAwareIoUAssigner(BaseAssigner):
             raise ValueError('No gt or bboxes')
         bboxes = bboxes[:, :4]
         #bbox_ious = bbox_overlaps(gt_bboxes, bboxes)
-        overlaps = mask_aware_bbox_overlaps(gt_masks, gt_bboxes, bboxes, self.maskIOUweight)
+        overlaps, B = mask_aware_bbox_overlaps(gt_masks, gt_bboxes, bboxes, self.maskIOUweight)
 
         if (self.ignore_iof_thr > 0) and (gt_bboxes_ignore is not None) and (
                 gt_bboxes_ignore.numel() > 0):
@@ -91,6 +91,10 @@ class MaxMaskAwareIoUAssigner(BaseAssigner):
             overlaps[:, ignore_max_overlaps > self.ignore_iof_thr] = -1
 
         assign_result = self.assign_wrt_overlaps(overlaps, gt_labels)
+        pdb.set_trace()
+        #tuples=np.concatenate((np.expand_dims(B,1),np.expand_dims(anchor_segmrate,1)),axis=1)
+        f = open(self.filename, "ab")
+        np.savetxt(f, tuples, fmt='%5.3f')         
         return assign_result
 
     def assign_wrt_overlaps(self, overlaps, gt_labels=None):
