@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from mmcv.cnn import xavier_init
 
 from mmdet.core import AnchorGenerator, anchor_target, multi_apply
-from ..losses import smooth_l1_loss
+from ..losses import smooth_l1_loss, l1_loss
 from ..registry import HEADS
 from .anchor_head import AnchorHead
 
@@ -123,12 +123,18 @@ class SSDHead(AnchorHead):
         loss_cls_pos = loss_cls_all[pos_inds].sum()
         loss_cls_neg = topk_loss_cls_neg.sum()
         loss_cls = (loss_cls_pos + loss_cls_neg) / num_total_samples
-
-        loss_bbox = smooth_l1_loss(
+        if cfg.smoothl1_beta>0:
+            loss_bbox = smooth_l1_loss(
             bbox_pred,
             bbox_targets,
             bbox_weights,
             beta=cfg.smoothl1_beta,
+            avg_factor=num_total_samples)
+        else:
+            loss_bbox = l1_loss(
+            bbox_pred,
+            bbox_targets,
+            bbox_weights,
             avg_factor=num_total_samples)
         return loss_cls[None], loss_bbox
 
