@@ -145,7 +145,8 @@ class SSDHead(AnchorHead):
              gt_labels,
              img_metas,
              cfg,
-             gt_bboxes_ignore=None):
+             gt_bboxes_ignore=None,
+             gt_masks=None):
         featmap_sizes = [featmap.size()[-2:] for featmap in cls_scores]
         assert len(featmap_sizes) == len(self.anchor_generators)
 
@@ -155,6 +156,7 @@ class SSDHead(AnchorHead):
             anchor_list,
             valid_flag_list,
             gt_bboxes,
+            gt_masks,
             img_metas,
             self.target_means,
             self.target_stds,
