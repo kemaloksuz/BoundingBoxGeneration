@@ -184,7 +184,7 @@ def segm_iou(gt_masks, gt_bboxes, bboxes, overlaps, min_overlap=0):
     #print("t=",nonzero_iou_ind.size(), end1 - start, end - start)
     return segm_ious
 
-def mask_aware_bbox_overlaps(gt_masks, bboxes1, bboxes2, maskIOUweight=1, plot=0, overlaps=None):
+def mask_aware_bbox_overlaps(gt_masks, bboxes1, bboxes2, maskIOUweight=1, threshold=None, plot=0):
     """Calculate overlap between two set of bboxes.
 
     If ``is_aligned`` is ``False``, then calculate the ious between each bbox
@@ -215,7 +215,8 @@ def mask_aware_bbox_overlaps(gt_masks, bboxes1, bboxes2, maskIOUweight=1, plot=0
 
     wh = (rb - lt + 1).clamp(min=0)  # [rows, cols, 2]
     intersection = (wh[:, :, 0] * wh[:, :, 1]) 
-
+    union = (area1[:, None] + area2 - intersection)
+    ious = intersection /  union
     #area2_norm=bboxes1.data.new_zeros(rows, cols).type(torch.cuda.DoubleTensor) 
     with torch.no_grad():
         overlap=bboxes1.data.new_zeros(rows, cols)
@@ -225,19 +226,15 @@ def mask_aware_bbox_overlaps(gt_masks, bboxes1, bboxes2, maskIOUweight=1, plot=0
         integral_images=integral_image_compute(all_gt_masks,gt_number,image_h,image_w).type(torch.cuda.FloatTensor)
         norm_factor=area1/integral_images[:,-1,-1]
         for i in range(gt_number):
-            larger_ind = intersection[i,:] > 0
+            larger_ind = ious[i,:] > threshold
             nonzero_iou_ind=torch.nonzero(larger_ind)
             all_boxes=bboxes2[nonzero_iou_ind,:].squeeze(dim=1).type(torch.cuda.IntTensor) 
             all_boxes=torch.clamp(all_boxes, min=0)
             all_boxes[:,[0,2]]=torch.clamp(all_boxes[:,[0,2]], max=image_w-1)
             all_boxes[:,[1,3]]=torch.clamp(all_boxes[:,[1,3]], max=image_h-1)
             overlap[i, larger_ind]=integral_image_fetch(integral_images[i],all_boxes)*norm_factor[i]
-            #area2_norm[i,:]=area2_unnorm-intersection_area[i,:]+overlap[i, :]
-        #mask_aware_ious = overlap / (area1[:, None] + area2 - overlap)
-        mask_aware_ious = overlap /  (area1[:, None] + area2 - intersection)
-        ious = intersection / (area1[:, None] + area2 - intersection)
+        mask_aware_ious = overlap /  union
         mask_aware_ious=maskIOUweight*mask_aware_ious+(1-maskIOUweight)*ious
-        #print("diff:",torch.sum(torch.abs(mask_aware_ious-mask_aware_ious2)))
 
     if plot==1:
         cond=np.array([ 0.6, 1, 0., 0.45])

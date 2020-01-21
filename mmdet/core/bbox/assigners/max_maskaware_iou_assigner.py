@@ -45,7 +45,12 @@ class MaxMaskAwareIoUAssigner(BaseAssigner):
         self.gt_max_assign_all = gt_max_assign_all
         self.ignore_iof_thr = ignore_iof_thr
         self.ignore_wrt_candidates = ignore_wrt_candidates
-
+        if self.maskIOUweight<1:
+            self.threshold=(self.min_pos_iou-self.maskIOUweight)/(1-self.maskIOUweight)
+            if self.threshold<0:
+                self.threshold=0
+        else:
+            self.threshold=0
     def assign(self, bboxes, gt_bboxes, gt_bboxes_ignore=None, gt_labels=None, gt_masks=None):
         """Assign gt to bboxes.
 
@@ -76,7 +81,7 @@ class MaxMaskAwareIoUAssigner(BaseAssigner):
             raise ValueError('No gt or bboxes')
         bboxes = bboxes[:, :4]
         #bbox_ious = bbox_overlaps(gt_bboxes, bboxes)
-        overlaps = mask_aware_bbox_overlaps(gt_masks, gt_bboxes, bboxes, self.maskIOUweight)
+        overlaps = mask_aware_bbox_overlaps(gt_masks, gt_bboxes, bboxes, self.maskIOUweight, self.threshold)
 
         if (self.ignore_iof_thr > 0) and (gt_bboxes_ignore is not None) and (
                 gt_bboxes_ignore.numel() > 0):
