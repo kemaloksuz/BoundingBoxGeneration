@@ -124,8 +124,8 @@ def mask_plotter(mask_aware_ious, overlaps, gt_masks, gt_bboxes, bboxes, cond, f
     #ax.text(0, 0, "IoU= "+np.array2string(overlaps[pltgt,pltanc].cpu().numpy())+", "+\
     #            "\n MaskIoU="+np.array2string(mask_aware_ious[pltgt,pltanc].cpu().numpy()), fontsize=fntsize)
     plt.show()
-    #plt.tight_layout()    
-    #plt.savefig("/home/cancam/imgworkspace/mmdetection/work_dirs/Analysis/1.pdf", edgecolor='none',format='pdf')  
+    plt.tight_layout()    
+    plt.savefig("/home/cancam/imgworkspace/mmdetection/work_dirs/Analysis/1.pdf", edgecolor='none',format='pdf')  
 
 def segm_overlaps(gt_masks, gt_bboxes, bboxes, overlaps, min_overlap, harmonic_mean_weight=1, plot=0): 
     #import pdb
