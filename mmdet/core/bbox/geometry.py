@@ -228,7 +228,7 @@ def mask_aware_bbox_overlaps(gt_masks, bboxes1, bboxes2, maskIOUweight=1, thresh
         for i in range(gt_number):
             larger_ind = ious[i,:] > threshold
             nonzero_iou_ind=torch.nonzero(larger_ind)
-            all_boxes=torch.round(bboxes2[nonzero_iou_ind,:].squeeze(dim=1)).type(torch.cuda.IntTensor) 
+            all_boxes=torch.round(bboxes2[nonzero_iou_ind,:].clone().squeeze(dim=1)).type(torch.cuda.IntTensor) 
             all_boxes=torch.clamp(all_boxes, min=0)
             all_boxes[:,[0,2]]=torch.clamp(all_boxes[:,[0,2]], max=image_w-1)
             all_boxes[:,[1,3]]=torch.clamp(all_boxes[:,[1,3]], max=image_h-1)
