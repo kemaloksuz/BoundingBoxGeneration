@@ -2,7 +2,8 @@ import torch
 
 from ..bbox import PseudoSampler, assign_and_sample, bbox2delta, build_assigner
 from ..utils import multi_apply
-
+import pdb
+import numpy as np 
 
 def anchor_target(anchor_list,
                   valid_flag_list,
@@ -48,6 +49,7 @@ def anchor_target(anchor_list,
         gt_labels_list = [None for _ in range(num_imgs)]
     if gt_masks_list is None:
         gt_masks_list = [None for _ in range(num_imgs)]
+
     (all_labels, all_label_weights, all_bbox_targets, all_bbox_weights,
      pos_inds_list, neg_inds_list) = multi_apply(
          anchor_target_single,
@@ -108,6 +110,8 @@ def anchor_target_single(flat_anchors,
                          sampling=True,
                          unmap_outputs=True):
     #print(img_meta)
+    if isinstance(gt_masks, list): 
+        gt_masks=np.array(gt_masks)
     inside_flags = anchor_inside_flags(flat_anchors, valid_flags,
                                        img_meta['img_shape'][:2],
                                        cfg.allowed_border)

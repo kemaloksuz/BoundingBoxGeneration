@@ -54,7 +54,7 @@ class SingleStageDetector(BaseDetector):
                       gt_labels,
                       gt_bboxes_ignore=None,
 		      gt_masks=None):
-        #print(img_metas)
+        #print(img_metas) 
         x = self.extract_feat(img)
         outs = self.bbox_head(x)
         loss_inputs = outs + (gt_bboxes, gt_labels, img_metas, self.train_cfg)
