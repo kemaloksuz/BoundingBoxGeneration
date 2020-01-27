@@ -107,7 +107,6 @@ def mask_plotter(mask_aware_ious, overlaps, gt_masks, gt_bboxes, bboxes, cond, f
     print("mIoU_05= "+ np.array2string(0.5*overlaps[pltgt,pltanc].cpu().numpy()+0.5*mask_aware_ious[pltgt,pltanc].cpu().numpy()))
     print("mIoU_1= "+ np.array2string(mask_aware_ious[pltgt,pltanc].cpu().numpy()))
     fig, ax = plt.subplots()
-
     tempRect=patch.Rectangle((bboxes[pltanc,0],bboxes[pltanc,1]), bboxes[pltanc,2]-bboxes[pltanc,0], bboxes[pltanc,3]-bboxes[pltanc,1],linewidth=3,edgecolor='r',facecolor='none')
     ax.add_patch(tempRect) 
     
@@ -123,9 +122,13 @@ def mask_plotter(mask_aware_ious, overlaps, gt_masks, gt_bboxes, bboxes, cond, f
 
     #ax.text(0, 0, "IoU= "+np.array2string(overlaps[pltgt,pltanc].cpu().numpy())+", "+\
     #            "\n MaskIoU="+np.array2string(mask_aware_ious[pltgt,pltanc].cpu().numpy()), fontsize=fntsize)
+    plt.tight_layout()
+    filename_count = np.random.randint(0, 500)
+    plt.savefig("/home/cancam/imgworkspace/mmdetection/work_dirs/Analysis/fig_1/{}.pdf".format(filename_count), edgecolor='none',format='pdf')
+    print("FILE SAVED AS {}.pdf".format(filename_count))
     plt.show()
-    plt.tight_layout()    
-    plt.savefig("/home/cancam/imgworkspace/mmdetection/work_dirs/Analysis/1.pdf", edgecolor='none',format='pdf')  
+    plt.close()
+
 
 def segm_overlaps(gt_masks, gt_bboxes, bboxes, overlaps, min_overlap, harmonic_mean_weight=1, plot=0): 
     #import pdb
@@ -152,7 +155,7 @@ def segm_overlaps(gt_masks, gt_bboxes, bboxes, overlaps, min_overlap, harmonic_m
             soft_ious[i,larger_ind]=(1+harmonic_mean_weight)/(harmonic_mean_weight/overlaps[i,larger_ind]+1/segm_ious[i,larger_ind]) 
 
         if plot:
-            condition=[0, 0.4, 0.5, 1]
+            condition=[0.6, 1, 0., 0.45]
             mask_plotter(mask_aware_ious, overlaps, gt_masks, bboxes1, bboxes2, condition)
 
     #end = time.time()
@@ -184,7 +187,7 @@ def segm_iou(gt_masks, gt_bboxes, bboxes, overlaps, min_overlap=0):
     #print("t=",nonzero_iou_ind.size(), end1 - start, end - start)
     return segm_ious
 
-def mask_aware_bbox_overlaps(gt_masks, bboxes1, bboxes2, maskIOUweight=1, plot=0, overlaps=None):
+def mask_aware_bbox_overlaps(gt_masks, bboxes1, bboxes2, maskIOUweight=1, plot=1, overlaps=None):
     """Calculate overlap between two set of bboxes.
 
     If ``is_aligned`` is ``False``, then calculate the ious between each bbox
@@ -240,6 +243,6 @@ def mask_aware_bbox_overlaps(gt_masks, bboxes1, bboxes2, maskIOUweight=1, plot=0
         #print("diff:",torch.sum(torch.abs(mask_aware_ious-mask_aware_ious2)))
 
     if plot==1:
-        cond=np.array([ 0.6, 1, 0., 0.45])
+        cond=np.array([0., 0.45, 0.6, 1.])
         mask_plotter(mask_aware_ious, ious, gt_masks, bboxes1, bboxes2, cond)
     return mask_aware_ious, norm_factor    
