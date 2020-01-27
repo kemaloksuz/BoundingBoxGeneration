@@ -114,17 +114,17 @@ def mask_plotter(mask_aware_ious, overlaps, gt_masks, gt_bboxes, bboxes, cond, f
     ax.add_patch(tempRect)        
 
     #ax.tick_params(labelsize=fntsize)      
-    plt.xlabel('x', fontsize=fntsize)
-    plt.ylabel('y', fontsize=fntsize)
-    #plt.axis('off')
-    ax.imshow(gt_masks[pltgt])
+    #plt.xlabel('x', fontsize=fntsize)
+    #plt.ylabel('y', fontsize=fntsize)
+    plt.axis('off')   
+    ax.imshow(gt_masks[pltgt],cmap='binary')
 
 
     #ax.text(0, 0, "IoU= "+np.array2string(overlaps[pltgt,pltanc].cpu().numpy())+", "+\
     #            "\n MaskIoU="+np.array2string(mask_aware_ious[pltgt,pltanc].cpu().numpy()), fontsize=fntsize)
     plt.tight_layout()
-    filename_count = np.random.randint(0, 500)
-    plt.savefig("/home/cancam/imgworkspace/mmdetection/work_dirs/Analysis/fig_1/{}.pdf".format(filename_count), edgecolor='none',format='pdf')
+    filename_count = np.random.randint(1, 1500000)
+    plt.savefig("/home/cancam/imgworkspace/mmdetection/work_dirs/Analysis/H-IoU_L-Mask/{}.pdf".format(filename_count), edgecolor='none',format='pdf')
     print("FILE SAVED AS {}.pdf".format(filename_count))
     plt.show()
     plt.close()
