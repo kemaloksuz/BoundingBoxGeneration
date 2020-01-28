@@ -51,6 +51,12 @@ img_norm_cfg = dict(mean=[123.675, 116.28, 103.53], std=[1, 1, 1], to_rgb=True)
 train_pipeline = [
     dict(type='LoadImageFromFile', to_float32=True),
     dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
+    dict(
+        type='PhotoMetricDistortion',
+        brightness_delta=32,
+        contrast_range=(0.5, 1.5),
+        saturation_range=(0.5, 1.5),
+        hue_delta=18),
     dict(type='Resize', img_scale=(300, 300), keep_ratio=False),
     dict(type='Normalize', **img_norm_cfg),    
     dict(type='RandomFlip', flip_ratio=0.5),
@@ -114,7 +120,7 @@ log_config = dict(
 total_epochs = 24
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/ssd300_coco_G025'
+work_dir = './work_dirs/ssd300_coco_G025_photometric'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
