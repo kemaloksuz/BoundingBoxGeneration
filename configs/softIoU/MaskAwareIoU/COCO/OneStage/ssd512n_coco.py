@@ -1,5 +1,5 @@
 # model settings
-input_size = 300
+input_size = 512
 model = dict(
     type='SingleStageDetector',
     pretrained='open-mmlab://vgg16_caffe',
@@ -16,11 +16,11 @@ model = dict(
     bbox_head=dict(
         type='SSDHead',
         input_size=input_size,
-        in_channels=(512, 1024, 512, 256, 256, 256),
+        in_channels=(512, 1024, 512, 256, 256, 256, 256),
         num_classes=81,
-        anchor_strides=(8, 16, 32, 64, 100, 300),
-        basesize_ratio_range=(0.15, 0.9),
-        anchor_ratios=([2], [2, 3], [2, 3], [2, 3], [2], [2]),
+        anchor_strides=(8, 16, 32, 64, 128, 256, 512),
+        basesize_ratio_range=(0.1, 0.9),
+        anchor_ratios=([2], [2, 3], [2, 3], [2, 3], [2, 3], [2], [2]),
         target_means=(.0, .0, .0, .0),
         target_stds=(0.1, 0.1, 0.2, 0.2)))
 cudnn_benchmark = True
@@ -50,13 +50,7 @@ img_norm_cfg = dict(mean=[123.675, 116.28, 103.53], std=[1, 1, 1], to_rgb=True)
 train_pipeline = [
     dict(type='LoadImageFromFile', to_float32=True),
     dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
-    dict(
-        type='PhotoMetricDistortion',
-        brightness_delta=32,
-        contrast_range=(0.5, 1.5),
-        saturation_range=(0.5, 1.5),
-        hue_delta=18),
-    dict(type='Resize', img_scale=(300, 300), keep_ratio=False),
+    dict(type='Resize', img_scale=(512, 512), keep_ratio=False),
     dict(type='Normalize', **img_norm_cfg),    
     dict(type='RandomFlip', flip_ratio=0.5),
     dict(type='DefaultFormatBundle'),
@@ -66,7 +60,7 @@ test_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(
         type='MultiScaleFlipAug',
-        img_scale=(300, 300),
+        img_scale=(512, 512),
         flip=False,
         transforms=[
             dict(type='Resize', keep_ratio=False),
@@ -119,7 +113,7 @@ log_config = dict(
 total_epochs = 24
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/ssd300p_coco'
+work_dir = './work_dirs/ssd512n_coco'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
