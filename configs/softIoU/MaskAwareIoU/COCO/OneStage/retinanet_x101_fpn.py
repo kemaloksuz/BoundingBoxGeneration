@@ -30,7 +30,7 @@ model = dict(
         anchor_strides=[8, 16, 32, 64, 128],
         target_means=[.0, .0, .0, .0],
         target_stds=[1.0, 1.0, 1.0, 1.0],
-        filename='./work_dirs/retinanet_x101_64x4d_fpn_1x/bg_fg.txt',        
+        filename='./work_dirs/retinanet_x101_fpn/bg_fg.txt',        
         loss_cls=dict(
             type='FocalLoss',
             use_sigmoid=True,
@@ -127,7 +127,7 @@ total_epochs = 12
 device_ids = range(8)
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/retinanet_x101_64x4d_fpn_1x'
+work_dir = './work_dirs/retinanet_x101_fpn'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
