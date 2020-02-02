@@ -1,15 +1,36 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import numpy as np
 
 from ..registry import LOSSES
+from pathlib import Path
 from .utils import weight_reduce_loss
 import pdb
 
-def cross_entropy(pred, label, weight=None, reduction='mean', avg_factor=None):
-    # element-wise losses
-    loss = F.cross_entropy(pred, label, reduction='none')
+def get_valid_labels(valid_labels,
+                     valid_preds,
+                     loss
+                     ):
+    #pdb.set_trace()
+    tuple_ = np.concatenate((np.expand_dims(valid_preds.detach().cpu().numpy(), 1), \
+                             np.expand_dims(valid_labels.detach().cpu().numpy(), 1), \
+                             np.expand_dims(loss.detach().cpu().numpy(), 1)), \
+                             axis = 1)
+    p = Path("/home/cancam/imgworkspace/mmdetection/class_analysis_ce.txt")
+    with p.open("ab") as fp:
+        np.savetxt(fp, tuple_)
+        fp.close()
 
+def cross_entropy(pred, label, weight=None, reduction='mean', avg_factor=None):
+    # element-wise losses)
+    # label'da valid labellar mı geliyor?
+    loss = F.cross_entropy(pred, label, reduction='none')
+    pred_softmax = F.softmax(pred)
+    valid_inds = ((weight>0).nonzero()).flatten()
+    pred_labels = pred_softmax[valid_inds, :].argmax(dim=1)
+    get_valid_labels(label[valid_inds], pred_labels, loss)
+    # check variables and send them to get_valid_labels.
     # apply weights and do the reduction
     if weight is not None:
         weight = weight.float()

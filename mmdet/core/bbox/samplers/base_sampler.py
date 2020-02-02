@@ -3,7 +3,7 @@ from abc import ABCMeta, abstractmethod
 import torch
 
 from .sampling_result import SamplingResult
-
+import pdb
 
 class BaseSampler(metaclass=ABCMeta):
 
@@ -49,7 +49,6 @@ class BaseSampler(metaclass=ABCMeta):
             :obj:`SamplingResult`: Sampling result.
         """
         bboxes = bboxes[:, :4]
-
         gt_flags = bboxes.new_zeros((bboxes.shape[0], ), dtype=torch.uint8)
         if self.add_gt_as_proposals:
             bboxes = torch.cat([gt_bboxes, bboxes], dim=0)
@@ -73,6 +72,5 @@ class BaseSampler(metaclass=ABCMeta):
         neg_inds = self.neg_sampler._sample_neg(
             assign_result, num_expected_neg, bboxes=bboxes, **kwargs)
         neg_inds = neg_inds.unique()
-
         return SamplingResult(pos_inds, neg_inds, bboxes, gt_bboxes,
                               assign_result, gt_flags)

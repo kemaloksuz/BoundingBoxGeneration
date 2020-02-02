@@ -10,11 +10,15 @@ def transform_boxes(deltas,
                     max_shape=None, 
                     wh_ratio_clip=16/1000):
 
+<<<<<<< HEAD
+=======
+    # std was 1/std in detectron.
+>>>>>>> b399a832a1d6477798d43ecb5e93cc0ba38a90b4
     wx, wy, ww, wh = stds
-    dx = deltas[:, 0] / wx
-    dy = deltas[:, 1] / wy
-    dw = deltas[:, 2] / ww
-    dh = deltas[:, 3] / wh
+    dx = deltas[:, 0] * wx
+    dy = deltas[:, 1] * wy
+    dw = deltas[:, 2] * ww
+    dh = deltas[:, 3] * wh
     
     max_ratio = np.abs(np.log(wh_ratio_clip))
 

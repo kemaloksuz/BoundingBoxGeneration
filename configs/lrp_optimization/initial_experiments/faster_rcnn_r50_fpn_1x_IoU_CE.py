@@ -165,10 +165,14 @@ log_config = dict(
     ])
 # yapf:enable
 # runtime settings
-total_epochs = 12
+total_epochs = 2
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
+<<<<<<< HEAD
 work_dir = './work_dirs/lrp_optimization/faster_rcnn_r50_fpn_1x_1-IoU_lw2_CE'
+=======
+work_dir = './work_dirs/lrp_optimization/faster_rcnn_r50_fpn_1x_1-IoU_lw1_CE_debug'
+>>>>>>> b399a832a1d6477798d43ecb5e93cc0ba38a90b4
 load_from = None
 resume_from = None
 workflow = [('train', 1)]

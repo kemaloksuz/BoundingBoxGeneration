@@ -25,7 +25,7 @@ model = dict(
         target_stds=[1.0, 1.0, 1.0, 1.0],
         loss_cls=dict(
             type='CrossEntropyLoss', use_sigmoid=True, loss_weight=1.0),
-        loss_bbox=dict(type='SmoothL1Loss', beta= 0.1, loss_weight=1.0)),
+        loss_bbox=dict(type='SmoothL1Loss', beta= 1.0/9.0, loss_weight=1.0)),
     bbox_roi_extractor=dict(
         type='SingleRoIExtractor',
         roi_layer=dict(type='RoIAlign', out_size=7, sample_num=2),
@@ -42,8 +42,9 @@ model = dict(
         target_stds=[0.1, 0.1, 0.2, 0.2],
         reg_class_agnostic=False,
         loss_cls=dict(
-            type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0),
-        loss_bbox=dict(type='IoULoss', loss_weight=2.0)))
+            type='LRPLoss', use_sigmoid=False, loss_weight=1.0, \
+                  use_modulator = False, gamma = 0.1),
+        loss_bbox=dict(type='IoULoss', loss_weight=1.0)))
 # model training and testing settings
 train_cfg = dict(
     rpn=dict(
@@ -78,8 +79,8 @@ train_cfg = dict(
             ignore_iof_thr=-1),
         sampler=dict(
             type='RandomSampler',
-            num=512,
-            pos_fraction=0.25,
+            num=256,
+            pos_fraction=0.5,
             neg_pos_ub=-1,
             add_gt_as_proposals=True),
         pos_weight=-1,
@@ -128,8 +129,8 @@ test_pipeline = [
         ])
 ]
 data = dict(
-    imgs_per_gpu=1,
-    workers_per_gpu=1,
+    imgs_per_gpu=2,
+    workers_per_gpu=2,
     train=dict(
         type=dataset_type,
         ann_file=data_root + 'annotations/instances_train2017_minicoco.json',
@@ -146,7 +147,7 @@ data = dict(
         img_prefix=data_root + 'val2017/',
         pipeline=test_pipeline))
 # optimizer
-optimizer = dict(type='SGD', lr=0.00125, momentum=0.9, weight_decay=0.0001)
+optimizer = dict(type='SGD', lr=0.005, momentum=0.9, weight_decay=0.0001)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 # learning policy
 lr_config = dict(
@@ -165,17 +166,10 @@ log_config = dict(
     ])
 # yapf:enable
 # runtime settings
-<<<<<<< HEAD
-total_epochs = 12
+total_epochs = 2
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/lrp_optimization/faster_rcnn_r50_fpn_1x_1-IoU_lw2_CE'
-=======
-total_epochs = 1
-dist_params = dict(backend='nccl')
-log_level = 'INFO'
-work_dir = './work_dirs/lrp_optimization/faster_rcnn_r50_fpn_1x_1-IoU_CE_debug'
->>>>>>> b399a832a1d6477798d43ecb5e93cc0ba38a90b4
+work_dir = './work_dirs/lrp_optimization/faster_rcnn_r50_fpn_1x_1-IoU_ExpLoss01_11'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]

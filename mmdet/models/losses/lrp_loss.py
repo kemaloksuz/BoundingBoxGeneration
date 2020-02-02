@@ -3,24 +3,24 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 
+from matplotlib import pyplot as plt
 from pathlib import Path
 from ..registry import LOSSES
 from .utils import weight_reduce_loss
 import pdb
 
-def parse_samples(valid_labels,
-                  valid_preds,
-                  loss):
-    
+def get_valid_labels(valid_labels,
+                    valid_preds,
+                    loss):
     tuple_ = np.concatenate((np.expand_dims(valid_preds.detach().cpu().numpy(), 1), \
-              np.expand_dims(valid_labels.detach().cpu().numpy(),1),\
-              np.expand_dims(loss.detach().cpu().numpy(),1)), \
-              axis=1)
-
-    p = Path('/home/cancam/workspace/mmdetection/class_analysis.txt')
+                            np.expand_dims(valid_labels.detach().cpu().numpy(), 1), \
+                            np.expand_dims(loss.detach().cpu().numpy(), 1)), \
+                            axis = 1)
+    p = Path('/home/cancam/imgworkspace/mmdetection/work_dirs/lrp_optimization/faster_rcnn_r50_fpn_1x_1-IoU_ExpLoss01_31/class_analysis_exp.txt')
     with p.open("ab") as fp:
         np.savetxt(fp, tuple_)
         fp.close()
+
 
 def lrp_loss(pred, 
              label, 
@@ -35,17 +35,21 @@ def lrp_loss(pred,
     valid_inds = ((weight>0).nonzero()).flatten()
     valid_labels = label[valid_inds]
     valid_preds = pred_softmax[valid_inds, valid_labels]
-    
+    pred_labels = pred_softmax[valid_inds, :].argmax(dim=1)
     if weight is not None:
         weight = weight.float()
     
+<<<<<<< HEAD
     #loss = torch.cos(1.57*valid_preds+1.57)+1
     loss = torch.exp((-valid_preds)/0.3)    
     if use_modulator:
         loss = torch.pow((1-valid_preds), gamma)*loss
 
+=======
+    loss = torch.exp(-1*valid_preds/gamma)
+    get_valid_labels(valid_labels, pred_labels, loss)
+>>>>>>> b399a832a1d6477798d43ecb5e93cc0ba38a90b4
     loss = weight_reduce_loss(loss, reduction=reduction, avg_factor=avg_factor)
-    
     return loss
 
 

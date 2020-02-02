@@ -4,6 +4,9 @@ __pycache__/
 *$py.class
 # swp files.
 *.swp
+# text
+*.txt
+
 
 # data
 *.dat

@@ -7,6 +7,7 @@ from ..registry import DETECTORS
 from .base import BaseDetector
 from .test_mixins import BBoxTestMixin, MaskTestMixin, RPNTestMixin
 
+import pdb
 
 @DETECTORS.register_module
 class TwoStageDetector(BaseDetector, RPNTestMixin, BBoxTestMixin,
@@ -174,8 +175,7 @@ class TwoStageDetector(BaseDetector, RPNTestMixin, BBoxTestMixin,
                 x[:self.bbox_roi_extractor.num_inputs], rois)
             if self.with_shared_head:
                 bbox_feats = self.shared_head(bbox_feats)
-            cls_score, bbox_pred = self.bbox_head(bbox_feats)
-
+            cls_score, bbox_pred = self.bbox_head(bbox_feats) 
             bbox_targets = self.bbox_head.get_target(sampling_results,
                                                      gt_bboxes, gt_labels,
                                                      self.train_cfg.rcnn)

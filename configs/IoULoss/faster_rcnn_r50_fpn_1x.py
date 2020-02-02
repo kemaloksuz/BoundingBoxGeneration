@@ -25,7 +25,7 @@ model = dict(
         target_stds=[1.0, 1.0, 1.0, 1.0],
         loss_cls=dict(
             type='CrossEntropyLoss', use_sigmoid=True, loss_weight=1.0),
-        loss_bbox=dict(type='SmoothL1Loss', beta= 0.1, loss_weight=1.0)),
+        loss_bbox=dict(type='SmoothL1Loss', beta=1.0 / 9.0, loss_weight=1.0)),
     bbox_roi_extractor=dict(
         type='SingleRoIExtractor',
         roi_layer=dict(type='RoIAlign', out_size=7, sample_num=2),
@@ -43,7 +43,7 @@ model = dict(
         reg_class_agnostic=False,
         loss_cls=dict(
             type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0),
-        loss_bbox=dict(type='IoULoss', loss_weight=2.0)))
+        loss_bbox=dict(type='IoULoss', loss_weight=1.0)))
 # model training and testing settings
 train_cfg = dict(
     rpn=dict(
@@ -128,11 +128,11 @@ test_pipeline = [
         ])
 ]
 data = dict(
-    imgs_per_gpu=1,
-    workers_per_gpu=1,
+    imgs_per_gpu=4,
+    workers_per_gpu=4,
     train=dict(
         type=dataset_type,
-        ann_file=data_root + 'annotations/instances_train2017_minicoco.json',
+        ann_file=data_root + 'annotations/instances_train2017.json',
         img_prefix=data_root + 'train2017/',
         pipeline=train_pipeline),
     val=dict(
@@ -146,7 +146,7 @@ data = dict(
         img_prefix=data_root + 'val2017/',
         pipeline=test_pipeline))
 # optimizer
-optimizer = dict(type='SGD', lr=0.00125, momentum=0.9, weight_decay=0.0001)
+optimizer = dict(type='SGD', lr=0.02, momentum=0.9, weight_decay=0.0001)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 # learning policy
 lr_config = dict(
@@ -165,17 +165,10 @@ log_config = dict(
     ])
 # yapf:enable
 # runtime settings
-<<<<<<< HEAD
 total_epochs = 12
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/lrp_optimization/faster_rcnn_r50_fpn_1x_1-IoU_lw2_CE'
-=======
-total_epochs = 1
-dist_params = dict(backend='nccl')
-log_level = 'INFO'
-work_dir = './work_dirs/lrp_optimization/faster_rcnn_r50_fpn_1x_1-IoU_CE_debug'
->>>>>>> b399a832a1d6477798d43ecb5e93cc0ba38a90b4
+work_dir = './work_dirs/faster_rcnn_r50_fpn_1x_iouloss'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
