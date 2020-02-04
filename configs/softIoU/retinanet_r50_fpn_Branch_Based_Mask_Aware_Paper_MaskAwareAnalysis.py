@@ -131,6 +131,6 @@ device_ids = range(2)
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
 work_dir = './work_dirs/Imbalance_Analysis'
-load_from = '/home/cancam/imgworkspace/mmdetection-test/mmdetection/work_dirs/MaskAwareIoU_3/all_epochs/retinanet_r50_fpn_MaskAwareIoU_05_05_WithMax_GammaMask025_B0/epoch_12.pth'
+load_from = '/home/cancam/imgworkspace/mmdetection/work_dirs/Analysis/retinanet_r50_fpn_MaskAwareIoUstd_05_05_WithMax_GammaMask025_w050/epoch_12.pth'
 resume_from = None
 workflow = [('train', 1)]
