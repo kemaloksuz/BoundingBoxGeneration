@@ -24,7 +24,7 @@ model = dict(
         target_means=[.0, .0, .0, .0],
         target_stds=[1.0, 1.0, 1.0, 1.0],
         loss_cls=dict(
-            type='CrossEntropyLoss', use_sigmoid=True, loss_weight=2.0),
+            type='CrossEntropyLoss', use_sigmoid=True, loss_weight=1.0),
         loss_bbox=dict(type='L1Loss', loss_weight=2.0)))
 # model training and testing settings
 train_cfg = dict(
@@ -124,7 +124,7 @@ log_config = dict(
 total_epochs = 12
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/rpn_r50_fpn_MaskAware_05_wc2_wr2'
+work_dir = './work_dirs/rpn_r50_fpn_MaskAware_05_wc1_wr2'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
