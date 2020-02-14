@@ -22,7 +22,9 @@ class SSDHead(AnchorHead):
                  basesize_ratio_range=(0.1, 0.9),
                  anchor_ratios=([2], [2, 3], [2, 3], [2, 3], [2], [2]),
                  target_means=(.0, .0, .0, .0),
-                 target_stds=(1.0, 1.0, 1.0, 1.0)):
+                 target_stds=(1.0, 1.0, 1.0, 1.0),
+                 cls_weight=1,
+                 reg_weight=1):
         super(AnchorHead, self).__init__()
         self.input_size = input_size
         self.num_classes = num_classes
@@ -90,6 +92,8 @@ class SSDHead(AnchorHead):
 
         self.target_means = target_means
         self.target_stds = target_stds
+        self.cls_weight = cls_weight
+        self.reg_weight = reg_weight
         self.use_sigmoid_cls = False
         self.cls_focal_loss = False
         self.fp16_enabled = False
@@ -122,16 +126,16 @@ class SSDHead(AnchorHead):
         topk_loss_cls_neg, _ = loss_cls_all[neg_inds].topk(num_neg_samples)
         loss_cls_pos = loss_cls_all[pos_inds].sum()
         loss_cls_neg = topk_loss_cls_neg.sum()
-        loss_cls = (loss_cls_pos + loss_cls_neg) / num_total_samples
+        loss_cls = self.cls_weight*((loss_cls_pos + loss_cls_neg) / num_total_samples)
         if cfg.smoothl1_beta>0:
-            loss_bbox = smooth_l1_loss(
+            loss_bbox = self.reg_weight*smooth_l1_loss(
             bbox_pred,
             bbox_targets,
             bbox_weights,
             beta=cfg.smoothl1_beta,
             avg_factor=num_total_samples)
         else:
-            loss_bbox = l1_loss(
+            loss_bbox = self.reg_weight*l1_loss(
             bbox_pred,
             bbox_targets,
             bbox_weights,
