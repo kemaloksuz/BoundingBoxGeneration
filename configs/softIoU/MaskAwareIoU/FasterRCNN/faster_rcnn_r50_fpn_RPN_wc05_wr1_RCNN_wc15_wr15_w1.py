@@ -42,8 +42,8 @@ model = dict(
         target_stds=[0.1, 0.1, 0.2, 0.2],
         reg_class_agnostic=False,
         loss_cls=dict(
-            type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.),
-        loss_bbox=dict(type='L1Loss', loss_weight=1.)))
+            type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.5),
+        loss_bbox=dict(type='L1Loss', loss_weight=1.5)))
 # model training and testing settings
 train_cfg = dict(
     rpn=dict(
@@ -170,7 +170,7 @@ log_config = dict(
 total_epochs = 12
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/faster_rcnn_r50_fpn_RPN_wc1_wr2_RCNN_wc2_wr2_w05'
+work_dir = './work_dirs/faster_rcnn_r50_fpn_RPN_wc05_wr1_RCNN_wc15_wr15_w1'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
