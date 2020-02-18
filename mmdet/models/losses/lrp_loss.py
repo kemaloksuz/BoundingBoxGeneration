@@ -28,7 +28,7 @@ def lrp_loss(pred,
              reduction='mean', 
              avg_factor=None,
              use_modulator = False,
-             gamma = 1.0,
+             gamma = 0.2,
              eps = 1e-6):
     pred_softmax = F.softmax(pred)
     #pred_softmax_ = pred_softmax[:, label]
@@ -36,19 +36,15 @@ def lrp_loss(pred,
     valid_labels = label[valid_inds]
     valid_preds = pred_softmax[valid_inds, valid_labels]
     pred_labels = pred_softmax[valid_inds, :].argmax(dim=1)
+    
     if weight is not None:
         weight = weight.float()
-    
-<<<<<<< HEAD
-    #loss = torch.cos(1.57*valid_preds+1.57)+1
-    loss = torch.exp((-valid_preds)/0.3)    
+        
     if use_modulator:
         loss = torch.pow((1-valid_preds), gamma)*loss
 
-=======
     loss = torch.exp(-1*valid_preds/gamma)
-    get_valid_labels(valid_labels, pred_labels, loss)
->>>>>>> b399a832a1d6477798d43ecb5e93cc0ba38a90b4
+    #get_valid_labels(valid_labels, pred_labels, loss)
     loss = weight_reduce_loss(loss, reduction=reduction, avg_factor=avg_factor)
     return loss
 

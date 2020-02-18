@@ -29,7 +29,7 @@ def cross_entropy(pred, label, weight=None, reduction='mean', avg_factor=None):
     pred_softmax = F.softmax(pred)
     valid_inds = ((weight>0).nonzero()).flatten()
     pred_labels = pred_softmax[valid_inds, :].argmax(dim=1)
-    get_valid_labels(label[valid_inds], pred_labels, loss)
+    #get_valid_labels(label[valid_inds], pred_labels, loss)
     # check variables and send them to get_valid_labels.
     # apply weights and do the reduction
     if weight is not None:
