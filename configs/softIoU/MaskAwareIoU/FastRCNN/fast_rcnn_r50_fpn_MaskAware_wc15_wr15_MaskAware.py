@@ -129,7 +129,7 @@ log_config = dict(
 total_epochs = 12
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/fast_rcnn_r50_fpn_MaskAware_RPN_wc1_wr2_precomputed_RCNN_wc15_wr15_w1'
+work_dir = './work_dirs/fast_rcnn_r50_fpn_MaskAware_wc15_wr15_MaskAware'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
