@@ -1,5 +1,5 @@
 #! /usr/bin/env bash
-CONFIG1="faster_rcnn_r50_fpn_RPN_wc05_wr1_RCNN_wc2_wr2_w1";
+CONFIG1="faster_rcnn_r50_fpn_RPN_wc1_wr2_RCNN_wc4_wr3_w1";
 mkdir -p "results/FasterRCNN/$CONFIG1"&&
 python tools/train.py "configs/softIoU/MaskAwareIoU/FasterRCNN/$CONFIG1.py" --gpus 4 &&
 python tools/test.py "configs/softIoU/MaskAwareIoU/FasterRCNN/$CONFIG1.py" "work_dirs/$CONFIG1/epoch_12.pth"  --json_out "results/FasterRCNN/$CONFIG1/$CONFIG1" --eval bbox &&
