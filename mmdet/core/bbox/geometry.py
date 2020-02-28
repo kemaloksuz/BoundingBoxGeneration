@@ -218,7 +218,7 @@ def mask_aware_bbox_overlaps(gt_masks, bboxes1, bboxes2, maskIOUweight=1, thresh
     union = (area1[:, None] + area2 - intersection)
     ious = intersection /  union
     #area2_norm=bboxes1.data.new_zeros(rows, cols).type(torch.cuda.DoubleTensor) 
-    threshold=0
+    #threshold=0
     with torch.no_grad():
         overlap=bboxes1.data.new_zeros(rows, cols)
         #Convert list to torch
