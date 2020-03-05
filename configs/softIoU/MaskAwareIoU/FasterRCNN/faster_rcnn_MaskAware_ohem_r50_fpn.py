@@ -1,10 +1,10 @@
 # model settings
 model = dict(
     type='FasterRCNN',
-    pretrained='torchvision://resnet101',
+    pretrained='torchvision://resnet50',
     backbone=dict(
         type='ResNet',
-        depth=101,
+        depth=50,
         num_stages=4,
         out_indices=(0, 1, 2, 3),
         frozen_stages=1,
@@ -42,8 +42,8 @@ model = dict(
         target_stds=[0.1, 0.1, 0.2, 0.2],
         reg_class_agnostic=False,
         loss_cls=dict(
-            type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.5),
-        loss_bbox=dict(type='L1Loss', loss_weight=1.5)))
+            type='CrossEntropyLoss', use_sigmoid=False, loss_weight=2.0),
+        loss_bbox=dict(type='L1Loss', loss_weight=2.0)))
 # model training and testing settings
 train_cfg = dict(
     rpn=dict(
