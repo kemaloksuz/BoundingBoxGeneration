@@ -118,7 +118,7 @@ def anchor_target_single(flat_anchors,
     if not inside_flags.any():
         return (None, ) * 6
     # assign gt and sample anchors
-    anchors = flat_anchors[inside_flags, :]
+    anchors = flat_anchors[inside_flags.type(torch.bool), :]
 
     if sampling:
         assign_result, sampling_result = assign_and_sample(
@@ -168,7 +168,9 @@ def anchor_target_single(flat_anchors,
             neg_inds)
 
 
-def anchor_inside_flags(flat_anchors, valid_flags, img_shape,
+def anchor_inside_flags(flat_anchors,
+                        valid_flags,
+                        img_shape,
                         allowed_border=0):
     img_h, img_w = img_shape[:2]
     if allowed_border >= 0:
@@ -187,9 +189,9 @@ def unmap(data, count, inds, fill=0):
     size count) """
     if data.dim() == 1:
         ret = data.new_full((count, ), fill)
-        ret[inds] = data
+        ret[inds.type(torch.bool)] = data
     else:
         new_size = (count, ) + data.size()[1:]
         ret = data.new_full(new_size, fill)
-        ret[inds, :] = data
+        ret[inds.type(torch.bool), :] = data
     return ret
