@@ -1,5 +1,5 @@
 import torch
-
+import pdb
 
 def bbox_overlaps(bboxes1, bboxes2, mode='iou', is_aligned=False):
     """Calculate overlap between two set of bboxes.
@@ -20,7 +20,6 @@ def bbox_overlaps(bboxes1, bboxes2, mode='iou', is_aligned=False):
     """
 
     assert mode in ['iou', 'iof']
-
     rows = bboxes1.size(0)
     cols = bboxes2.size(0)
     if is_aligned:
@@ -59,5 +58,4 @@ def bbox_overlaps(bboxes1, bboxes2, mode='iou', is_aligned=False):
             ious = overlap / (area1[:, None] + area2 - overlap)
         else:
             ious = overlap / (area1[:, None])
-
     return ious

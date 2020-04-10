@@ -43,7 +43,7 @@ model = dict(
         reg_class_agnostic=False,
         loss_cls=dict(
             type='LRPLoss', use_sigmoid=False, loss_weight=1.0, \
-                  use_modulator = False, gamma = 1.0),
+                  use_modulator = False, gamma = 0.2),
         loss_bbox=dict(type='IoULoss', loss_weight=1.0)))
 # model training and testing settings
 train_cfg = dict(
@@ -129,8 +129,8 @@ test_pipeline = [
         ])
 ]
 data = dict(
-    imgs_per_gpu=2,
-    workers_per_gpu=2,
+    imgs_per_gpu=1,
+    workers_per_gpu=1,
     train=dict(
         type=dataset_type,
         ann_file=data_root + 'annotations/instances_train2017_minicoco.json',

@@ -8,6 +8,7 @@ import torch.nn as nn
 
 from mmdet.core import auto_fp16, get_classes, tensor2imgs
 
+import pdb
 
 class BaseDetector(nn.Module):
     """Base class for detectors"""
@@ -92,7 +93,6 @@ class BaseDetector(nn.Module):
             bbox_result, segm_result = result
         else:
             bbox_result, segm_result = result, None
-
         img_tensor = data['img'][0]
         img_metas = data['img_meta'][0].data[0]
         imgs = tensor2imgs(img_tensor, **img_metas[0]['img_norm_cfg'])
@@ -133,5 +133,12 @@ class BaseDetector(nn.Module):
                 img_show,
                 bboxes,
                 labels,
+                show=False,
                 class_names=class_names,
-                score_thr=score_thr)
+                score_thr=score_thr,
+                bbox_color='red',
+                text_color='red',
+                thickness=3,
+                font_scale=0.8,
+                out_file='results/qualitative/retinanet_r50_fpn_05_05_WithMax_GammaMask025_B0/'+\
+                          data['img_meta'][0].data[0][0]['filename'][-16:])

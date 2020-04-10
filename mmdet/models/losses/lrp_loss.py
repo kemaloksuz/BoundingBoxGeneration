@@ -16,11 +16,20 @@ def get_valid_labels(valid_labels,
                             np.expand_dims(valid_labels.detach().cpu().numpy(), 1), \
                             np.expand_dims(loss.detach().cpu().numpy(), 1)), \
                             axis = 1)
-    p = Path('/home/cancam/imgworkspace/mmdetection/work_dirs/lrp_optimization/faster_rcnn_r50_fpn_1x_1-IoU_ExpLoss01_31/class_analysis_exp.txt')
+    p = Path('/home/cancam/imgworkspace/mmdetection/work_dirs/lrp_optimization/faster_rcnn_r50_fpn_1x_IoU_ExpLoss_debug/class_analysis_exp.txt')
     with p.open("ab") as fp:
         np.savetxt(fp, tuple_)
         fp.close()
 
+def log_stats(valid_labels,
+             valid_preds,
+             loss):
+    num_bg = (valid_labels==0).nonzero().shape[0]
+    num_fg = (valid_labels!=0).nonzero().shape[0]
+    loss_bg = loss[valid_labels==0]
+    loss_fg =  loss[valid_labels!=0]
+    logits_bg = valid_preds[valid_labels==0]
+    logits_fg = valid_preds[valid_labels!=0]
 
 def lrp_loss(pred, 
              label, 
@@ -44,7 +53,8 @@ def lrp_loss(pred,
         loss = torch.pow((1-valid_preds), gamma)*loss
 
     loss = torch.exp(-1*valid_preds/gamma)
-    #get_valid_labels(valid_labels, pred_labels, loss)
+    get_valid_labels(valid_labels, pred_labels, loss)
+    #log_stats(valid_labels, valid_preds, loss)
     loss = weight_reduce_loss(loss, reduction=reduction, avg_factor=avg_factor)
     return loss
 
