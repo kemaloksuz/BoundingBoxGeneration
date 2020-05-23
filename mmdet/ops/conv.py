@@ -7,7 +7,7 @@ conv_cfg = {
     'Conv': nn.Conv2d,
     'ConvWS': ConvWS2d,
 #    'DCN': DeformConvPack,
-    'DCNv2': ModulatedDeformConvPack,
+#    'DCNv2': ModulatedDeformConvPack,
     # TODO: octave conv
 }
 
