@@ -8,7 +8,7 @@ import time
 import mmcv
 import torch
 from mmcv import Config
-from mmcv.runner import init_dist
+#from mmcv.runner import init_dist
 
 from mmdet import __version__
 from mmdet.apis import set_random_seed, train_detector
@@ -78,7 +78,7 @@ def main():
         distributed = False
     else:
         distributed = True
-        init_dist(args.launcher, **cfg.dist_params)
+    #    init_dist(args.launcher, **cfg.dist_params)
 
     # create work_dir
     mmcv.mkdir_or_exist(osp.abspath(cfg.work_dir))
