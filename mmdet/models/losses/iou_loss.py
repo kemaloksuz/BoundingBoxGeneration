@@ -179,7 +179,7 @@ class BoundedIoULoss(nn.Module):
             **kwargs)
         return loss
 
-
+import pdb
 @LOSSES.register_module
 class GIoULoss(nn.Module):
 
@@ -204,7 +204,7 @@ class GIoULoss(nn.Module):
         loss = self.loss_weight * giou_loss(
             pred,
             target,
-            weight,
+            weight[:,0],
             eps=self.eps,
             reduction=reduction,
             avg_factor=avg_factor,
