@@ -22,9 +22,7 @@ def iou_loss(pred, target, eps=1e-6):
     Return:
         Tensor: Loss tensor.
     """
-    ious = bbox_overlaps(pred, target, is_aligned=True).clamp(min=eps)
-    loss = -ious.log()
-    return loss
+    return 1-bbox_overlaps(pred, target, is_aligned=True).clamp(min=eps)
 
 
 @weighted_loss
@@ -135,10 +133,11 @@ class IoULoss(nn.Module):
         assert reduction_override in (None, 'none', 'mean', 'sum')
         reduction = (
             reduction_override if reduction_override else self.reduction)
+        
         loss = self.loss_weight * iou_loss(
             pred,
             target,
-            weight,
+            weight[:,0],
             eps=self.eps,
             reduction=reduction,
             avg_factor=avg_factor,
@@ -200,6 +199,7 @@ class GIoULoss(nn.Module):
         assert reduction_override in (None, 'none', 'mean', 'sum')
         reduction = (
             reduction_override if reduction_override else self.reduction)
+
         loss = self.loss_weight * giou_loss(
             pred,
             target,
