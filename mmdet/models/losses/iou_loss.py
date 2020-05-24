@@ -179,7 +179,6 @@ class BoundedIoULoss(nn.Module):
             **kwargs)
         return loss
 
-import pdb
 @LOSSES.register_module
 class GIoULoss(nn.Module):
 
