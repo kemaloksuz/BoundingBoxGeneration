@@ -143,7 +143,7 @@ log_config = dict(
 total_epochs = 50
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/retinanet_crop640_r50_nasfpn_50e_mIoU'
+work_dir = './work_dirs/retinanet_crop640_r50_nasfpn_50e_mIoU_orig'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
