@@ -38,8 +38,7 @@ class CocoDataset(CustomDataset):
             cat_id: i + 1
             for i, cat_id in enumerate(self.cat_ids)
         }
-        self.img_ids = self.coco.getImgIds()[:1000]
-        pdb.set_trace()
+        self.img_ids = self.coco.getImgIds()
         img_infos = []
         for i in self.img_ids:
             info = self.coco.loadImgs([i])[0]

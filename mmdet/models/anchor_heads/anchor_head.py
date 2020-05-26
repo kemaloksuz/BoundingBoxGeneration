@@ -10,35 +10,6 @@ from mmdet.core import (AnchorGenerator, anchor_target, delta2bbox, force_fp32,
 from ..builder import build_loss
 from ..registry import HEADS
 import pdb
-def transform_boxes(deltas, 
-                    means=[0., 0., 0., 0.], 
-                    stds=[1., 1., 1., 1.], 
-                    max_shape=None, 
-                    wh_ratio_clip=16/1000):
-
-    # std was 1/std in detectron.
-    wx, wy, ww, wh = stds
-    dx = deltas[:, 0] * wx
-    dy = deltas[:, 1] * wy
-    dw = deltas[:, 2] * ww
-    dh = deltas[:, 3] * wh
-    
-    max_ratio = np.abs(np.log(wh_ratio_clip))
-
-    dw = dw.clamp(min=-max_ratio, max=max_ratio)
-    dh = dh.clamp(min=-max_ratio, max=max_ratio)
-
-    pred_ctr_x = dx
-    pred_ctr_y = dy
-    pred_w = torch.exp(dw)
-    pred_h = torch.exp(dh)
-
-    x1 = pred_ctr_x - 0.5 * pred_w
-    y1 = pred_ctr_y - 0.5 * pred_h
-    x2 = pred_ctr_x + 0.5 * pred_w
-    y2 = pred_ctr_y + 0.5 * pred_h
-    
-    return torch.stack([x1, y1, x2, y2], dim=-1)
 
 @HEADS.register_module
 class AnchorHead(nn.Module):
@@ -92,7 +63,6 @@ class AnchorHead(nn.Module):
         self.target_means = target_means
         self.target_stds = target_stds
         self.use_sigmoid_cls = loss_cls.get('use_sigmoid', False)
-        self.loss_bbox_type = loss_bbox['type']
         self.sampling = loss_cls['type'] not in ['FocalLoss', 'GHMC']
         if self.use_sigmoid_cls:
             self.cls_out_channels = num_classes - 1
@@ -185,11 +155,6 @@ class AnchorHead(nn.Module):
         bbox_targets = bbox_targets.reshape(-1, 4)
         bbox_weights = bbox_weights.reshape(-1, 4)
         bbox_pred = bbox_pred.permute(0, 2, 3, 1).reshape(-1, 4)
-
-        if self.loss_bbox_type == 'IoULoss' or self.loss_bbox_type == 'GIoULoss':
-            bbox_pred = transform_boxes(bbox_pred)
-            bbox_targets = transform_boxes(bbox_targets)
-
         loss_bbox = self.loss_bbox(
             bbox_pred,
             bbox_targets,
@@ -383,7 +348,6 @@ class AnchorHead(nn.Module):
             # Add a dummy background class to the front when using sigmoid
             padding = mlvl_scores.new_zeros(mlvl_scores.shape[0], 1)
             mlvl_scores = torch.cat([padding, mlvl_scores], dim=1)
-        pdb.set_trace()
         if nms:
             det_bboxes, det_labels = multiclass_nms(mlvl_bboxes, mlvl_scores,
                                                     cfg.score_thr, cfg.nms,
