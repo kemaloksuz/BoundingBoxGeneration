@@ -30,7 +30,7 @@ model = dict(
         anchor_strides=[8, 16, 32, 64, 128],
         target_means=[.0, .0, .0, .0],
         target_stds=[1.0, 1.0, 1.0, 1.0],
-        filename='./work_dirs/retinanet_x101_fpn/bg_fg.txt',        
+        #filename='./work_dirs/retinanet_x101_fpn/bg_fg.txt',        
         loss_cls=dict(
             type='FocalLoss',
             use_sigmoid=True,
@@ -74,7 +74,16 @@ test_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(
         type='MultiScaleFlipAug',
-        img_scale=(1333, 800),
+        #ratio = 1.6625,
+        #img_scale=[(400*1.6625, 400), (500*1.6625, 500),\
+        #           (600*1.6625, 600), (700*1.6625, 700),\
+        #           (800*1.6625, 800), (900*1.6625, 900),\
+        #           (1000*1.6625, 1000), (1100*1.6625, 1100),\
+        #           (1200*1.6625, 1200)],
+        
+        img_scale = [(400*1.6625, 400), (600*1.6625, 600),\
+                     (800*1.6625, 800), (1000*1.6625, 1000),\
+                     (1200*1.6625, 1200)],
         flip=False,
         transforms=[
             dict(type='Resize', keep_ratio=True),

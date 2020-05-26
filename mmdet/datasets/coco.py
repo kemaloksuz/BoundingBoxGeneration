@@ -11,7 +11,7 @@ from mmdet.core import eval_recalls
 from mmdet.utils import print_log
 from .custom import CustomDataset
 from .registry import DATASETS
-
+import pdb
 
 @DATASETS.register_module
 class CocoDataset(CustomDataset):
@@ -38,7 +38,8 @@ class CocoDataset(CustomDataset):
             cat_id: i + 1
             for i, cat_id in enumerate(self.cat_ids)
         }
-        self.img_ids = self.coco.getImgIds()
+        self.img_ids = self.coco.getImgIds()[:1000]
+        pdb.set_trace()
         img_infos = []
         for i in self.img_ids:
             info = self.coco.loadImgs([i])[0]

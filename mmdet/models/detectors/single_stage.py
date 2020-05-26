@@ -1,10 +1,11 @@
 import torch.nn as nn
-
-from mmdet.core import bbox2result
+import torch
+from mmdet.core import bbox2result, bbox_mapping_back, multiclass_nms
 from .. import builder
 from ..registry import DETECTORS
 from .base import BaseDetector
 
+import pdb
 
 @DETECTORS.register_module
 class SingleStageDetector(BaseDetector):
@@ -48,6 +49,11 @@ class SingleStageDetector(BaseDetector):
         if self.with_neck:
             x = self.neck(x)
         return x
+    
+    def extract_feats(self, imgs):
+        assert isinstance(imgs, list)
+        for img in imgs:
+            yield self.extract_feat(img)
 
     def forward_dummy(self, img):
         """Used for computing network flops.
@@ -76,7 +82,8 @@ class SingleStageDetector(BaseDetector):
     def simple_test(self, img, img_metas, rescale=False):
         x = self.extract_feat(img)
         outs = self.bbox_head(x)
-        bbox_inputs = outs + (img_metas, self.test_cfg, rescale)
+        nms = True
+        bbox_inputs = outs + (img_metas, self.test_cfg, nms, rescale)
         bbox_list = self.bbox_head.get_bboxes(*bbox_inputs)
         bbox_results = [
             bbox2result(det_bboxes, det_labels, self.bbox_head.num_classes)
@@ -84,5 +91,50 @@ class SingleStageDetector(BaseDetector):
         ]
         return bbox_results[0]
 
+    def merge_aug_results(self, aug_bboxes, aug_scores, img_metas):
+        
+        recovered_bboxes = []
+        
+        for bboxes, img_info in zip(aug_bboxes, img_metas):
+            img_shape = img_info[0]['img_shape']
+            scale_factor = img_info[0]['scale_factor']
+            flip=img_info[0]['flip']
+            bboxes = bbox_mapping_back(bboxes, img_shape, scale_factor, flip)
+            recovered_bboxes.append(bboxes)
+        bboxes = torch.cat(recovered_bboxes, dim=0)
+        
+        if aug_scores is None:
+            return bboxes
+        else:
+            scores=torch.cat(aug_scores, dim=0)
+            return bboxes, scores
+    
+    
     def aug_test(self, imgs, img_metas, rescale=False):
-        raise NotImplementedError
+
+        aug_bboxes = []
+        aug_scores = []
+        nms = False
+        for img, img_meta in zip(imgs, img_metas):
+            x = self.extract_feat(img)
+            outs = self.bbox_head(x)
+            bbox_inputs = outs + (img_meta, self.test_cfg, nms, False)
+            det_bboxes, det_scores = self.bbox_head.get_bboxes(*bbox_inputs)[0]
+            aug_bboxes.append(det_bboxes)
+            aug_scores.append(det_scores)
+        
+        merged_bboxes, merged_scores = self.merge_aug_results(aug_bboxes, aug_scores, img_metas)
+        det_bboxes, det_labels = multiclass_nms(merged_bboxes, merged_scores,\
+                                                self.test_cfg.score_thr,
+                                                self.test_cfg.nms,
+                                                self.test_cfg.max_per_img)
+        if rescale:
+            _det_bboxes = det_bboxes
+        else:
+            _det_bboxes = det_bboxes.clone()
+            _det_bboxes[:, :4] = det_bboxes.new_tensor(
+                    img_metas[0][0]['scale_factor'])
+        
+        bbox_results = bbox2result(_det_bboxes, det_labels,
+                                    self.bbox_head.num_classes)
+        return bbox_results

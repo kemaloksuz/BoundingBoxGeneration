@@ -233,6 +233,7 @@ class AnchorHead(nn.Module):
                    bbox_preds,
                    img_metas,
                    cfg,
+                   nms,
                    rescale=False):
         """
         Transform network output for a batch into labeled boxes.
@@ -295,7 +296,7 @@ class AnchorHead(nn.Module):
             scale_factor = img_metas[img_id]['scale_factor']
             proposals = self.get_bboxes_single(cls_score_list, bbox_pred_list,
                                                mlvl_anchors, img_shape,
-                                               scale_factor, cfg, rescale)
+                                               scale_factor, cfg, nms, rescale)
             result_list.append(proposals)
         return result_list
 
@@ -306,6 +307,7 @@ class AnchorHead(nn.Module):
                           img_shape,
                           scale_factor,
                           cfg,
+                          nms,
                           rescale=False):
         """
         Transform outputs for a single batch item into labeled boxes.
@@ -346,7 +348,11 @@ class AnchorHead(nn.Module):
             # Add a dummy background class to the front when using sigmoid
             padding = mlvl_scores.new_zeros(mlvl_scores.shape[0], 1)
             mlvl_scores = torch.cat([padding, mlvl_scores], dim=1)
-        det_bboxes, det_labels = multiclass_nms(mlvl_bboxes, mlvl_scores,
-                                                cfg.score_thr, cfg.nms,
-                                                cfg.max_per_img)
-        return det_bboxes, det_labels
+        pdb.set_trace()
+        if nms:
+            det_bboxes, det_labels = multiclass_nms(mlvl_bboxes, mlvl_scores,
+                                                    cfg.score_thr, cfg.nms,
+                                                    cfg.max_per_img)
+            return det_bboxes, det_labels
+        else:
+            return mlvl_bboxes, mlvl_scores
