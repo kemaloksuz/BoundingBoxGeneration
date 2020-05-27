@@ -36,7 +36,7 @@ model = dict(
             gamma=2.0,
             alpha=0.25,
             loss_weight=2.0),
-        loss_bbox=dict(type='GIoULoss', loss_weight=5.)))
+        loss_bbox=dict(type='L1Loss', loss_weight=0.50)))
 # training and testing settings
 train_cfg = dict(
     assigner=dict(
@@ -126,7 +126,7 @@ log_config = dict(
 total_epochs = 12
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/retinanet_r50_fpn_MaskAwareIoU_GIoULoss_wr5_gn_dcn'
+work_dir = './work_dirs/retinanet_r50_fpn_MaskAwareIoU_gn'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
