@@ -33,15 +33,14 @@ model = dict(
             use_sigmoid=True,
             gamma=2.0,
             alpha=0.25,
-            loss_weight=2.0),
-        loss_bbox=dict(type='L1Loss', loss_weight=1.0)))
+            loss_weight=1.0),
+        loss_bbox=dict(type='SmoothL1Loss', beta=0.11, loss_weight=1.0)))
 # training and testing settings
 train_cfg = dict(
     assigner=dict(
-        type='MaxMaskAwareIoUAssigner',
+        type='MaxIoUAssigner',
         pos_iou_thr=0.50,
-        neg_iou_thr=0.50,
-        maskIOUweight=0.25,
+        neg_iou_thr=0.40,
         min_pos_iou=0,
         ignore_iof_thr=-1),
     allowed_border=-1,
@@ -124,7 +123,7 @@ log_config = dict(
 total_epochs = 12
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/retinanet_r50_fpn_MaskAwareIoU_05_05_WithMax_GammaMask025_B0'
+work_dir = './work_dirs/retinanet_r50_fpn_IoU'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
