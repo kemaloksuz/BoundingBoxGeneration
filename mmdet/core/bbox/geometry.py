@@ -65,7 +65,75 @@ def bbox_overlaps(bboxes1, bboxes2, mode='iou', is_aligned=False):
             ious = overlap / (area1[:, None])
 
     return ious
+def bbox_GIoU_overlaps(bboxes1, bboxes2):
+    rows = bboxes1.size(0)
+    cols = bboxes2.size(0)
 
+    lt = torch.max(bboxes1[:, None, :2], bboxes2[:, :2])  # [rows, cols, 2]
+    rb = torch.min(bboxes1[:, None, 2:], bboxes2[:, 2:])  # [rows, cols, 2]
+
+    wh = (rb - lt + 1).clamp(min=0)  # [rows, cols, 2]
+    overlap = wh[:, :, 0] * wh[:, :, 1]
+    area1 = (bboxes1[:, 2] - bboxes1[:, 0] + 1) * (
+            bboxes1[:, 3] - bboxes1[:, 1] + 1)
+
+    area2 = (bboxes2[:, 2] - bboxes2[:, 0] + 1) * (
+                bboxes2[:, 3] - bboxes2[:, 1] + 1)
+    union =(area1[:, None] + area2 - overlap+ 1e-6)
+    ious = overlap / union
+    
+    # min. enclosing box
+    enclose_x1y1 = torch.min(bboxes1[:, None, :2], bboxes2[:, :2])
+    enclose_x2y2 = torch.max(bboxes1[:, None, 2:], bboxes2[:, 2:])
+    enclose_wh = (enclose_x2y2 - enclose_x1y1 + 1).clamp(min=0)
+    enclose_area = enclose_wh[:,:,0] * enclose_wh[: ,:,1] + 1e-6
+    
+
+    # giou
+    diff_term = (enclose_area - union) / enclose_area
+    gious = ious - diff_term
+    
+    return gious
+
+def bbox_DIoU_overlaps(bboxes1, bboxes2):
+    rows = bboxes1.size(0)
+    cols = bboxes2.size(0)
+
+    lt = torch.max(bboxes1[:, None, :2], bboxes2[:, :2])  # [rows, cols, 2]
+    rb = torch.min(bboxes1[:, None, 2:], bboxes2[:, 2:])  # [rows, cols, 2]
+
+    wh = (rb - lt + 1).clamp(min=0)  # [rows, cols, 2]
+    overlap = wh[:, :, 0] * wh[:, :, 1]
+    area1 = (bboxes1[:, 2] - bboxes1[:, 0] + 1) * (
+            bboxes1[:, 3] - bboxes1[:, 1] + 1)
+
+    area2 = (bboxes2[:, 2] - bboxes2[:, 0] + 1) * (
+                bboxes2[:, 3] - bboxes2[:, 1] + 1)
+    ious = overlap / (area1[:, None] + area2 - overlap+ 1e-6)
+
+    # get pred and gt centers
+    pred_c_x = (bboxes1[:, 0] + bboxes1[:, 2]) / 2
+    pred_c_y = (bboxes1[:, 1] + bboxes1[:, 3]) / 2
+    gt_c_x = (bboxes2[:, 0] + bboxes2[:, 2]) / 2
+    gt_c_y = (bboxes2[:, 1] + bboxes2[:, 3]) / 2
+
+
+
+    # min. enclosing box
+    enclose_x1y1 = torch.min(bboxes1[:, None, :2], bboxes2[:, :2])
+    enclose_x2y2 = torch.max(bboxes1[:, None, 2:], bboxes2[:, 2:])
+    enclose_c = ((enclose_x2y2[:, :, 0] - enclose_x1y1[:, :, 0]) ** 2) + \
+                ((enclose_x2y2[:, :, 1] - enclose_x1y1[:,:, 1]) **2) + 1e-6
+    
+    box_d = ((pred_c_x[:, None] - gt_c_x) ** 2) + \
+            ((pred_c_y[:, None] - gt_c_y) ** 2)
+    
+    # diou
+    diff_term = box_d / enclose_c
+
+    dious = ious - diff_term    
+    return dious
+    
 def integral_image_compute(masks,gt_number,h,w):
     integral_images= [None] * gt_number
     pad_row=torch.zeros([gt_number,1,w]).type(torch.cuda.ByteTensor)

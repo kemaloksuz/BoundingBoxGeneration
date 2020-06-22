@@ -1,4 +1,4 @@
-from .assigners import AssignResult, BaseAssigner, MaxIoUAssigner, MaxSoftIoUAssigner, MaxMaskAwareIoUAssigner, MaxSoftIoUConditionalAssigner
+from .assigners import AssignResult, BaseAssigner, MaxIoUAssigner,MaxDIoUAssigner,MaxGIoUAssigner, MaxSoftIoUAssigner, MaxMaskAwareIoUAssigner, MaxSoftIoUConditionalAssigner
 from .bbox_target import bbox_target
 from .geometry import bbox_overlaps
 from .samplers import (BaseSampler, CombinedSampler,
@@ -12,7 +12,7 @@ from .assign_sampling import (  # isort:skip, avoid recursive imports
     assign_and_sample, build_assigner, build_sampler)
 
 __all__ = [
-    'bbox_overlaps', 'BaseAssigner', 'MaxIoUAssigner', 'MaxSoftIoUAssigner', 'AssignResult',
+    'bbox_overlaps', 'BaseAssigner', 'MaxIoUAssigner','MaxGIoUAssigner', 'MaxDIoUAssigner', 'MaxSoftIoUAssigner', 'AssignResult',
     'BaseSampler', 'PseudoSampler', 'RandomSampler','MaxSoftIoUConditionalAssigner', 'MaxMaskAwareIoUAssigner',
     'InstanceBalancedPosSampler', 'IoUBalancedNegSampler', 'CombinedSampler',
     'SamplingResult', 'build_assigner', 'build_sampler', 'assign_and_sample',
