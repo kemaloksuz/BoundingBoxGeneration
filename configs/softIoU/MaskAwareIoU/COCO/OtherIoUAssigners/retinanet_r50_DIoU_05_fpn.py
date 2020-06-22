@@ -84,8 +84,8 @@ test_pipeline = [
         ])
 ]
 data = dict(
-    imgs_per_gpu=1,
-    workers_per_gpu=1,
+    imgs_per_gpu=2,
+    workers_per_gpu=2,
     train=dict(
         type=dataset_type,
         ann_file=data_root + 'annotations/instances_train2017.json',
@@ -125,7 +125,7 @@ total_epochs = 12
 device_ids = range(8)
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/retinanet_r50_GIoU_fpn'
+work_dir = './work_dirs/retinanet_r50_DIoU_05_fpn'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
