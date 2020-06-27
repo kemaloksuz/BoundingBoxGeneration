@@ -28,7 +28,7 @@ model = dict(
         anchor_strides=[8, 16, 32, 64, 128],
         target_means=[.0, .0, .0, .0],
         target_stds=[1.0, 1.0, 1.0, 1.0],
-        filename='./work_dirs/retinanet_r50_fpn_1x/fg_bg.txt',
+        filename='./work_dirs/retinanet_r101_fpn_1x/bg_fg.txt',        
         loss_cls=dict(
             type='FocalLoss',
             use_sigmoid=True,
@@ -39,9 +39,9 @@ model = dict(
 # training and testing settings
 train_cfg = dict(
     assigner=dict(
-        type='MaxIoUAssigner',
-        pos_iou_thr=0.5,
-        neg_iou_thr=0.4,
+        type='MaxGIoUAssigner',
+        pos_iou_thr=0.45,
+        neg_iou_thr=0.45,
         min_pos_iou=0,
         ignore_iof_thr=-1),
     allowed_border=-1,
@@ -122,9 +122,10 @@ log_config = dict(
 # yapf:enable
 # runtime settings
 total_epochs = 12
+device_ids = range(8)
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/retinanet_r50_fpn_1x'
+work_dir = './work_dirs/retinanet_r50_GIoU_045_fpn'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
