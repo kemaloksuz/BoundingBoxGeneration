@@ -303,9 +303,10 @@ def mask_aware_bbox_overlaps(gt_masks, bboxes1, bboxes2, maskIOUweight=1, thresh
             all_boxes[:,[1,3]]=torch.clamp(all_boxes[:,[1,3]], max=image_h-1)
             overlap[i, larger_ind]=integral_image_fetch(integral_images[i],all_boxes)*norm_factor[i]
         mask_aware_ious = overlap /  union
-        mask_aware_ious=maskIOUweight*mask_aware_ious+(1-maskIOUweight)*ious
+    #    pdb.set_trace()
+        #mask_aware_ious=maskIOUweight*mask_aware_ious+(1-maskIOUweight)*ious
 
     if plot==1:
         cond=np.array([ 0.6, 1, 0., 0.45])
         mask_plotter(mask_aware_ious, ious, gt_masks, bboxes1, bboxes2, cond)
-    return mask_aware_ious    
+    return mask_aware_ious, 1/norm_factor, ious

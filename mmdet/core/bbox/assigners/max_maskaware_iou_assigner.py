@@ -3,7 +3,7 @@ import torch
 from ..geometry import mask_aware_bbox_overlaps, bbox_overlaps
 from .assign_result import AssignResult
 from .base_assigner import BaseAssigner
-
+import pdb
 
 class MaxMaskAwareIoUAssigner(BaseAssigner):
     """Assign a corresponding gt bbox or background to each bbox.
@@ -45,7 +45,7 @@ class MaxMaskAwareIoUAssigner(BaseAssigner):
         self.gt_max_assign_all = gt_max_assign_all
         self.ignore_iof_thr = ignore_iof_thr
         self.ignore_wrt_candidates = ignore_wrt_candidates
-        if self.maskIOUweight<1:
+        if self.maskIOUweight>=0 and self.maskIOUweight<1:
             self.threshold=(self.min_pos_iou-self.maskIOUweight)/(1-self.maskIOUweight)
             if self.threshold<0:
                 self.threshold=0
@@ -81,7 +81,17 @@ class MaxMaskAwareIoUAssigner(BaseAssigner):
             raise ValueError('No gt or bboxes')
         bboxes = bboxes[:, :4]
         #bbox_ious = bbox_overlaps(gt_bboxes, bboxes)
-        overlaps = mask_aware_bbox_overlaps(gt_masks, gt_bboxes, bboxes, self.maskIOUweight, self.threshold)
+        mask_aware_ious, MOB, ious = mask_aware_bbox_overlaps(gt_masks, gt_bboxes, bboxes, self.maskIOUweight, self.threshold)
+        if self.maskIOUweight == -1:
+            mIoU_weight = torch.clamp((1-MOB).unsqueeze(dim=1), 0, 1)
+        elif self.maskIOUweight == -2:
+        	mIoU_weight = torch.clamp((1-MOB*MOB).unsqueeze(dim=1), 0, 1)
+        elif self.maskIOUweight == -3:
+        	mIoU_weight = torch.clamp((-1/3*MOB*MOB-2/3*MOB+1).unsqueeze(dim=1), 0, 1)
+        else:
+        	mIoU_weight = self.maskIOUweight
+
+        overlaps  = mIoU_weight*mask_aware_ious+(1-mIoU_weight)*ious
 
         if (self.ignore_iof_thr > 0) and (gt_bboxes_ignore is not None) and (
                 gt_bboxes_ignore.numel() > 0):
