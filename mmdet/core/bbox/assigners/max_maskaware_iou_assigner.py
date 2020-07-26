@@ -81,17 +81,17 @@ class MaxMaskAwareIoUAssigner(BaseAssigner):
             raise ValueError('No gt or bboxes')
         bboxes = bboxes[:, :4]
         #bbox_ious = bbox_overlaps(gt_bboxes, bboxes)
-        mask_aware_ious, MOB, ious = mask_aware_bbox_overlaps(gt_masks, gt_bboxes, bboxes, self.maskIOUweight, self.threshold)
+        overlaps, MOB, ious = mask_aware_bbox_overlaps(gt_masks, gt_bboxes, bboxes, self.maskIOUweight, self.threshold)
         if self.maskIOUweight == -1:
             mIoU_weight = torch.clamp((1-MOB).unsqueeze(dim=1), 0, 1)
         elif self.maskIOUweight == -2:
         	mIoU_weight = torch.clamp((1-MOB*MOB).unsqueeze(dim=1), 0, 1)
         elif self.maskIOUweight == -3:
-        	mIoU_weight = torch.clamp((-1/3*MOB*MOB-2/3*MOB+1).unsqueeze(dim=1), 0, 1)
+        	mIoU_weight = torch.clamp(((MOB-1)*(MOB-1)).unsqueeze(dim=1), 0, 1)
         else:
         	mIoU_weight = self.maskIOUweight
 
-        overlaps  = mIoU_weight*mask_aware_ious+(1-mIoU_weight)*ious
+        overlaps  = mIoU_weight*overlaps+(1-mIoU_weight)*ious
 
         if (self.ignore_iof_thr > 0) and (gt_bboxes_ignore is not None) and (
                 gt_bboxes_ignore.numel() > 0):
