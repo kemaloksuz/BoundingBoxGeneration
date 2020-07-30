@@ -35,6 +35,7 @@ class MaxMaskAwareIoUAssigner(BaseAssigner):
                  neg_iou_thr,
                  min_pos_iou=.0,
                  maskIOUweight=1,
+                 minMOB=0,
                  gt_max_assign_all=True,
                  ignore_iof_thr=-1,
                  ignore_wrt_candidates=True):
@@ -45,6 +46,7 @@ class MaxMaskAwareIoUAssigner(BaseAssigner):
         self.gt_max_assign_all = gt_max_assign_all
         self.ignore_iof_thr = ignore_iof_thr
         self.ignore_wrt_candidates = ignore_wrt_candidates
+        self.minMOB = minMOB
         if self.maskIOUweight>=0 and self.maskIOUweight<1:
             self.threshold=(self.min_pos_iou-self.maskIOUweight)/(1-self.maskIOUweight)
             if self.threshold<0:
@@ -92,6 +94,7 @@ class MaxMaskAwareIoUAssigner(BaseAssigner):
         	mIoU_weight = self.maskIOUweight
 
         overlaps  = mIoU_weight*overlaps+(1-mIoU_weight)*ious
+        overlaps[MOB < self.minMOB, :] = -1
 
         if (self.ignore_iof_thr > 0) and (gt_bboxes_ignore is not None) and (
                 gt_bboxes_ignore.numel() > 0):
