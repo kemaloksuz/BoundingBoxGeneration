@@ -2,23 +2,19 @@ import argparse
 import copy
 import os
 import os.path as osp
-import shutil
-import tempfile
 
 import mmcv
-import numpy as np
 import torch
-import torch.distributed as dist
 from mmcv.parallel import MMDataParallel, MMDistributedDataParallel
-from mmcv.runner import get_dist_info, load_checkpoint
+from mmcv.runner import (get_dist_info, init_dist, load_checkpoint,
+                         wrap_fp16_model)
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 from robustness_eval import get_results
 
 from mmdet import datasets
-from mmdet.apis import init_dist, set_random_seed
-from mmdet.core import (eval_map, fast_eval_recall, results2json,
-                        wrap_fp16_model)
+from mmdet.apis import multi_gpu_test, set_random_seed, single_gpu_test
+from mmdet.core import eval_map
 from mmdet.datasets import build_dataloader, build_dataset
 from mmdet.models import build_detector
 
@@ -28,19 +24,11 @@ def coco_eval_with_return(result_files,
                           coco,
                           max_dets=(100, 300, 1000)):
     for res_type in result_types:
-        assert res_type in [
-            'proposal', 'proposal_fast', 'bbox', 'segm', 'keypoints'
-        ]
+        assert res_type in ['proposal', 'bbox', 'segm', 'keypoints']
 
     if mmcv.is_str(coco):
         coco = COCO(coco)
     assert isinstance(coco, COCO)
-
-    if result_types == ['proposal_fast']:
-        ar = fast_eval_recall(result_files, coco, np.array(max_dets))
-        for i, num in enumerate(max_dets):
-            print('AR@{}\t= {:.4f}'.format(num, ar[i]))
-        return
 
     eval_results = {}
     for res_type in result_types:
@@ -76,41 +64,21 @@ def coco_eval_with_return(result_files,
 def voc_eval_with_return(result_file,
                          dataset,
                          iou_thr=0.5,
-                         print_summary=True,
+                         logger='print',
                          only_ap=True):
     det_results = mmcv.load(result_file)
-    gt_bboxes = []
-    gt_labels = []
-    gt_ignore = []
-    for i in range(len(dataset)):
-        ann = dataset.get_ann_info(i)
-        bboxes = ann['bboxes']
-        labels = ann['labels']
-        if 'bboxes_ignore' in ann:
-            ignore = np.concatenate([
-                np.zeros(bboxes.shape[0], dtype=np.bool),
-                np.ones(ann['bboxes_ignore'].shape[0], dtype=np.bool)
-            ])
-            gt_ignore.append(ignore)
-            bboxes = np.vstack([bboxes, ann['bboxes_ignore']])
-            labels = np.concatenate([labels, ann['labels_ignore']])
-        gt_bboxes.append(bboxes)
-        gt_labels.append(labels)
-    if not gt_ignore:
-        gt_ignore = gt_ignore
+    annotations = [dataset.get_ann_info(i) for i in range(len(dataset))]
     if hasattr(dataset, 'year') and dataset.year == 2007:
         dataset_name = 'voc07'
     else:
         dataset_name = dataset.CLASSES
     mean_ap, eval_results = eval_map(
         det_results,
-        gt_bboxes,
-        gt_labels,
-        gt_ignore=gt_ignore,
+        annotations,
         scale_ranges=None,
         iou_thr=iou_thr,
         dataset=dataset_name,
-        print_summary=print_summary)
+        logger=logger)
 
     if only_ap:
         eval_results = [{
@@ -118,90 +86,6 @@ def voc_eval_with_return(result_file,
         } for i in range(len(eval_results))]
 
     return mean_ap, eval_results
-
-
-def single_gpu_test(model, data_loader, show=False):
-    model.eval()
-    results = []
-    dataset = data_loader.dataset
-    prog_bar = mmcv.ProgressBar(len(dataset))
-    for i, data in enumerate(data_loader):
-        with torch.no_grad():
-            result = model(return_loss=False, rescale=not show, **data)
-        results.append(result)
-
-        if show:
-            model.module.show_result(data, result, dataset.img_norm_cfg)
-
-        batch_size = data['img'][0].size(0)
-        for _ in range(batch_size):
-            prog_bar.update()
-    return results
-
-
-def multi_gpu_test(model, data_loader, tmpdir=None):
-    model.eval()
-    results = []
-    dataset = data_loader.dataset
-    rank, world_size = get_dist_info()
-    if rank == 0:
-        prog_bar = mmcv.ProgressBar(len(dataset))
-    for i, data in enumerate(data_loader):
-        with torch.no_grad():
-            result = model(return_loss=False, rescale=True, **data)
-        results.append(result)
-
-        if rank == 0:
-            batch_size = data['img'][0].size(0)
-            for _ in range(batch_size * world_size):
-                prog_bar.update()
-
-    # collect results from all ranks
-    results = collect_results(results, len(dataset), tmpdir)
-
-    return results
-
-
-def collect_results(result_part, size, tmpdir=None):
-    rank, world_size = get_dist_info()
-    # create a tmp dir if it is not specified
-    if tmpdir is None:
-        MAX_LEN = 512
-        # 32 is whitespace
-        dir_tensor = torch.full((MAX_LEN, ),
-                                32,
-                                dtype=torch.uint8,
-                                device='cuda')
-        if rank == 0:
-            tmpdir = tempfile.mkdtemp()
-            tmpdir = torch.tensor(
-                bytearray(tmpdir.encode()), dtype=torch.uint8, device='cuda')
-            dir_tensor[:len(tmpdir)] = tmpdir
-        dist.broadcast(dir_tensor, 0)
-        tmpdir = dir_tensor.cpu().numpy().tobytes().decode().rstrip()
-    else:
-        mmcv.mkdir_or_exist(tmpdir)
-    # dump the part result to the dir
-    mmcv.dump(result_part, osp.join(tmpdir, 'part_{}.pkl'.format(rank)))
-    dist.barrier()
-    # collect all parts
-    if rank != 0:
-        return None
-    else:
-        # load results of all parts from tmp dir
-        part_list = []
-        for i in range(world_size):
-            part_file = osp.join(tmpdir, 'part_{}.pkl'.format(i))
-            part_list.append(mmcv.load(part_file))
-        # sort the results
-        ordered_results = []
-        for res in zip(*part_list):
-            ordered_results.extend(list(res))
-        # the dataloader may pad some samples
-        ordered_results = ordered_results[:size]
-        # remove tmp dir
-        shutil.rmtree(tmpdir)
-        return ordered_results
 
 
 def parse_args():
@@ -248,6 +132,13 @@ def parse_args():
     parser.add_argument(
         '--workers', type=int, default=32, help='workers per gpu')
     parser.add_argument('--show', action='store_true', help='show results')
+    parser.add_argument(
+        '--show-dir', help='directory where painted images will be saved')
+    parser.add_argument(
+        '--show-score-thr',
+        type=float,
+        default=0.3,
+        help='score threshold (default: 0.3)')
     parser.add_argument('--tmpdir', help='tmp dir for writing some results')
     parser.add_argument('--seed', type=int, default=None, help='random seed')
     parser.add_argument(
@@ -278,14 +169,18 @@ def parse_args():
 def main():
     args = parse_args()
 
-    assert args.out or args.show, \
+    assert args.out or args.show or args.show_dir, \
         ('Please specify at least one operation (save or show the results) '
-         'with the argument "--out" or "--show"')
+         'with the argument "--out", "--show" or "show-dir"')
 
     if args.out is not None and not args.out.endswith(('.pkl', '.pickle')):
         raise ValueError('The output file must be a pkl file.')
 
     cfg = mmcv.Config.fromfile(args.config)
+    # import modules from string list.
+    if cfg.get('custom_imports', None):
+        from mmcv.utils import import_modules_from_strings
+        import_modules_from_strings(**cfg['custom_imports'])
     # set cudnn_benchmark
     if cfg.get('cudnn_benchmark', False):
         torch.backends.cudnn.benchmark = True
@@ -340,6 +235,7 @@ def main():
     else:
         corruptions = args.corruptions
 
+    rank, _ = get_dist_info()
     aggregated_results = {}
     for corr_i, corruption in enumerate(corruptions):
         aggregated_results[corruption] = {}
@@ -350,9 +246,9 @@ def main():
                     aggregated_results[corruptions[0]][0]
                 continue
 
+            test_data_cfg = copy.deepcopy(cfg.data.test)
             # assign corruption and severity
             if corruption_severity > 0:
-                test_data_cfg = copy.deepcopy(cfg.data.test)
                 corruption_trans = dict(
                     type='Corrupt',
                     corruption=corruption,
@@ -362,16 +258,15 @@ def main():
                 test_data_cfg['pipeline'].insert(1, corruption_trans)
 
             # print info
-            print('\nTesting {} at severity {}'.format(corruption,
-                                                       corruption_severity))
+            print(f'\nTesting {corruption} at severity {corruption_severity}')
 
             # build the dataloader
             # TODO: support multiple images per gpu
             #       (only minor changes are needed)
-            dataset = build_dataset(cfg.data.test)
+            dataset = build_dataset(test_data_cfg)
             data_loader = build_dataloader(
                 dataset,
-                imgs_per_gpu=1,
+                samples_per_gpu=1,
                 workers_per_gpu=args.workers,
                 dist=distributed,
                 shuffle=False)
@@ -393,12 +288,21 @@ def main():
 
             if not distributed:
                 model = MMDataParallel(model, device_ids=[0])
-                outputs = single_gpu_test(model, data_loader, args.show)
+                show_dir = args.show_dir
+                if show_dir is not None:
+                    show_dir = osp.join(show_dir, corruption)
+                    show_dir = osp.join(show_dir, str(corruption_severity))
+                    if not osp.exists(show_dir):
+                        osp.makedirs(show_dir)
+                outputs = single_gpu_test(model, data_loader, args.show,
+                                          show_dir, args.show_score_thr)
             else:
-                model = MMDistributedDataParallel(model.cuda())
+                model = MMDistributedDataParallel(
+                    model.cuda(),
+                    device_ids=[torch.cuda.current_device()],
+                    broadcast_buffers=False)
                 outputs = multi_gpu_test(model, data_loader, args.tmpdir)
 
-            rank, _ = get_dist_info()
             if args.out and rank == 0:
                 eval_results_filename = (
                     osp.splitext(args.out)[0] + '_results' +
@@ -411,10 +315,11 @@ def main():
                             if eval_type == 'bbox':
                                 test_dataset = mmcv.runner.obj_from_dict(
                                     cfg.data.test, datasets)
+                                logger = 'print' if args.summaries else None
                                 mean_ap, eval_results = \
                                     voc_eval_with_return(
                                         args.out, test_dataset,
-                                        args.iou_thr, args.summaries)
+                                        args.iou_thr, logger)
                                 aggregated_results[corruption][
                                     corruption_severity] = eval_results
                             else:
@@ -422,22 +327,21 @@ def main():
                                 is supported for pascal voc')
                 else:
                     if eval_types:
-                        print('Starting evaluate {}'.format(
-                            ' and '.join(eval_types)))
+                        print(f'Starting evaluate {" and ".join(eval_types)}')
                         if eval_types == ['proposal_fast']:
                             result_file = args.out
                         else:
                             if not isinstance(outputs[0], dict):
-                                result_files = results2json(
-                                    dataset, outputs, args.out)
+                                result_files = dataset.results2json(
+                                    outputs, args.out)
                             else:
                                 for name in outputs[0]:
-                                    print('\nEvaluating {}'.format(name))
+                                    print(f'\nEvaluating {name}')
                                     outputs_ = [out[name] for out in outputs]
                                     result_file = args.out
-                                    + '.{}'.format(name)
-                                    result_files = results2json(
-                                        dataset, outputs_, result_file)
+                                    + f'.{name}'
+                                    result_files = dataset.results2json(
+                                        outputs_, result_file)
                         eval_results = coco_eval_with_return(
                             result_files, eval_types, dataset.coco)
                         aggregated_results[corruption][
@@ -446,26 +350,27 @@ def main():
                         print('\nNo task was selected for evaluation;'
                               '\nUse --eval to select a task')
 
-            # save results after each evaluation
-            mmcv.dump(aggregated_results, eval_results_filename)
+                # save results after each evaluation
+                mmcv.dump(aggregated_results, eval_results_filename)
 
-    # print filan results
-    print('\nAggregated results:')
-    prints = args.final_prints
-    aggregate = args.final_prints_aggregate
+    if rank == 0:
+        # print filan results
+        print('\nAggregated results:')
+        prints = args.final_prints
+        aggregate = args.final_prints_aggregate
 
-    if cfg.dataset_type == 'VOCDataset':
-        get_results(
-            eval_results_filename,
-            dataset='voc',
-            prints=prints,
-            aggregate=aggregate)
-    else:
-        get_results(
-            eval_results_filename,
-            dataset='coco',
-            prints=prints,
-            aggregate=aggregate)
+        if cfg.dataset_type == 'VOCDataset':
+            get_results(
+                eval_results_filename,
+                dataset='voc',
+                prints=prints,
+                aggregate=aggregate)
+        else:
+            get_results(
+                eval_results_filename,
+                dataset='coco',
+                prints=prints,
+                aggregate=aggregate)
 
 
 if __name__ == '__main__':
